@@ -1,0 +1,16 @@
+AGENTS.md
+
+# Local environment files
+.env
+.env.*
+
+# Build outputs
+/cordell
+/bin/
+/dist/
+/tmp/
+
+# Test and coverage outputs
+*.test
+coverage.out
+coverage.html
