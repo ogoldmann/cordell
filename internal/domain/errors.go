@@ -26,5 +26,4 @@ var (
 
 	// ErrInvalidQuantity is returned when a quantity is zero or negative.
 	ErrInvalidQuantity = errors.New("quantity must be greater than zero")
-
 )
