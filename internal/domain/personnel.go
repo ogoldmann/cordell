@@ -30,6 +30,24 @@ func NewPersonnel(id PersonnelID, fullName string) (Personnel, error) {
 	}, nil
 }
 
+// ReconstitutePersonnel rebuilds a Personnel from persisted state.
+func ReconstitutePersonnel(id PersonnelID, fullName string, active bool) (Personnel, error) {
+	if id == "" {
+		return Personnel{}, ErrEmptyPersonnelID
+	}
+
+	fullName = strings.TrimSpace(fullName)
+	if fullName == "" {
+		return Personnel{}, ErrEmptyPersonnelName
+	}
+
+	return Personnel{
+		id:       id,
+		fullName: fullName,
+		active:   active,
+	}, nil
+}
+
 // ID returns the personnel identifier.
 func (p Personnel) ID() PersonnelID {
 	return p.id

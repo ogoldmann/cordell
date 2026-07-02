@@ -26,4 +26,7 @@ var (
 
 	// ErrInvalidQuantity is returned when a quantity is zero or negative.
 	ErrInvalidQuantity = errors.New("quantity must be greater than zero")
+
+	// ErrInsufficientCustodyBalance is returned when a return exceeds the current custody quantity.
+	ErrInsufficientCustodyBalance = errors.New("insufficient custody balance")
 )

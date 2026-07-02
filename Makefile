@@ -34,3 +34,7 @@ test:
 .PHONY: fmt
 fmt:
 	gofmt -w .
+
+.PHONY: sqlc-g
+sqlc-generate:
+	sqlc generate

@@ -162,7 +162,7 @@ func (s *RegisterReturnService) Execute(
 		}
 
 		if currentQuantity < quantity.Int() {
-			return domain.CustodyTransaction{}, ErrInsufficientCustodyBalance
+			return domain.CustodyTransaction{}, domain.ErrInsufficientCustodyBalance
 		}
 
 		lines = append(lines, line)

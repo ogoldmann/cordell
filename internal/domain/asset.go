@@ -30,6 +30,24 @@ func NewAsset(id AssetID, name string) (Asset, error) {
 	}, nil
 }
 
+// ReconstituteAsset rebuilds an Asset from persisted state.
+func ReconstituteAsset(id AssetID, name string, active bool) (Asset, error) {
+	if id == "" {
+		return Asset{}, ErrEmptyAssetID
+	}
+
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return Asset{}, ErrEmptyAssetName
+	}
+
+	return Asset{
+		id:     id,
+		name:   name,
+		active: active,
+	}, nil
+}
+
 // ID returns the asset identifier.
 func (a Asset) ID() AssetID {
 	return a.id

@@ -74,3 +74,25 @@ Stop PostgreSQL:
 ```bash
 make db-down
 ```
+
+## SQLC
+
+Generate PostgreSQL query code:
+
+```bash
+make sqlc-generate
+```
+
+SQL queries live in:
+
+```bash
+internal/infra/postgres/queries
+```
+
+Generated code lives in:
+
+```bash
+internal/infra/postgres/db
+```
+
+Do not edit generated files manually.

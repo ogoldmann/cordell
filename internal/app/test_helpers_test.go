@@ -2,14 +2,12 @@ package app
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 
 	"cordell/internal/domain"
+	"cordell/internal/ports"
 )
-
-var errNotFound = errors.New("not found")
 
 type fixedIDGenerator struct {
 	id string
@@ -39,7 +37,7 @@ func (r *fakePersonnelRepository) Save(_ context.Context, personnel domain.Perso
 func (r *fakePersonnelRepository) FindByID(_ context.Context, id domain.PersonnelID) (domain.Personnel, error) {
 	personnel, ok := r.byID[id]
 	if !ok {
-		return domain.Personnel{}, errNotFound
+		return domain.Personnel{}, ports.ErrNotFound
 	}
 
 	return personnel, nil
@@ -65,7 +63,7 @@ func (r *fakeAssetRepository) Save(_ context.Context, asset domain.Asset) error 
 func (r *fakeAssetRepository) FindByID(_ context.Context, id domain.AssetID) (domain.Asset, error) {
 	asset, ok := r.byID[id]
 	if !ok {
-		return domain.Asset{}, errNotFound
+		return domain.Asset{}, ports.ErrNotFound
 	}
 
 	return asset, nil

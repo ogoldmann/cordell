@@ -204,7 +204,7 @@ func TestRegisterReturnServiceRejectsInsufficientCustodyBalance(t *testing.T) {
 			},
 		},
 	})
-	if err != ErrInsufficientCustodyBalance {
+	if err != domain.ErrInsufficientCustodyBalance {
 		t.Fatalf("expected ErrInsufficientCustodyBalance, got %v", err)
 	}
 
