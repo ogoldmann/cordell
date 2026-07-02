@@ -48,3 +48,29 @@ The project is organized around explicit responsibilities:
 - `internal/security`: security-related services
 - `migrations`: database migrations
 - `docs`: project documentation and architecture decisions
+
+## Local Database
+
+Start PostgreSQL:
+
+```bash
+make db-up
+```
+
+Run migrations:
+
+```bash
+make migrate-up
+```
+
+Check migration status:
+
+```bash
+make migrate-status
+```
+
+Stop PostgreSQL:
+
+```bash
+make db-down
+```

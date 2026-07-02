@@ -2,7 +2,8 @@ AGENTS.md
 
 # Local environment files
 .env
-.env.*
+.env.local
+.env.*.local
 
 # Build outputs
 /cordell
