@@ -1,0 +1,35 @@
+{{define "personnel_new.html"}}
+{{template "layout_start" .}}
+
+<section class="page-header">
+  <p class="eyebrow">Personnel</p>
+  <h1>Create personnel</h1>
+  <p class="muted">Register a person who can receive assets under custody.</p>
+</section>
+
+{{if .Error}}
+  <div class="alert alert-error">
+    {{.Error}}
+  </div>
+{{end}}
+
+<form class="card form" method="post" action="/personnel">
+  <div class="form-group">
+    <label for="full_name">Full name</label>
+    <input
+      id="full_name"
+      name="full_name"
+      type="text"
+      value="{{.FullName}}"
+      autocomplete="off"
+      required
+    >
+  </div>
+
+  <div class="actions">
+    <button type="submit">Create personnel</button>
+  </div>
+</form>
+
+{{template "layout_end" .}}
+{{end}}

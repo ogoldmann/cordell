@@ -13,22 +13,34 @@ import (
 type Server struct {
 	logger   *slog.Logger
 	services app.Services
+	renderer *Renderer
 }
 
 // NewServer creates a Server with its required dependencies.
-func NewServer(logger *slog.Logger, services app.Services) *Server {
+func NewServer(logger *slog.Logger, services app.Services) (*Server, error) {
+	renderer, err := NewRenderer()
+	if err != nil {
+		return nil, err
+	}
+
 	return &Server{
 		logger:   logger,
 		services: services,
-	}
+		renderer: renderer,
+	}, nil
 }
 
 // Routes builds and returns the application's HTTP handler tree.
 func (s *Server) Routes() http.Handler {
 	router := chi.NewRouter()
 
+	router.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
 	router.Get("/health", s.handleHealthCheck)
 
+	router.Get("/personnel/new", s.handleNewPersonnelForm)
+	router.Post("/personnel", s.handleCreatePersonnel)
+	router.Get("/personnel/{id}", s.handleShowPersonnel)
 	return router
 }
 

@@ -49,3 +49,29 @@ func (s *CreatePersonnelService) Execute(ctx context.Context, cmd CreatePersonne
 
 	return personnel, nil
 }
+
+// GetPersonnelCommand contains the input data required to retrieve personnel.
+type GetPersonnelCommand struct {
+	ID domain.PersonnelID
+}
+
+// GetPersonnelService handles the personnel retrieval use case.
+type GetPersonnelService struct {
+	personnelRepository ports.PersonnelRepository
+}
+
+// NewGetPersonnelService creates a GetPersonnelService with its dependencies.
+func NewGetPersonnelService(personnelRepository ports.PersonnelRepository) *GetPersonnelService {
+	return &GetPersonnelService{
+		personnelRepository: personnelRepository,
+	}
+}
+
+// Execute retrieves a personnel record by identifier.
+func (s *GetPersonnelService) Execute(ctx context.Context, cmd GetPersonnelCommand) (domain.Personnel, error) {
+	if cmd.ID == "" {
+		return domain.Personnel{}, domain.ErrEmptyPersonnelID
+	}
+
+	return s.personnelRepository.FindByID(ctx, cmd.ID)
+}

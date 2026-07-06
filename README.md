@@ -133,3 +133,19 @@ Expected response:
 Cordell uses ULIDs for application-generated identifiers.
 
 ULIDs are stored as text and are used for records such as personnel, assets, and custody transactions.
+
+## First Web Flow
+
+Start the application:
+
+```bash
+make run
+```
+
+Open:
+
+```bash
+http://localhost:8080/personnel/new
+```
+
+This page creates a real personnel record in PostgreSQL and redirects to the created personnel detail page.

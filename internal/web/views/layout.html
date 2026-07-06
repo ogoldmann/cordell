@@ -1,0 +1,27 @@
+{{define "layout_start"}}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}} · Cordell</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="container">
+      <a class="brand" href="/">Cordell</a>
+      <nav class="nav">
+        <a href="/personnel/new">New Personnel</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container main">
+{{end}}
+
+{{define "layout_end"}}
+  </main>
+</body>
+</html>
+{{end}}

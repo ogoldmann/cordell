@@ -50,3 +50,42 @@ func TestCreatePersonnelServiceRejectsInvalidPersonnel(t *testing.T) {
 		t.Fatalf("expected no saved personnel, got %d", len(repository.saved))
 	}
 }
+
+func TestGetPersonnelServiceExecute(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+
+	repository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+
+	service := NewGetPersonnelService(repository)
+
+	found, err := service.Execute(context.Background(), GetPersonnelCommand{
+		ID: "personnel-1",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if found.ID() != "personnel-1" {
+		t.Fatalf("expected personnel id personnel-1, got %s", found.ID())
+	}
+
+	if found.FullName() != "John Doe" {
+		t.Fatalf("expected personnel name John Doe, got %s", found.FullName())
+	}
+}
+
+func TestGetPersonnelServiceRejectsEmptyID(t *testing.T) {
+	repository := &fakePersonnelRepository{}
+	service := NewGetPersonnelService(repository)
+
+	_, err := service.Execute(context.Background(), GetPersonnelCommand{
+		ID: "",
+	})
+	if err != domain.ErrEmptyPersonnelID {
+		t.Fatalf("expected ErrEmptyPersonnelID, got %v", err)
+	}
+}

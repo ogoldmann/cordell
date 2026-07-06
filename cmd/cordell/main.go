@@ -47,6 +47,9 @@ func main() {
 			personnelRepository,
 			idGenerator,
 		),
+		GetPersonnel: app.NewGetPersonnelService(
+			personnelRepository,
+		),
 		CreateAsset: app.NewCreateAssetService(
 			assetRepository,
 			idGenerator,
@@ -65,7 +68,11 @@ func main() {
 		),
 	}
 
-	server := web.NewServer(logger, services)
+	server, err := web.NewServer(logger, services)
+	if err != nil {
+		logger.Error("failed to create web server", "error", err)
+		os.Exit(1)
+	}
 
 	logger.Info("starting Cordell HTTP server", "address", cfg.HTTPAddress)
 
