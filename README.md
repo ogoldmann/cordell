@@ -165,3 +165,19 @@ http://localhost:8080/personnel/new
 ```
 
 After creation, Cordell redirects to the created personnel detail page.
+
+## Asset Flow
+
+List assets:
+
+```bash
+http://localhost:8080/assets
+```
+
+Create asset:
+
+```bash
+http://localhost:8080/assets/new
+```
+
+After creation, Cordell redirects to the created asset detail page.

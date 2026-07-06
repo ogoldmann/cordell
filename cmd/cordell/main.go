@@ -57,6 +57,12 @@ func main() {
 			assetRepository,
 			idGenerator,
 		),
+		GetAsset: app.NewGetAssetService(
+			assetRepository,
+		),
+		ListAssets: app.NewListAssetsService(
+			assetRepository,
+		),
 		RegisterCheckout: app.NewRegisterCheckoutService(
 			personnelRepository,
 			assetRepository,

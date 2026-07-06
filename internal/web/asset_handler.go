@@ -1,0 +1,171 @@
+package web
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+
+	"cordell/internal/app"
+	"cordell/internal/domain"
+	"cordell/internal/ports"
+
+	"github.com/go-chi/chi/v5"
+)
+
+type assetIndexPageData struct {
+	Title  string
+	Assets []assetView
+}
+
+type assetNewPageData struct {
+	Title string
+	Error string
+	Name  string
+}
+
+type assetShowPageData struct {
+	Title string
+	Asset assetView
+}
+
+type assetView struct {
+	ID     string
+	Name   string
+	Active bool
+}
+
+func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
+	assets, err := s.services.ListAssets.Execute(r.Context(), app.ListAssetsCommand{
+		Limit: 50,
+	})
+	if err != nil {
+		s.logger.Error("failed to list assets", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	data := assetIndexPageData{
+		Title:  "Assets",
+		Assets: make([]assetView, 0, len(assets)),
+	}
+
+	for _, item := range assets {
+		data.Assets = append(data.Assets, assetView{
+			ID:     string(item.ID()),
+			Name:   item.Name(),
+			Active: item.Active(),
+		})
+	}
+
+	if err := s.renderer.Render(w, http.StatusOK, "assets_index.html", data); err != nil {
+		s.handleRenderError(w, err)
+	}
+}
+
+func (s *Server) handleNewAssetForm(w http.ResponseWriter, r *http.Request) {
+	data := assetNewPageData{
+		Title: "Create asset",
+	}
+
+	if err := s.renderer.Render(w, http.StatusOK, "assets_new.html", data); err != nil {
+		s.handleRenderError(w, err)
+	}
+}
+
+func (s *Server) handleCreateAsset(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		s.renderNewAssetFormWithError(
+			w,
+			http.StatusBadRequest,
+			"Invalid form submission.",
+			"",
+		)
+		return
+	}
+
+	name := r.FormValue("name")
+
+	asset, err := s.services.CreateAsset.Execute(r.Context(), app.CreateAssetCommand{
+		Name: name,
+	})
+	if err != nil {
+		s.renderNewAssetFormWithError(
+			w,
+			http.StatusBadRequest,
+			humanizeAssetError(err),
+			name,
+		)
+		return
+	}
+
+	http.Redirect(
+		w,
+		r,
+		fmt.Sprintf("/assets/%s", asset.ID()),
+		http.StatusSeeOther,
+	)
+}
+
+func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
+	id := domain.AssetID(chi.URLParam(r, "id"))
+
+	asset, err := s.services.GetAsset.Execute(r.Context(), app.GetAssetCommand{
+		ID: id,
+	})
+	if err != nil {
+		if errors.Is(err, ports.ErrNotFound) {
+			http.NotFound(w, r)
+			return
+		}
+
+		if errors.Is(err, domain.ErrEmptyAssetID) {
+			http.NotFound(w, r)
+			return
+		}
+
+		s.logger.Error("failed to show asset", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	data := assetShowPageData{
+		Title: asset.Name(),
+		Asset: assetView{
+			ID:     string(asset.ID()),
+			Name:   asset.Name(),
+			Active: asset.Active(),
+		},
+	}
+
+	if err := s.renderer.Render(w, http.StatusOK, "assets_show.html", data); err != nil {
+		s.handleRenderError(w, err)
+	}
+}
+
+func (s *Server) renderNewAssetFormWithError(
+	w http.ResponseWriter,
+	status int,
+	message string,
+	name string,
+) {
+	data := assetNewPageData{
+		Title: "Create asset",
+		Error: message,
+		Name:  name,
+	}
+
+	if err := s.renderer.Render(w, status, "assets_new.html", data); err != nil {
+		s.handleRenderError(w, err)
+	}
+}
+
+func humanizeAssetError(err error) string {
+	switch {
+	case errors.Is(err, domain.ErrEmptyAssetName):
+		return "Asset name is required."
+	case errors.Is(err, domain.ErrEmptyAssetID):
+		return "Asset ID is required."
+	default:
+		return "Could not create asset."
+	}
+}

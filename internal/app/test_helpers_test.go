@@ -88,6 +88,24 @@ func (r *fakeAssetRepository) FindByID(_ context.Context, id domain.AssetID) (do
 	return asset, nil
 }
 
+func (r *fakeAssetRepository) List(_ context.Context, limit int) ([]domain.Asset, error) {
+	assets := make([]domain.Asset, 0, len(r.byID))
+
+	for _, item := range r.byID {
+		assets = append(assets, item)
+	}
+
+	sort.Slice(assets, func(i, j int) bool {
+		return assets[i].ID() < assets[j].ID()
+	})
+
+	if limit > 0 && len(assets) > limit {
+		return assets[:limit], nil
+	}
+
+	return assets, nil
+}
+
 type fakeCustodyRepository struct {
 	saved           []domain.CustodyTransaction
 	currentQuantity map[string]int

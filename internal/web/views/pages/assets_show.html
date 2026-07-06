@@ -1,0 +1,35 @@
+{{define "assets_show.html"}}
+{{template "layout_start" .}}
+
+<section class="page-header">
+  <p class="eyebrow">Assets</p>
+  <h1>{{.Asset.Name}}</h1>
+  <p class="muted">Asset record created successfully.</p>
+</section>
+
+<div class="card details">
+  <dl>
+    <div>
+      <dt>ID</dt>
+      <dd>{{.Asset.ID}}</dd>
+    </div>
+
+    <div>
+      <dt>Name</dt>
+      <dd>{{.Asset.Name}}</dd>
+    </div>
+
+    <div>
+      <dt>Active</dt>
+      <dd>{{.Asset.Active}}</dd>
+    </div>
+  </dl>
+</div>
+
+<div class="actions">
+  <a class="button-secondary" href="/assets">Back to assets</a>
+  <a class="button-secondary" href="/assets/new">Create another asset</a>
+</div>
+
+{{template "layout_end" .}}
+{{end}}

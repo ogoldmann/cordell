@@ -59,3 +59,36 @@ func (q *Queries) GetAsset(ctx context.Context, id string) (Asset, error) {
 	)
 	return i, err
 }
+
+const listAssets = `-- name: ListAssets :many
+SELECT id, name, active, created_at, updated_at
+FROM assets
+ORDER BY created_at DESC, id DESC
+LIMIT $1
+`
+
+func (q *Queries) ListAssets(ctx context.Context, limitCount int32) ([]Asset, error) {
+	rows, err := q.db.Query(ctx, listAssets, limitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Asset{}
+	for rows.Next() {
+		var i Asset
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Active,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

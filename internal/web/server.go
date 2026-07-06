@@ -42,6 +42,12 @@ func (s *Server) Routes() http.Handler {
 	router.Get("/personnel/new", s.handleNewPersonnelForm)
 	router.Post("/personnel", s.handleCreatePersonnel)
 	router.Get("/personnel/{id}", s.handleShowPersonnel)
+
+	router.Get("/assets", s.handleListAssets)
+	router.Get("/assets/new", s.handleNewAssetForm)
+	router.Post("/assets", s.handleCreateAsset)
+	router.Get("/assets/{id}", s.handleShowAsset)
+
 	return router
 }
 

@@ -41,3 +41,42 @@ func TestPostgresAssetRepositoryCreateAndFind(t *testing.T) {
 		t.Fatal("expected asset to be active")
 	}
 }
+
+func TestPostgresAssetRepositoryList(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	assetRepository := postgres.NewAssetRepository(queries)
+
+	firstService := app.NewCreateAssetService(
+		assetRepository,
+		fixedIDGenerator{id: "asset-1"},
+	)
+	secondService := app.NewCreateAssetService(
+		assetRepository,
+		fixedIDGenerator{id: "asset-2"},
+	)
+
+	_, err := firstService.Execute(context.Background(), app.CreateAssetCommand{
+		Name: "Radio",
+	})
+	if err != nil {
+		t.Fatalf("expected no error creating first asset, got %v", err)
+	}
+
+	_, err = secondService.Execute(context.Background(), app.CreateAssetCommand{
+		Name: "Battery",
+	})
+	if err != nil {
+		t.Fatalf("expected no error creating second asset, got %v", err)
+	}
+
+	assets, err := assetRepository.List(context.Background(), 10)
+	if err != nil {
+		t.Fatalf("expected no error listing assets, got %v", err)
+	}
+
+	if len(assets) != 2 {
+		t.Fatalf("expected 2 asset records, got %d", len(assets))
+	}
+}

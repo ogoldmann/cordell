@@ -1,0 +1,35 @@
+{{define "assets_new.html"}}
+{{template "layout_start" .}}
+
+<section class="page-header">
+  <p class="eyebrow">Assets</p>
+  <h1>Create asset</h1>
+  <p class="muted">Register a material or item that can be assigned under custody.</p>
+</section>
+
+{{if .Error}}
+  <div class="alert alert-error">
+    {{.Error}}
+  </div>
+{{end}}
+
+<form class="card form" method="post" action="/assets">
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input
+      id="name"
+      name="name"
+      type="text"
+      value="{{.Name}}"
+      autocomplete="off"
+      required
+    >
+  </div>
+
+  <div class="actions">
+    <button type="submit">Create asset</button>
+  </div>
+</form>
+
+{{template "layout_end" .}}
+{{end}}

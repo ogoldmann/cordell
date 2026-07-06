@@ -6,6 +6,8 @@ type Services struct {
 	GetPersonnel     *GetPersonnelService
 	ListPersonnel    *ListPersonnelService
 	CreateAsset      *CreateAssetService
+	GetAsset         *GetAssetService
+	ListAssets       *ListAssetsService
 	RegisterCheckout *RegisterCheckoutService
 	RegisterReturn   *RegisterReturnService
 }

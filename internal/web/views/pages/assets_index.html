@@ -1,0 +1,42 @@
+{{define "assets_index.html"}}
+{{template "layout_start" .}}
+
+<section class="page-header split-header">
+  <div>
+    <p class="eyebrow">Assets</p>
+    <h1>Assets</h1>
+    <p class="muted">Materials and items that can be assigned under custody.</p>
+  </div>
+
+  <div>
+    <a class="button-secondary" href="/assets/new">Create asset</a>
+  </div>
+</section>
+
+{{if .Assets}}
+  <div class="list">
+    {{range .Assets}}
+      <a class="list-item" href="/assets/{{.ID}}">
+        <div>
+          <strong>{{.Name}}</strong>
+          <span>{{.ID}}</span>
+        </div>
+
+        {{if .Active}}
+          <span class="badge">Active</span>
+        {{else}}
+          <span class="badge badge-muted">Inactive</span>
+        {{end}}
+      </a>
+    {{end}}
+  </div>
+{{else}}
+  <div class="empty-state">
+    <h2>No assets registered yet</h2>
+    <p class="muted">Create the first asset record to start using Cordell.</p>
+    <a class="button-secondary" href="/assets/new">Create asset</a>
+  </div>
+{{end}}
+
+{{template "layout_end" .}}
+{{end}}

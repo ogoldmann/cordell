@@ -52,3 +52,28 @@ func (r *AssetRepository) FindByID(ctx context.Context, id domain.AssetID) (doma
 }
 
 var _ ports.AssetRepository = (*AssetRepository)(nil)
+
+// List retrieves recent asset records.
+func (r *AssetRepository) List(ctx context.Context, limit int) ([]domain.Asset, error) {
+	rows, err := r.queries.ListAssets(ctx, int32(limit))
+	if err != nil {
+		return nil, err
+	}
+
+	assets := make([]domain.Asset, 0, len(rows))
+
+	for _, row := range rows {
+		item, err := domain.ReconstituteAsset(
+			domain.AssetID(row.ID),
+			row.Name,
+			row.Active,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		assets = append(assets, item)
+	}
+
+	return assets, nil
+}

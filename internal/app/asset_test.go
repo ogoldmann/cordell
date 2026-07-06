@@ -50,3 +50,91 @@ func TestCreateAssetServiceRejectsInvalidAsset(t *testing.T) {
 		t.Fatalf("expected no saved asset, got %d", len(repository.saved))
 	}
 }
+
+func TestGetAssetServiceExecute(t *testing.T) {
+	asset := mustBuildAsset(t, "asset-1")
+
+	repository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+
+	service := NewGetAssetService(repository)
+
+	found, err := service.Execute(context.Background(), GetAssetCommand{
+		ID: "asset-1",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if found.ID() != "asset-1" {
+		t.Fatalf("expected asset id asset-1, got %s", found.ID())
+	}
+
+	if found.Name() != "Radio" {
+		t.Fatalf("expected asset name Radio, got %s", found.Name())
+	}
+}
+
+func TestGetAssetServiceRejectsEmptyID(t *testing.T) {
+	repository := &fakeAssetRepository{}
+	service := NewGetAssetService(repository)
+
+	_, err := service.Execute(context.Background(), GetAssetCommand{
+		ID: "",
+	})
+	if err != domain.ErrEmptyAssetID {
+		t.Fatalf("expected ErrEmptyAssetID, got %v", err)
+	}
+}
+
+func TestListAssetsServiceExecute(t *testing.T) {
+	firstAsset := mustBuildAsset(t, "asset-1")
+	secondAsset := mustBuildAsset(t, "asset-2")
+
+	repository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			firstAsset.ID():  firstAsset,
+			secondAsset.ID(): secondAsset,
+		},
+	}
+
+	service := NewListAssetsService(repository)
+
+	assets, err := service.Execute(context.Background(), ListAssetsCommand{
+		Limit: 10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(assets) != 2 {
+		t.Fatalf("expected 2 asset records, got %d", len(assets))
+	}
+}
+
+func TestListAssetsServiceAppliesDefaultLimit(t *testing.T) {
+	repository := &fakeAssetRepository{}
+	service := NewListAssetsService(repository)
+
+	_, err := service.Execute(context.Background(), ListAssetsCommand{
+		Limit: 0,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
+func TestListAssetsServiceCapsLimit(t *testing.T) {
+	repository := &fakeAssetRepository{}
+	service := NewListAssetsService(repository)
+
+	_, err := service.Execute(context.Background(), ListAssetsCommand{
+		Limit: 1000,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}

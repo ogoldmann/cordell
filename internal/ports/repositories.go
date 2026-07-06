@@ -22,6 +22,7 @@ type PersonnelRepository interface {
 type AssetRepository interface {
 	Save(ctx context.Context, asset domain.Asset) error
 	FindByID(ctx context.Context, id domain.AssetID) (domain.Asset, error)
+	List(ctx context.Context, limit int) ([]domain.Asset, error)
 }
 
 // CustodyRepository persists custody transactions and reads current custody state.
