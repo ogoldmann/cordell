@@ -94,5 +94,35 @@ Generated code lives in:
 ```bash
 internal/infra/postgres/db
 ```
-w
-Do not edit generated files manually.
+
+## Running the Application
+
+Start PostgreSQL:
+
+```bash
+make db-up
+```
+
+Run migrations:
+
+```bash
+make migrate-up
+```
+
+Start the application:
+
+```bash
+make run
+```
+
+Health check:
+
+```bash
+curl http://localhost:8080/health
+```
+
+Expected response:
+
+```bash
+{"status":"ok","service":"cordell"}
+```

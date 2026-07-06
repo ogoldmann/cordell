@@ -4,18 +4,22 @@ import (
 	"log/slog"
 	"net/http"
 
+	"cordell/internal/app"
+
 	"github.com/go-chi/chi/v5"
 )
 
 // Server owns the HTTP dependencies and route definitions for the application.
 type Server struct {
-	logger *slog.Logger
+	logger   *slog.Logger
+	services app.Services
 }
 
 // NewServer creates a Server with its required dependencies.
-func NewServer(logger *slog.Logger) *Server {
+func NewServer(logger *slog.Logger, services app.Services) *Server {
 	return &Server{
-		logger: logger,
+		logger:   logger,
+		services: services,
 	}
 }
 

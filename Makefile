@@ -42,3 +42,7 @@ fmt:
 .PHONY: sqlc-g
 sqlc-generate:
 	sqlc generate
+
+.PHONY: run
+run:
+	go run ./cmd/cordell
