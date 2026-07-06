@@ -1,0 +1,103 @@
+{{define "return_new.html"}}
+{{template "layout_start" .}}
+
+<section class="page-header">
+  <p class="eyebrow">Custody</p>
+  <h1>Register return</h1>
+  <p class="muted">Return an asset quantity previously assigned under custody.</p>
+</section>
+
+{{if .Error}}
+  <div class="alert alert-error">
+    {{.Error}}
+  </div>
+{{end}}
+
+<form class="card form" method="get" action="/custody/returns/new">
+  <div class="form-grid two-columns">
+    <div class="form-group">
+      <label for="personnel_id_lookup">Personnel</label>
+      <select id="personnel_id_lookup" name="personnel_id" required>
+        <option value="">Select personnel</option>
+        {{range .Personnel}}
+          <option value="{{.ID}}" {{if eq $.SelectedPersonnelID .ID}}selected{{end}}>
+            {{.FullName}}
+          </option>
+        {{end}}
+      </select>
+    </div>
+
+    <div class="form-group form-action-group">
+      <button type="submit">Load current custody</button>
+    </div>
+  </div>
+</form>
+
+{{if .SelectedPersonnelID}}
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Return</p>
+        <h2>Current custody items</h2>
+      </div>
+    </div>
+
+    {{if .CurrentCustody}}
+      <form class="card form" method="post" action="/custody/returns">
+        <input type="hidden" name="personnel_id" value="{{.SelectedPersonnelID}}">
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="asset_id">Asset</label>
+            <select id="asset_id" name="asset_id" required>
+              <option value="">Select asset</option>
+              {{range .CurrentCustody}}
+                <option value="{{.AssetID}}" {{if eq $.SelectedAssetID .AssetID}}selected{{end}}>
+                  {{.AssetName}} — currently {{.Quantity}}
+                </option>
+              {{end}}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="quantity">Quantity</label>
+            <input
+              id="quantity"
+              name="quantity"
+              type="number"
+              min="1"
+              step="1"
+              value="{{.Quantity}}"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" rows="4">{{.Notes}}</textarea>
+        </div>
+
+        <div class="actions">
+          <button type="submit">Register return</button>
+          <a class="button-secondary" href="/personnel/{{.SelectedPersonnelID}}">Cancel</a>
+        </div>
+      </form>
+    {{else}}
+      <div class="empty-state">
+        <h2>No assets currently under custody</h2>
+        <p class="muted">This personnel record has no active custody balances to return.</p>
+      </div>
+    {{end}}
+  </section>
+{{else}}
+  <section class="section">
+    <div class="empty-state">
+      <h2>Select personnel first</h2>
+      <p class="muted">Choose a personnel record to load current custody items available for return.</p>
+    </div>
+  </section>
+{{end}}
+
+{{template "layout_end" .}}
+{{end}}

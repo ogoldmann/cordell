@@ -51,6 +51,9 @@ func (s *Server) Routes() http.Handler {
 	router.Get("/custody/checkouts/new", s.handleNewCheckoutForm)
 	router.Post("/custody/checkouts", s.handleCreateCheckout)
 
+	router.Get("/custody/returns/new", s.handleNewReturnForm)
+	router.Post("/custody/returns", s.handleCreateReturn)
+
 	return router
 }
 

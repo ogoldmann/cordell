@@ -319,3 +319,31 @@ dd {
     grid-template-columns: 1fr;
   }
 }
+
+.two-columns {
+  grid-template-columns: 1fr auto;
+}
+
+.form-action-group {
+  align-self: end;
+}
+
+@media (max-width: 760px) {
+  .two-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .form-action-group {
+    align-self: stretch;
+  }
+
+  .form-action-group button {
+    width: 100%;
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}

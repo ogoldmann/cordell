@@ -9,7 +9,10 @@
   </div>
 
   <div>
-    <a class="button-secondary" href="/custody/checkouts/new?personnel_id={{.Personnel.ID}}">Register checkout</a>
+    <div class="header-actions">
+      <a class="button-secondary" href="/custody/checkouts/new?personnel_id={{.Personnel.ID}}">Register checkout</a>
+      <a class="button-secondary" href="/custody/returns/new?personnel_id={{.Personnel.ID}}">Register return</a>
+    </div>
   </div>
 </section>
 

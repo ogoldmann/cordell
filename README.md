@@ -191,3 +191,15 @@ http://localhost:8080/custody/checkouts/new
 ```
 
 The checkout flow assigns an asset quantity to personnel and redirects to the personnel detail page, where current custody balances are displayed.
+
+## Return Flow
+
+Register return:
+
+```bash
+http://localhost:8080/custody/returns/new
+```
+
+The return flow subtracts an asset quantity from a personnel custody balance.
+
+Cordell prevents returns greater than the current custody quantity.
