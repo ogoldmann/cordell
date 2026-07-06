@@ -153,6 +153,54 @@ func (q *Queries) IncreaseCustodyBalanceForCheckout(ctx context.Context, arg Inc
 	return err
 }
 
+const listCurrentCustodyByAsset = `-- name: ListCurrentCustodyByAsset :many
+SELECT
+    cb.asset_id,
+    cb.personnel_id,
+    p.full_name AS personnel_full_name,
+    cb.quantity,
+    cb.updated_at
+FROM custody_balances cb
+JOIN personnel p ON p.id = cb.personnel_id
+WHERE cb.asset_id = $1
+  AND cb.quantity > 0
+ORDER BY p.full_name ASC, cb.personnel_id ASC
+`
+
+type ListCurrentCustodyByAssetRow struct {
+	AssetID           string             `json:"asset_id"`
+	PersonnelID       string             `json:"personnel_id"`
+	PersonnelFullName string             `json:"personnel_full_name"`
+	Quantity          int32              `json:"quantity"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) ListCurrentCustodyByAsset(ctx context.Context, assetID string) ([]ListCurrentCustodyByAssetRow, error) {
+	rows, err := q.db.Query(ctx, listCurrentCustodyByAsset, assetID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCurrentCustodyByAssetRow{}
+	for rows.Next() {
+		var i ListCurrentCustodyByAssetRow
+		if err := rows.Scan(
+			&i.AssetID,
+			&i.PersonnelID,
+			&i.PersonnelFullName,
+			&i.Quantity,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listCurrentCustodyByPersonnel = `-- name: ListCurrentCustodyByPersonnel :many
 SELECT
     cb.personnel_id,

@@ -358,3 +358,65 @@ func (s *ListCustodyHistoryService) Execute(
 
 	return result, nil
 }
+
+// CurrentAssetHolder contains current holder display data for an asset.
+type CurrentAssetHolder struct {
+	AssetID           domain.AssetID
+	PersonnelID       domain.PersonnelID
+	PersonnelFullName string
+	Quantity          int
+}
+
+// ListCurrentAssetHoldersCommand contains the input data required to list current asset holders.
+type ListCurrentAssetHoldersCommand struct {
+	AssetID domain.AssetID
+}
+
+// ListCurrentAssetHoldersService handles current holder listing for assets.
+type ListCurrentAssetHoldersService struct {
+	assetRepository   ports.AssetRepository
+	custodyRepository ports.CustodyRepository
+}
+
+// NewListCurrentAssetHoldersService creates a ListCurrentAssetHoldersService with its dependencies.
+func NewListCurrentAssetHoldersService(
+	assetRepository ports.AssetRepository,
+	custodyRepository ports.CustodyRepository,
+) *ListCurrentAssetHoldersService {
+	return &ListCurrentAssetHoldersService{
+		assetRepository:   assetRepository,
+		custodyRepository: custodyRepository,
+	}
+}
+
+// Execute retrieves current custody holders for an asset record.
+func (s *ListCurrentAssetHoldersService) Execute(
+	ctx context.Context,
+	cmd ListCurrentAssetHoldersCommand,
+) ([]CurrentAssetHolder, error) {
+	if cmd.AssetID == "" {
+		return nil, domain.ErrEmptyAssetID
+	}
+
+	if _, err := s.assetRepository.FindByID(ctx, cmd.AssetID); err != nil {
+		return nil, err
+	}
+
+	holders, err := s.custodyRepository.ListCurrentByAsset(ctx, cmd.AssetID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]CurrentAssetHolder, 0, len(holders))
+
+	for _, holder := range holders {
+		result = append(result, CurrentAssetHolder{
+			AssetID:           holder.AssetID,
+			PersonnelID:       holder.PersonnelID,
+			PersonnelFullName: holder.PersonnelFullName,
+			Quantity:          holder.Quantity,
+		})
+	}
+
+	return result, nil
+}

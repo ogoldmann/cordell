@@ -15,6 +15,14 @@ type CurrentCustodyItem struct {
 	Quantity    int
 }
 
+// CurrentAssetHolder represents a current custody balance joined with personnel display data.
+type CurrentAssetHolder struct {
+	AssetID           domain.AssetID
+	PersonnelID       domain.PersonnelID
+	PersonnelFullName string
+	Quantity          int
+}
+
 // CustodyHistoryLine represents one asset line inside a custody history entry.
 type CustodyHistoryLine struct {
 	AssetID   domain.AssetID
@@ -56,5 +64,6 @@ type CustodyRepository interface {
 	SaveTransaction(ctx context.Context, transaction domain.CustodyTransaction) error
 	CurrentQuantity(ctx context.Context, personnelID domain.PersonnelID, assetID domain.AssetID) (int, error)
 	ListCurrentByPersonnel(ctx context.Context, personnelID domain.PersonnelID) ([]CurrentCustodyItem, error)
+	ListCurrentByAsset(ctx context.Context, assetID domain.AssetID) ([]CurrentAssetHolder, error)
 	ListHistoryByPersonnel(ctx context.Context, personnelID domain.PersonnelID, limit int) ([]CustodyHistoryEntry, error)
 }

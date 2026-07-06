@@ -110,6 +110,7 @@ type fakeCustodyRepository struct {
 	saved           []domain.CustodyTransaction
 	currentQuantity map[string]int
 	currentByPerson map[domain.PersonnelID][]ports.CurrentCustodyItem
+	currentByAsset  map[domain.AssetID][]ports.CurrentAssetHolder
 	historyByPerson map[domain.PersonnelID][]ports.CustodyHistoryEntry
 }
 
@@ -144,6 +145,21 @@ func (r *fakeCustodyRepository) ListCurrentByPersonnel(
 	copy(copiedItems, items)
 
 	return copiedItems, nil
+}
+
+func (r *fakeCustodyRepository) ListCurrentByAsset(
+	_ context.Context,
+	assetID domain.AssetID,
+) ([]ports.CurrentAssetHolder, error) {
+	if r.currentByAsset == nil {
+		return nil, nil
+	}
+
+	holders := r.currentByAsset[assetID]
+	copiedHolders := make([]ports.CurrentAssetHolder, len(holders))
+	copy(copiedHolders, holders)
+
+	return copiedHolders, nil
 }
 
 func (r *fakeCustodyRepository) ListHistoryByPersonnel(

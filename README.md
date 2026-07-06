@@ -213,3 +213,12 @@ Personnel detail pages display:
 - checkout and return events
 - asset quantities
 - transaction notes
+
+## Asset Current Holders
+
+Asset detail pages display current custody holders.
+
+This provides the inverse view of personnel current custody:
+
+- Personnel page: assets currently assigned to that personnel
+- Asset page: personnel currently holding that asset

@@ -93,3 +93,16 @@ FROM recent_transactions rt
 JOIN custody_lines cl ON cl.custody_transaction_id = rt.id
 JOIN assets a ON a.id = cl.asset_id
 ORDER BY rt.created_at DESC, rt.id DESC, cl.id ASC;
+
+-- name: ListCurrentCustodyByAsset :many
+SELECT
+    cb.asset_id,
+    cb.personnel_id,
+    p.full_name AS personnel_full_name,
+    cb.quantity,
+    cb.updated_at
+FROM custody_balances cb
+JOIN personnel p ON p.id = cb.personnel_id
+WHERE cb.asset_id = @asset_id
+  AND cb.quantity > 0
+ORDER BY p.full_name ASC, cb.personnel_id ASC;

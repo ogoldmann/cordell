@@ -24,14 +24,21 @@ type assetNewPageData struct {
 }
 
 type assetShowPageData struct {
-	Title string
-	Asset assetView
+	Title   string
+	Asset   assetView
+	Holders []assetHolderView
 }
 
 type assetView struct {
 	ID     string
 	Name   string
 	Active bool
+}
+
+type assetHolderView struct {
+	PersonnelID       string
+	PersonnelFullName string
+	Quantity          int
 }
 
 func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
@@ -128,6 +135,15 @@ func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	holders, err := s.services.ListCurrentAssetHolders.Execute(r.Context(), app.ListCurrentAssetHoldersCommand{
+		AssetID: asset.ID(),
+	})
+	if err != nil {
+		s.logger.Error("failed to list current asset holders", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
 	data := assetShowPageData{
 		Title: asset.Name(),
 		Asset: assetView{
@@ -135,6 +151,15 @@ func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
 			Name:   asset.Name(),
 			Active: asset.Active(),
 		},
+		Holders: make([]assetHolderView, 0, len(holders)),
+	}
+
+	for _, holder := range holders {
+		data.Holders = append(data.Holders, assetHolderView{
+			PersonnelID:       string(holder.PersonnelID),
+			PersonnelFullName: holder.PersonnelFullName,
+			Quantity:          holder.Quantity,
+		})
 	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "assets_show.html", data); err != nil {

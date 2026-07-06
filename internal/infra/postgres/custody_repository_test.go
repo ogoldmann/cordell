@@ -370,3 +370,102 @@ func TestPostgresCustodyRepositoryListHistoryByPersonnel(t *testing.T) {
 		t.Fatalf("expected return quantity 1, got %d", history[0].Lines[0].Quantity)
 	}
 }
+
+func TestPostgresCustodyRepositoryListCurrentByAsset(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	createFirstPersonnelService := app.NewCreatePersonnelService(
+		personnelRepository,
+		fixedIDGenerator{id: "personnel-1"},
+	)
+	createSecondPersonnelService := app.NewCreatePersonnelService(
+		personnelRepository,
+		fixedIDGenerator{id: "personnel-2"},
+	)
+	createAssetService := app.NewCreateAssetService(
+		assetRepository,
+		fixedIDGenerator{id: "asset-1"},
+	)
+
+	_, err := createFirstPersonnelService.Execute(context.Background(), app.CreatePersonnelCommand{
+		FullName: "John Doe",
+	})
+	if err != nil {
+		t.Fatalf("expected no error creating first personnel, got %v", err)
+	}
+
+	_, err = createSecondPersonnelService.Execute(context.Background(), app.CreatePersonnelCommand{
+		FullName: "Jane Doe",
+	})
+	if err != nil {
+		t.Fatalf("expected no error creating second personnel, got %v", err)
+	}
+
+	_, err = createAssetService.Execute(context.Background(), app.CreateAssetCommand{
+		Name: "Radio",
+	})
+	if err != nil {
+		t.Fatalf("expected no error creating asset, got %v", err)
+	}
+
+	firstCheckoutService := app.NewRegisterCheckoutService(
+		personnelRepository,
+		assetRepository,
+		custodyRepository,
+		fixedIDGenerator{id: "transaction-checkout-1"},
+	)
+	secondCheckoutService := app.NewRegisterCheckoutService(
+		personnelRepository,
+		assetRepository,
+		custodyRepository,
+		fixedIDGenerator{id: "transaction-checkout-2"},
+	)
+
+	_, err = firstCheckoutService.Execute(context.Background(), app.RegisterCheckoutCommand{
+		PersonnelID: "personnel-1",
+		Lines: []app.CustodyLineCommand{
+			{
+				AssetID:  "asset-1",
+				Quantity: 2,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("expected no error registering first checkout, got %v", err)
+	}
+
+	_, err = secondCheckoutService.Execute(context.Background(), app.RegisterCheckoutCommand{
+		PersonnelID: "personnel-2",
+		Lines: []app.CustodyLineCommand{
+			{
+				AssetID:  "asset-1",
+				Quantity: 1,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("expected no error registering second checkout, got %v", err)
+	}
+
+	holders, err := custodyRepository.ListCurrentByAsset(context.Background(), "asset-1")
+	if err != nil {
+		t.Fatalf("expected no error listing current asset holders, got %v", err)
+	}
+
+	if len(holders) != 2 {
+		t.Fatalf("expected 2 current asset holders, got %d", len(holders))
+	}
+
+	if holders[0].PersonnelFullName == "" {
+		t.Fatal("expected first holder personnel full name to be present")
+	}
+
+	if holders[0].Quantity <= 0 {
+		t.Fatalf("expected positive holder quantity, got %d", holders[0].Quantity)
+	}
+}

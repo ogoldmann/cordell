@@ -317,3 +317,46 @@ func TestListCustodyHistoryServiceExecute(t *testing.T) {
 		t.Fatalf("expected quantity 2, got %d", entries[0].Lines[0].Quantity)
 	}
 }
+
+func TestListCurrentAssetHoldersServiceExecute(t *testing.T) {
+	asset := mustBuildAsset(t, "asset-1")
+
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+	custodyRepository := &fakeCustodyRepository{
+		currentByAsset: map[domain.AssetID][]ports.CurrentAssetHolder{
+			"asset-1": {
+				{
+					AssetID:           "asset-1",
+					PersonnelID:       "personnel-1",
+					PersonnelFullName: "John Doe",
+					Quantity:          2,
+				},
+			},
+		},
+	}
+
+	service := NewListCurrentAssetHoldersService(assetRepository, custodyRepository)
+
+	holders, err := service.Execute(context.Background(), ListCurrentAssetHoldersCommand{
+		AssetID: "asset-1",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(holders) != 1 {
+		t.Fatalf("expected 1 current asset holder, got %d", len(holders))
+	}
+
+	if holders[0].PersonnelFullName != "John Doe" {
+		t.Fatalf("expected personnel full name John Doe, got %s", holders[0].PersonnelFullName)
+	}
+
+	if holders[0].Quantity != 2 {
+		t.Fatalf("expected quantity 2, got %d", holders[0].Quantity)
+	}
+}

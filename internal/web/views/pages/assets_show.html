@@ -1,10 +1,16 @@
 {{define "assets_show.html"}}
 {{template "layout_start" .}}
 
-<section class="page-header">
-  <p class="eyebrow">Assets</p>
-  <h1>{{.Asset.Name}}</h1>
-  <p class="muted">Asset record created successfully.</p>
+<section class="page-header split-header">
+  <div>
+    <p class="eyebrow">Assets</p>
+    <h1>{{.Asset.Name}}</h1>
+    <p class="muted">Asset record and current custody holders.</p>
+  </div>
+
+  <div>
+    <a class="button-secondary" href="/custody/checkouts/new?asset_id={{.Asset.ID}}">Register checkout</a>
+  </div>
 </section>
 
 <div class="card details">
@@ -25,6 +31,35 @@
     </div>
   </dl>
 </div>
+
+<section class="section">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">Custody</p>
+      <h2>Current holders</h2>
+    </div>
+  </div>
+
+  {{if .Holders}}
+    <div class="list">
+      {{range .Holders}}
+        <a class="list-item" href="/personnel/{{.PersonnelID}}">
+          <div>
+            <strong>{{.PersonnelFullName}}</strong>
+            <span>{{.PersonnelID}}</span>
+          </div>
+
+          <span class="badge">{{.Quantity}}</span>
+        </a>
+      {{end}}
+    </div>
+  {{else}}
+    <div class="empty-state">
+      <h2>No current holders</h2>
+      <p class="muted">This asset is not currently assigned under custody.</p>
+    </div>
+  {{end}}
+</section>
 
 <div class="actions">
   <a class="button-secondary" href="/assets">Back to assets</a>

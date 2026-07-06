@@ -26,6 +26,7 @@ func (s *Server) handleNewCheckoutForm(w http.ResponseWriter, r *http.Request) {
 	data, err := s.buildCheckoutNewPageData(r, checkoutNewPageData{
 		Title:               "Register checkout",
 		SelectedPersonnelID: r.URL.Query().Get("personnel_id"),
+		SelectedAssetID:     r.URL.Query().Get("asset_id"),
 		Quantity:            "1",
 	})
 	if err != nil {

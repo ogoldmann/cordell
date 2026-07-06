@@ -79,6 +79,10 @@ func main() {
 			personnelRepository,
 			custodyRepository,
 		),
+		ListCurrentAssetHolders: app.NewListCurrentAssetHoldersService(
+			assetRepository,
+			custodyRepository,
+		),
 		ListCustodyHistory: app.NewListCustodyHistoryService(
 			personnelRepository,
 			custodyRepository,

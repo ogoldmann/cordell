@@ -136,6 +136,30 @@ func (r *CustodyRepository) ListCurrentByPersonnel(
 	return items, nil
 }
 
+// ListCurrentByAsset retrieves current custody holders for an asset record.
+func (r *CustodyRepository) ListCurrentByAsset(
+	ctx context.Context,
+	assetID domain.AssetID,
+) ([]ports.CurrentAssetHolder, error) {
+	rows, err := r.queries.ListCurrentCustodyByAsset(ctx, string(assetID))
+	if err != nil {
+		return nil, err
+	}
+
+	holders := make([]ports.CurrentAssetHolder, 0, len(rows))
+
+	for _, row := range rows {
+		holders = append(holders, ports.CurrentAssetHolder{
+			AssetID:           domain.AssetID(row.AssetID),
+			PersonnelID:       domain.PersonnelID(row.PersonnelID),
+			PersonnelFullName: row.PersonnelFullName,
+			Quantity:          int(row.Quantity),
+		})
+	}
+
+	return holders, nil
+}
+
 // ListHistoryByPersonnel retrieves custody transaction history for a personnel record.
 func (r *CustodyRepository) ListHistoryByPersonnel(
 	ctx context.Context,
