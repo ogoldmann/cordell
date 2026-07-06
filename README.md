@@ -222,3 +222,20 @@ This provides the inverse view of personnel current custody:
 
 - Personnel page: assets currently assigned to that personnel
 - Asset page: personnel currently holding that asset
+
+## Dashboard
+
+The dashboard is available at:
+
+```bash
+http://localhost:8080/
+```
+
+It provides quick access to core workflows:
+
+- personnel
+- assets
+- checkout
+- return
+
+It also displays recent personnel and asset records.

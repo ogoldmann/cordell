@@ -36,6 +36,7 @@ func (s *Server) Routes() http.Handler {
 
 	router.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
+	router.Get("/", s.handleDashboard)
 	router.Get("/health", s.handleHealthCheck)
 
 	router.Get("/personnel", s.handleListPersonnel)
