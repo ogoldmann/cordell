@@ -15,6 +15,7 @@ type IDGenerator interface {
 type PersonnelRepository interface {
 	Save(ctx context.Context, personnel domain.Personnel) error
 	FindByID(ctx context.Context, id domain.PersonnelID) (domain.Personnel, error)
+	List(ctx context.Context, limit int) ([]domain.Personnel, error)
 }
 
 // AssetRepository persists and retrieves asset records.

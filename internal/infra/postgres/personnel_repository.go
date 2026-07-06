@@ -52,3 +52,28 @@ func (r *PersonnelRepository) FindByID(ctx context.Context, id domain.PersonnelI
 }
 
 var _ ports.PersonnelRepository = (*PersonnelRepository)(nil)
+
+// List retrieves recent personnel records.
+func (r *PersonnelRepository) List(ctx context.Context, limit int) ([]domain.Personnel, error) {
+	rows, err := r.queries.ListPersonnel(ctx, int32(limit))
+	if err != nil {
+		return nil, err
+	}
+
+	personnel := make([]domain.Personnel, 0, len(rows))
+
+	for _, row := range rows {
+		item, err := domain.ReconstitutePersonnel(
+			domain.PersonnelID(row.ID),
+			row.FullName,
+			row.Active,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		personnel = append(personnel, item)
+	}
+
+	return personnel, nil
+}

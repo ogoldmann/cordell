@@ -4,6 +4,7 @@ package app
 type Services struct {
 	CreatePersonnel  *CreatePersonnelService
 	GetPersonnel     *GetPersonnelService
+	ListPersonnel    *ListPersonnelService
 	CreateAsset      *CreateAssetService
 	RegisterCheckout *RegisterCheckoutService
 	RegisterReturn   *RegisterReturnService

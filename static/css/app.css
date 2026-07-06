@@ -208,3 +208,69 @@ dd {
     "Liberation Mono",
     monospace;
 }
+
+.split-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.list {
+  display: grid;
+  gap: 12px;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  padding: 16px;
+  text-decoration: none;
+  box-shadow: 0 10px 30px rgba(31, 41, 51, 0.06);
+}
+
+.list-item:hover {
+  border-color: rgba(31, 58, 95, 0.45);
+}
+
+.list-item strong {
+  display: block;
+}
+
+.list-item span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.badge {
+  border-radius: 999px;
+  background: rgba(31, 58, 95, 0.1);
+  color: var(--primary) !important;
+  padding: 4px 10px;
+  font-size: 12px !important;
+  font-weight: 700;
+}
+
+.badge-muted {
+  background: rgba(102, 112, 133, 0.12);
+  color: var(--muted) !important;
+}
+
+.empty-state {
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 32px;
+}
+
+.empty-state h2 {
+  margin: 0;
+  font-size: 22px;
+}

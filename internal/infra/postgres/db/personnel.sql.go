@@ -59,3 +59,36 @@ func (q *Queries) GetPersonnel(ctx context.Context, id string) (Personnel, error
 	)
 	return i, err
 }
+
+const listPersonnel = `-- name: ListPersonnel :many
+SELECT id, full_name, active, created_at, updated_at
+FROM personnel
+ORDER BY created_at DESC, id DESC
+LIMIT $1
+`
+
+func (q *Queries) ListPersonnel(ctx context.Context, limitCount int32) ([]Personnel, error) {
+	rows, err := q.db.Query(ctx, listPersonnel, limitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Personnel{}
+	for rows.Next() {
+		var i Personnel
+		if err := rows.Scan(
+			&i.ID,
+			&i.FullName,
+			&i.Active,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

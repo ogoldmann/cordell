@@ -23,6 +23,11 @@ type personnelShowPageData struct {
 	Personnel personnelView
 }
 
+type personnelIndexPageData struct {
+	Title     string
+	Personnel []personnelView
+}
+
 type personnelView struct {
 	ID       string
 	FullName string
@@ -139,5 +144,33 @@ func humanizePersonnelError(err error) string {
 		return "Personnel ID is required."
 	default:
 		return "Could not create personnel."
+	}
+}
+
+func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
+	personnel, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
+		Limit: 50,
+	})
+	if err != nil {
+		s.logger.Error("failed to list personnel", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	data := personnelIndexPageData{
+		Title:     "Personnel",
+		Personnel: make([]personnelView, 0, len(personnel)),
+	}
+
+	for _, item := range personnel {
+		data.Personnel = append(data.Personnel, personnelView{
+			ID:       string(item.ID()),
+			FullName: item.FullName(),
+			Active:   item.Active(),
+		})
+	}
+
+	if err := s.renderer.Render(w, http.StatusOK, "personnel_index.html", data); err != nil {
+		s.handleRenderError(w, err)
 	}
 }

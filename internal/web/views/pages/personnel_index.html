@@ -1,0 +1,42 @@
+{{define "personnel_index.html"}}
+{{template "layout_start" .}}
+
+<section class="page-header split-header">
+  <div>
+    <p class="eyebrow">Personnel</p>
+    <h1>Personnel</h1>
+    <p class="muted">People who can receive assets under custody.</p>
+  </div>
+
+  <div>
+    <a class="button-secondary" href="/personnel/new">Create personnel</a>
+  </div>
+</section>
+
+{{if .Personnel}}
+  <div class="list">
+    {{range .Personnel}}
+      <a class="list-item" href="/personnel/{{.ID}}">
+        <div>
+          <strong>{{.FullName}}</strong>
+          <span>{{.ID}}</span>
+        </div>
+
+        {{if .Active}}
+          <span class="badge">Active</span>
+        {{else}}
+          <span class="badge badge-muted">Inactive</span>
+        {{end}}
+      </a>
+    {{end}}
+  </div>
+{{else}}
+  <div class="empty-state">
+    <h2>No personnel registered yet</h2>
+    <p class="muted">Create the first personnel record to start using Cordell.</p>
+    <a class="button-secondary" href="/personnel/new">Create personnel</a>
+  </div>
+{{end}}
+
+{{template "layout_end" .}}
+{{end}}

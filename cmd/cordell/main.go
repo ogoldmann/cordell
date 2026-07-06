@@ -50,6 +50,9 @@ func main() {
 		GetPersonnel: app.NewGetPersonnelService(
 			personnelRepository,
 		),
+		ListPersonnel: app.NewListPersonnelService(
+			personnelRepository,
+		),
 		CreateAsset: app.NewCreateAssetService(
 			assetRepository,
 			idGenerator,

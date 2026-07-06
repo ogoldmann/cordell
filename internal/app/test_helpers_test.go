@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"sort"
 	"testing"
 
 	"cordell/internal/domain"
@@ -38,6 +39,24 @@ func (r *fakePersonnelRepository) FindByID(_ context.Context, id domain.Personne
 	personnel, ok := r.byID[id]
 	if !ok {
 		return domain.Personnel{}, ports.ErrNotFound
+	}
+
+	return personnel, nil
+}
+
+func (r *fakePersonnelRepository) List(_ context.Context, limit int) ([]domain.Personnel, error) {
+	personnel := make([]domain.Personnel, 0, len(r.byID))
+
+	for _, item := range r.byID {
+		personnel = append(personnel, item)
+	}
+
+	sort.Slice(personnel, func(i, j int) bool {
+		return personnel[i].ID() < personnel[j].ID()
+	})
+
+	if limit > 0 && len(personnel) > limit {
+		return personnel[:limit], nil
 	}
 
 	return personnel, nil

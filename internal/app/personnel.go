@@ -75,3 +75,40 @@ func (s *GetPersonnelService) Execute(ctx context.Context, cmd GetPersonnelComma
 
 	return s.personnelRepository.FindByID(ctx, cmd.ID)
 }
+
+const (
+	defaultPersonnelListLimit = 50
+	maxPersonnelListLimit     = 100
+)
+
+// ListPersonnelCommand contains the input data required to list personnel.
+type ListPersonnelCommand struct {
+	Limit int
+}
+
+// ListPersonnelService handles the personnel listing use case.
+type ListPersonnelService struct {
+	personnelRepository ports.PersonnelRepository
+}
+
+// NewListPersonnelService creates a ListPersonnelService with its dependencies.
+func NewListPersonnelService(personnelRepository ports.PersonnelRepository) *ListPersonnelService {
+	return &ListPersonnelService{
+		personnelRepository: personnelRepository,
+	}
+}
+
+// Execute retrieves a limited list of personnel records.
+func (s *ListPersonnelService) Execute(ctx context.Context, cmd ListPersonnelCommand) ([]domain.Personnel, error) {
+	limit := cmd.Limit
+
+	if limit <= 0 {
+		limit = defaultPersonnelListLimit
+	}
+
+	if limit > maxPersonnelListLimit {
+		limit = maxPersonnelListLimit
+	}
+
+	return s.personnelRepository.List(ctx, limit)
+}

@@ -38,6 +38,7 @@ func (s *Server) Routes() http.Handler {
 
 	router.Get("/health", s.handleHealthCheck)
 
+	router.Get("/personnel", s.handleListPersonnel)
 	router.Get("/personnel/new", s.handleNewPersonnelForm)
 	router.Post("/personnel", s.handleCreatePersonnel)
 	router.Get("/personnel/{id}", s.handleShowPersonnel)

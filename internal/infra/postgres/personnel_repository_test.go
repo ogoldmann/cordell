@@ -41,3 +41,42 @@ func TestPostgresPersonnelRepositoryCreateAndFind(t *testing.T) {
 		t.Fatal("expected personnel to be active")
 	}
 }
+
+func TestPostgresPersonnelRepositoryList(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+
+	firstService := app.NewCreatePersonnelService(
+		personnelRepository,
+		fixedIDGenerator{id: "personnel-1"},
+	)
+	secondService := app.NewCreatePersonnelService(
+		personnelRepository,
+		fixedIDGenerator{id: "personnel-2"},
+	)
+
+	_, err := firstService.Execute(context.Background(), app.CreatePersonnelCommand{
+		FullName: "John Doe",
+	})
+	if err != nil {
+		t.Fatalf("expected no error creating first personnel, got %v", err)
+	}
+
+	_, err = secondService.Execute(context.Background(), app.CreatePersonnelCommand{
+		FullName: "Jane Doe",
+	})
+	if err != nil {
+		t.Fatalf("expected no error creating second personnel, got %v", err)
+	}
+
+	personnel, err := personnelRepository.List(context.Background(), 10)
+	if err != nil {
+		t.Fatalf("expected no error listing personnel, got %v", err)
+	}
+
+	if len(personnel) != 2 {
+		t.Fatalf("expected 2 personnel records, got %d", len(personnel))
+	}
+}

@@ -89,3 +89,52 @@ func TestGetPersonnelServiceRejectsEmptyID(t *testing.T) {
 		t.Fatalf("expected ErrEmptyPersonnelID, got %v", err)
 	}
 }
+
+func TestListPersonnelServiceExecute(t *testing.T) {
+	firstPersonnel := mustBuildPersonnel(t, "personnel-1")
+	secondPersonnel := mustBuildPersonnel(t, "personnel-2")
+
+	repository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			firstPersonnel.ID():  firstPersonnel,
+			secondPersonnel.ID(): secondPersonnel,
+		},
+	}
+
+	service := NewListPersonnelService(repository)
+
+	personnel, err := service.Execute(context.Background(), ListPersonnelCommand{
+		Limit: 10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(personnel) != 2 {
+		t.Fatalf("expected 2 personnel records, got %d", len(personnel))
+	}
+}
+
+func TestListPersonnelServiceAppliesDefaultLimit(t *testing.T) {
+	repository := &fakePersonnelRepository{}
+	service := NewListPersonnelService(repository)
+
+	_, err := service.Execute(context.Background(), ListPersonnelCommand{
+		Limit: 0,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
+func TestListPersonnelServiceCapsLimit(t *testing.T) {
+	repository := &fakePersonnelRepository{}
+	service := NewListPersonnelService(repository)
+
+	_, err := service.Execute(context.Background(), ListPersonnelCommand{
+		Limit: 1000,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}

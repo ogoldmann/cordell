@@ -149,3 +149,19 @@ http://localhost:8080/personnel/new
 ```
 
 This page creates a real personnel record in PostgreSQL and redirects to the created personnel detail page.
+
+## Personnel Flow
+
+List personnel:
+
+```bash
+http://localhost:8080/personnel
+```
+
+Create personnel:
+
+```bash
+http://localhost:8080/personnel/new
+```
+
+After creation, Cordell redirects to the created personnel detail page.
