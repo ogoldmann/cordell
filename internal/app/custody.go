@@ -197,3 +197,65 @@ func (s *RegisterReturnService) Execute(
 
 	return transaction, nil
 }
+
+// CurrentCustodyItem contains current custody display data for application use cases.
+type CurrentCustodyItem struct {
+	PersonnelID domain.PersonnelID
+	AssetID     domain.AssetID
+	AssetName   string
+	Quantity    int
+}
+
+// ListCurrentCustodyCommand contains the input data required to list current custody.
+type ListCurrentCustodyCommand struct {
+	PersonnelID domain.PersonnelID
+}
+
+// ListCurrentCustodyService handles current custody listing for personnel.
+type ListCurrentCustodyService struct {
+	personnelRepository ports.PersonnelRepository
+	custodyRepository   ports.CustodyRepository
+}
+
+// NewListCurrentCustodyService creates a ListCurrentCustodyService with its dependencies.
+func NewListCurrentCustodyService(
+	personnelRepository ports.PersonnelRepository,
+	custodyRepository ports.CustodyRepository,
+) *ListCurrentCustodyService {
+	return &ListCurrentCustodyService{
+		personnelRepository: personnelRepository,
+		custodyRepository:   custodyRepository,
+	}
+}
+
+// Execute retrieves current custody balances for a personnel record.
+func (s *ListCurrentCustodyService) Execute(
+	ctx context.Context,
+	cmd ListCurrentCustodyCommand,
+) ([]CurrentCustodyItem, error) {
+	if cmd.PersonnelID == "" {
+		return nil, domain.ErrEmptyPersonnelID
+	}
+
+	if _, err := s.personnelRepository.FindByID(ctx, cmd.PersonnelID); err != nil {
+		return nil, err
+	}
+
+	items, err := s.custodyRepository.ListCurrentByPersonnel(ctx, cmd.PersonnelID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]CurrentCustodyItem, 0, len(items))
+
+	for _, item := range items {
+		result = append(result, CurrentCustodyItem{
+			PersonnelID: item.PersonnelID,
+			AssetID:     item.AssetID,
+			AssetName:   item.AssetName,
+			Quantity:    item.Quantity,
+		})
+	}
+
+	return result, nil
+}

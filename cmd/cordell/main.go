@@ -75,6 +75,10 @@ func main() {
 			custodyRepository,
 			idGenerator,
 		),
+		ListCurrentCustody: app.NewListCurrentCustodyService(
+			personnelRepository,
+			custodyRepository,
+		),
 	}
 
 	server, err := web.NewServer(logger, services)

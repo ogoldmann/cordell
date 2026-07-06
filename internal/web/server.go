@@ -48,6 +48,9 @@ func (s *Server) Routes() http.Handler {
 	router.Post("/assets", s.handleCreateAsset)
 	router.Get("/assets/{id}", s.handleShowAsset)
 
+	router.Get("/custody/checkouts/new", s.handleNewCheckoutForm)
+	router.Post("/custody/checkouts", s.handleCreateCheckout)
+
 	return router
 }
 

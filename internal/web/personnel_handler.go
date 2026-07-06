@@ -19,8 +19,9 @@ type personnelNewPageData struct {
 }
 
 type personnelShowPageData struct {
-	Title     string
-	Personnel personnelView
+	Title          string
+	Personnel      personnelView
+	CurrentCustody []currentCustodyView
 }
 
 type personnelIndexPageData struct {
@@ -32,6 +33,12 @@ type personnelView struct {
 	ID       string
 	FullName string
 	Active   bool
+}
+
+type currentCustodyView struct {
+	AssetID   string
+	AssetName string
+	Quantity  int
 }
 
 func (s *Server) handleNewPersonnelForm(w http.ResponseWriter, r *http.Request) {
@@ -100,6 +107,15 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	currentCustody, err := s.services.ListCurrentCustody.Execute(r.Context(), app.ListCurrentCustodyCommand{
+		PersonnelID: personnel.ID(),
+	})
+	if err != nil {
+		s.logger.Error("failed to list current custody", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
 	data := personnelShowPageData{
 		Title: personnel.FullName(),
 		Personnel: personnelView{
@@ -107,6 +123,15 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 			FullName: personnel.FullName(),
 			Active:   personnel.Active(),
 		},
+		CurrentCustody: make([]currentCustodyView, 0, len(currentCustody)),
+	}
+
+	for _, item := range currentCustody {
+		data.CurrentCustody = append(data.CurrentCustody, currentCustodyView{
+			AssetID:   string(item.AssetID),
+			AssetName: item.AssetName,
+			Quantity:  item.Quantity,
+		})
 	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "personnel_show.html", data); err != nil {

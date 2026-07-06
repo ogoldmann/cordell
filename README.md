@@ -181,3 +181,13 @@ http://localhost:8080/assets/new
 ```
 
 After creation, Cordell redirects to the created asset detail page.
+
+## Checkout Flow
+
+Register checkout:
+
+```bash
+http://localhost:8080/custody/checkouts/new
+```
+
+The checkout flow assigns an asset quantity to personnel and redirects to the personnel detail page, where current custody balances are displayed.

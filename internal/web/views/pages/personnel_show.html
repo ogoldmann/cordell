@@ -1,10 +1,16 @@
 {{define "personnel_show.html"}}
 {{template "layout_start" .}}
 
-<section class="page-header">
-  <p class="eyebrow">Personnel</p>
-  <h1>{{.Personnel.FullName}}</h1>
-  <p class="muted">Personnel record created successfully.</p>
+<section class="page-header split-header">
+  <div>
+    <p class="eyebrow">Personnel</p>
+    <h1>{{.Personnel.FullName}}</h1>
+    <p class="muted">Personnel record and current custody status.</p>
+  </div>
+
+  <div>
+    <a class="button-secondary" href="/custody/checkouts/new?personnel_id={{.Personnel.ID}}">Register checkout</a>
+  </div>
 </section>
 
 <div class="card details">
@@ -26,7 +32,37 @@
   </dl>
 </div>
 
+<section class="section">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">Custody</p>
+      <h2>Current custody</h2>
+    </div>
+  </div>
+
+  {{if .CurrentCustody}}
+    <div class="list">
+      {{range .CurrentCustody}}
+        <a class="list-item" href="/assets/{{.AssetID}}">
+          <div>
+            <strong>{{.AssetName}}</strong>
+            <span>{{.AssetID}}</span>
+          </div>
+
+          <span class="badge">{{.Quantity}}</span>
+        </a>
+      {{end}}
+    </div>
+  {{else}}
+    <div class="empty-state">
+      <h2>No assets currently under custody</h2>
+      <p class="muted">This personnel record has no active custody balances.</p>
+    </div>
+  {{end}}
+</section>
+
 <div class="actions">
+  <a class="button-secondary" href="/personnel">Back to personnel</a>
   <a class="button-secondary" href="/personnel/new">Create another personnel</a>
 </div>
 

@@ -109,6 +109,7 @@ func (r *fakeAssetRepository) List(_ context.Context, limit int) ([]domain.Asset
 type fakeCustodyRepository struct {
 	saved           []domain.CustodyTransaction
 	currentQuantity map[string]int
+	currentByPerson map[domain.PersonnelID][]ports.CurrentCustodyItem
 }
 
 func (r *fakeCustodyRepository) SaveTransaction(_ context.Context, transaction domain.CustodyTransaction) error {
@@ -127,6 +128,21 @@ func (r *fakeCustodyRepository) CurrentQuantity(
 	}
 
 	return r.currentQuantity[custodyBalanceKey(personnelID, assetID)], nil
+}
+
+func (r *fakeCustodyRepository) ListCurrentByPersonnel(
+	_ context.Context,
+	personnelID domain.PersonnelID,
+) ([]ports.CurrentCustodyItem, error) {
+	if r.currentByPerson == nil {
+		return nil, nil
+	}
+
+	items := r.currentByPerson[personnelID]
+	copiedItems := make([]ports.CurrentCustodyItem, len(items))
+	copy(copiedItems, items)
+
+	return copiedItems, nil
 }
 
 func custodyBalanceKey(personnelID domain.PersonnelID, assetID domain.AssetID) string {

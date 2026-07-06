@@ -1,0 +1,68 @@
+{{define "checkout_new.html"}}
+{{template "layout_start" .}}
+
+<section class="page-header">
+  <p class="eyebrow">Custody</p>
+  <h1>Register checkout</h1>
+  <p class="muted">Assign an asset quantity to personnel under custody.</p>
+</section>
+
+{{if .Error}}
+  <div class="alert alert-error">
+    {{.Error}}
+  </div>
+{{end}}
+
+<form class="card form" method="post" action="/custody/checkouts">
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="personnel_id">Personnel</label>
+      <select id="personnel_id" name="personnel_id" required>
+        <option value="">Select personnel</option>
+        {{range .Personnel}}
+          <option value="{{.ID}}" {{if eq $.SelectedPersonnelID .ID}}selected{{end}}>
+            {{.FullName}}
+          </option>
+        {{end}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="asset_id">Asset</label>
+      <select id="asset_id" name="asset_id" required>
+        <option value="">Select asset</option>
+        {{range .Assets}}
+          <option value="{{.ID}}" {{if eq $.SelectedAssetID .ID}}selected{{end}}>
+            {{.Name}}
+          </option>
+        {{end}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="quantity">Quantity</label>
+      <input
+        id="quantity"
+        name="quantity"
+        type="number"
+        min="1"
+        step="1"
+        value="{{.Quantity}}"
+        required
+      >
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="notes">Notes</label>
+    <textarea id="notes" name="notes" rows="4">{{.Notes}}</textarea>
+  </div>
+
+  <div class="actions">
+    <button type="submit">Register checkout</button>
+    <a class="button-secondary" href="/personnel">Cancel</a>
+  </div>
+</form>
+
+{{template "layout_end" .}}
+{{end}}

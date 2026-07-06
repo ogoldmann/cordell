@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"cordell/internal/domain"
+	"cordell/internal/ports"
 )
 
 func TestRegisterCheckoutServiceExecute(t *testing.T) {
@@ -210,5 +211,48 @@ func TestRegisterReturnServiceRejectsInsufficientCustodyBalance(t *testing.T) {
 
 	if len(custodyRepository.saved) != 0 {
 		t.Fatalf("expected no saved transactions, got %d", len(custodyRepository.saved))
+	}
+}
+
+func TestListCurrentCustodyServiceExecute(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+	custodyRepository := &fakeCustodyRepository{
+		currentByPerson: map[domain.PersonnelID][]ports.CurrentCustodyItem{
+			"personnel-1": {
+				{
+					PersonnelID: "personnel-1",
+					AssetID:     "asset-1",
+					AssetName:   "Radio",
+					Quantity:    2,
+				},
+			},
+		},
+	}
+
+	service := NewListCurrentCustodyService(personnelRepository, custodyRepository)
+
+	items, err := service.Execute(context.Background(), ListCurrentCustodyCommand{
+		PersonnelID: "personnel-1",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(items) != 1 {
+		t.Fatalf("expected 1 current custody item, got %d", len(items))
+	}
+
+	if items[0].AssetName != "Radio" {
+		t.Fatalf("expected asset name Radio, got %s", items[0].AssetName)
+	}
+
+	if items[0].Quantity != 2 {
+		t.Fatalf("expected quantity 2, got %d", items[0].Quantity)
 	}
 }

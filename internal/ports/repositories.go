@@ -6,6 +6,14 @@ import (
 	"cordell/internal/domain"
 )
 
+// CurrentCustodyItem represents a current custody balance joined with asset display data.
+type CurrentCustodyItem struct {
+	PersonnelID domain.PersonnelID
+	AssetID     domain.AssetID
+	AssetName   string
+	Quantity    int
+}
+
 // IDGenerator creates unique identifiers for new domain objects.
 type IDGenerator interface {
 	NewID() (string, error)
@@ -29,4 +37,5 @@ type AssetRepository interface {
 type CustodyRepository interface {
 	SaveTransaction(ctx context.Context, transaction domain.CustodyTransaction) error
 	CurrentQuantity(ctx context.Context, personnelID domain.PersonnelID, assetID domain.AssetID) (int, error)
+	ListCurrentByPersonnel(ctx context.Context, personnelID domain.PersonnelID) ([]CurrentCustodyItem, error)
 }

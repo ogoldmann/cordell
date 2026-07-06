@@ -108,3 +108,27 @@ func (r *CustodyRepository) CurrentQuantity(
 }
 
 var _ ports.CustodyRepository = (*CustodyRepository)(nil)
+
+// ListCurrentByPersonnel retrieves current custody balances for a personnel record.
+func (r *CustodyRepository) ListCurrentByPersonnel(
+	ctx context.Context,
+	personnelID domain.PersonnelID,
+) ([]ports.CurrentCustodyItem, error) {
+	rows, err := r.queries.ListCurrentCustodyByPersonnel(ctx, string(personnelID))
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]ports.CurrentCustodyItem, 0, len(rows))
+
+	for _, row := range rows {
+		items = append(items, ports.CurrentCustodyItem{
+			PersonnelID: domain.PersonnelID(row.PersonnelID),
+			AssetID:     domain.AssetID(row.AssetID),
+			AssetName:   row.AssetName,
+			Quantity:    int(row.Quantity),
+		})
+	}
+
+	return items, nil
+}

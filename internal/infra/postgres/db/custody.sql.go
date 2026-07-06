@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createCustodyLine = `-- name: CreateCustodyLine :one
@@ -149,4 +151,52 @@ type IncreaseCustodyBalanceForCheckoutParams struct {
 func (q *Queries) IncreaseCustodyBalanceForCheckout(ctx context.Context, arg IncreaseCustodyBalanceForCheckoutParams) error {
 	_, err := q.db.Exec(ctx, increaseCustodyBalanceForCheckout, arg.PersonnelID, arg.AssetID, arg.Quantity)
 	return err
+}
+
+const listCurrentCustodyByPersonnel = `-- name: ListCurrentCustodyByPersonnel :many
+SELECT
+    cb.personnel_id,
+    cb.asset_id,
+    a.name AS asset_name,
+    cb.quantity,
+    cb.updated_at
+FROM custody_balances cb
+JOIN assets a ON a.id = cb.asset_id
+WHERE cb.personnel_id = $1
+  AND cb.quantity > 0
+ORDER BY a.name ASC, cb.asset_id ASC
+`
+
+type ListCurrentCustodyByPersonnelRow struct {
+	PersonnelID string             `json:"personnel_id"`
+	AssetID     string             `json:"asset_id"`
+	AssetName   string             `json:"asset_name"`
+	Quantity    int32              `json:"quantity"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) ListCurrentCustodyByPersonnel(ctx context.Context, personnelID string) ([]ListCurrentCustodyByPersonnelRow, error) {
+	rows, err := q.db.Query(ctx, listCurrentCustodyByPersonnel, personnelID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCurrentCustodyByPersonnelRow{}
+	for rows.Next() {
+		var i ListCurrentCustodyByPersonnelRow
+		if err := rows.Scan(
+			&i.PersonnelID,
+			&i.AssetID,
+			&i.AssetName,
+			&i.Quantity,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

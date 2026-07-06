@@ -53,3 +53,16 @@ SET
 WHERE personnel_id = @personnel_id
   AND asset_id = @asset_id
   AND quantity >= @quantity;
+
+-- name: ListCurrentCustodyByPersonnel :many
+SELECT
+    cb.personnel_id,
+    cb.asset_id,
+    a.name AS asset_name,
+    cb.quantity,
+    cb.updated_at
+FROM custody_balances cb
+JOIN assets a ON a.id = cb.asset_id
+WHERE cb.personnel_id = @personnel_id
+  AND cb.quantity > 0
+ORDER BY a.name ASC, cb.asset_id ASC;

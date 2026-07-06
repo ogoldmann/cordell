@@ -76,6 +76,26 @@ func TestPostgresCustodyRepositoryRegisterCheckout(t *testing.T) {
 	if currentQuantity != 2 {
 		t.Fatalf("expected current quantity 2, got %d", currentQuantity)
 	}
+
+	currentItems, err := custodyRepository.ListCurrentByPersonnel(
+		context.Background(),
+		"personnel-1",
+	)
+	if err != nil {
+		t.Fatalf("expected no error listing current custody, got %v", err)
+	}
+
+	if len(currentItems) != 1 {
+		t.Fatalf("expected 1 current custody item, got %d", len(currentItems))
+	}
+
+	if currentItems[0].AssetName != "Radio" {
+		t.Fatalf("expected asset name Radio, got %s", currentItems[0].AssetName)
+	}
+
+	if currentItems[0].Quantity != 2 {
+		t.Fatalf("expected quantity 2, got %d", currentItems[0].Quantity)
+	}
 }
 
 func TestPostgresCustodyRepositoryRegisterReturn(t *testing.T) {
