@@ -8,6 +8,7 @@ import (
 
 	"cordell/internal/app"
 	"cordell/internal/config"
+	"cordell/internal/infra/ids"
 	"cordell/internal/infra/postgres"
 	postgresdb "cordell/internal/infra/postgres/db"
 	"cordell/internal/web"
@@ -39,26 +40,28 @@ func main() {
 	assetRepository := postgres.NewAssetRepository(queries)
 	custodyRepository := postgres.NewCustodyRepository(pool, queries)
 
+	idGenerator := ids.NewULIDGenerator()
+
 	services := app.Services{
 		CreatePersonnel: app.NewCreatePersonnelService(
 			personnelRepository,
-			staticIDGenerator{},
+			idGenerator,
 		),
 		CreateAsset: app.NewCreateAssetService(
 			assetRepository,
-			staticIDGenerator{},
+			idGenerator,
 		),
 		RegisterCheckout: app.NewRegisterCheckoutService(
 			personnelRepository,
 			assetRepository,
 			custodyRepository,
-			staticIDGenerator{},
+			idGenerator,
 		),
 		RegisterReturn: app.NewRegisterReturnService(
 			personnelRepository,
 			assetRepository,
 			custodyRepository,
-			staticIDGenerator{},
+			idGenerator,
 		),
 	}
 
@@ -70,10 +73,4 @@ func main() {
 		logger.Error("Cordell HTTP server stopped with error", "error", err)
 		os.Exit(1)
 	}
-}
-
-type staticIDGenerator struct{}
-
-func (g staticIDGenerator) NewID() string {
-	return "temporary-id"
 }

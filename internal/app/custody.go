@@ -76,7 +76,12 @@ func (s *RegisterCheckoutService) Execute(
 		lines = append(lines, line)
 	}
 
-	transactionID := domain.CustodyTransactionID(s.idGenerator.NewID())
+	id, err := s.idGenerator.NewID()
+	if err != nil {
+		return domain.CustodyTransaction{}, err
+	}
+
+	transactionID := domain.CustodyTransactionID(id)
 
 	transaction, err := domain.NewCustodyTransaction(
 		transactionID,
@@ -168,7 +173,12 @@ func (s *RegisterReturnService) Execute(
 		lines = append(lines, line)
 	}
 
-	transactionID := domain.CustodyTransactionID(s.idGenerator.NewID())
+	id, err := s.idGenerator.NewID()
+	if err != nil {
+		return domain.CustodyTransaction{}, err
+	}
+
+	transactionID := domain.CustodyTransactionID(id)
 
 	transaction, err := domain.NewCustodyTransaction(
 		transactionID,

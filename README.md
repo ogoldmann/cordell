@@ -11,6 +11,7 @@ Cordell is a server-rendered Go web application for managing custody, checkout, 
 - Tailwind CSS
 - HTMX
 - Modular monolith architecture
+- ULID-based identifiers
 
 ## Current Endpoint
 
@@ -126,3 +127,9 @@ Expected response:
 ```bash
 {"status":"ok","service":"cordell"}
 ```
+
+## Identifiers
+
+Cordell uses ULIDs for application-generated identifiers.
+
+ULIDs are stored as text and are used for records such as personnel, assets, and custody transactions.

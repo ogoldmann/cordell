@@ -31,7 +31,12 @@ func NewCreateAssetService(
 
 // Execute creates and persists a new asset record.
 func (s *CreateAssetService) Execute(ctx context.Context, cmd CreateAssetCommand) (domain.Asset, error) {
-	assetID := domain.AssetID(s.idGenerator.NewID())
+	id, err := s.idGenerator.NewID()
+	if err != nil {
+		return domain.Asset{}, err
+	}
+
+	assetID := domain.AssetID(id)
 
 	asset, err := domain.NewAsset(assetID, cmd.Name)
 	if err != nil {

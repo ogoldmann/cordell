@@ -8,7 +8,7 @@ import (
 
 // IDGenerator creates unique identifiers for new domain objects.
 type IDGenerator interface {
-	NewID() string
+	NewID() (string, error)
 }
 
 // PersonnelRepository persists and retrieves personnel records.

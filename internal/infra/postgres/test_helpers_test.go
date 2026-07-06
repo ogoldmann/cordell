@@ -4,6 +4,6 @@ type fixedIDGenerator struct {
 	id string
 }
 
-func (g fixedIDGenerator) NewID() string {
-	return g.id
+func (g fixedIDGenerator) NewID() (string, error) {
+	return g.id, nil
 }

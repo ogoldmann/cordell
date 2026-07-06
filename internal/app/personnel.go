@@ -31,7 +31,12 @@ func NewCreatePersonnelService(
 
 // Execute creates and persists a new personnel record.
 func (s *CreatePersonnelService) Execute(ctx context.Context, cmd CreatePersonnelCommand) (domain.Personnel, error) {
-	personnelID := domain.PersonnelID(s.idGenerator.NewID())
+	id, err := s.idGenerator.NewID()
+	if err != nil {
+		return domain.Personnel{}, err
+	}
+
+	personnelID := domain.PersonnelID(id)
 
 	personnel, err := domain.NewPersonnel(personnelID, cmd.FullName)
 	if err != nil {
