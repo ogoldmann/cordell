@@ -64,6 +64,53 @@
   {{end}}
 </section>
 
+<section class="section">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">History</p>
+      <h2>Custody history</h2>
+    </div>
+  </div>
+
+  {{if .History}}
+    <div class="timeline">
+      {{range .History}}
+        <article class="timeline-item">
+          <div class="timeline-marker {{.Type}}"></div>
+
+          <div class="timeline-card">
+            <div class="timeline-header">
+              <div>
+                <strong>{{.TypeLabel}}</strong>
+                <span>{{.CreatedAt}}</span>
+              </div>
+              <code>{{.ID}}</code>
+            </div>
+
+            <div class="history-lines">
+              {{range .Lines}}
+                <a class="history-line" href="/assets/{{.AssetID}}">
+                  <span>{{.AssetName}}</span>
+                  <strong>{{.Quantity}}</strong>
+                </a>
+              {{end}}
+            </div>
+
+            {{if .Notes}}
+              <p class="history-notes">{{.Notes}}</p>
+            {{end}}
+          </div>
+        </article>
+      {{end}}
+    </div>
+  {{else}}
+    <div class="empty-state">
+      <h2>No custody history yet</h2>
+      <p class="muted">Checkout and return events will appear here.</p>
+    </div>
+  {{end}}
+</section>
+
 <div class="actions">
   <a class="button-secondary" href="/personnel">Back to personnel</a>
   <a class="button-secondary" href="/personnel/new">Create another personnel</a>

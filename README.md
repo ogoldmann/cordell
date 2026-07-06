@@ -203,3 +203,13 @@ http://localhost:8080/custody/returns/new
 The return flow subtracts an asset quantity from a personnel custody balance.
 
 Cordell prevents returns greater than the current custody quantity.
+
+## Custody History
+
+Personnel detail pages display:
+
+- current custody balances
+- custody transaction history
+- checkout and return events
+- asset quantities
+- transaction notes

@@ -347,3 +347,94 @@ dd {
   gap: 12px;
   flex-wrap: wrap;
 }
+
+.timeline {
+  display: grid;
+  gap: 16px;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 14px;
+}
+
+.timeline-marker {
+  width: 12px;
+  height: 12px;
+  margin-top: 22px;
+  border-radius: 999px;
+  background: var(--muted);
+}
+
+.timeline-marker.checkout {
+  background: var(--primary);
+}
+
+.timeline-marker.return {
+  background: #7a5c20;
+}
+
+.timeline-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(31, 41, 51, 0.06);
+}
+
+.timeline-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.timeline-header strong {
+  display: block;
+}
+
+.timeline-header span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.timeline-header code {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.history-lines {
+  display: grid;
+  gap: 8px;
+}
+
+.history-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-radius: 10px;
+  background: rgba(31, 58, 95, 0.06);
+  padding: 10px 12px;
+  text-decoration: none;
+}
+
+.history-line span {
+  font-weight: 650;
+}
+
+.history-line strong {
+  border-radius: 999px;
+  background: white;
+  padding: 2px 9px;
+}
+
+.history-notes {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}

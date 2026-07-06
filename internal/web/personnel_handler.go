@@ -22,6 +22,7 @@ type personnelShowPageData struct {
 	Title          string
 	Personnel      personnelView
 	CurrentCustody []currentCustodyView
+	History        []custodyHistoryView
 }
 
 type personnelIndexPageData struct {
@@ -36,6 +37,21 @@ type personnelView struct {
 }
 
 type currentCustodyView struct {
+	AssetID   string
+	AssetName string
+	Quantity  int
+}
+
+type custodyHistoryView struct {
+	ID        string
+	Type      string
+	TypeLabel string
+	Notes     string
+	CreatedAt string
+	Lines     []custodyHistoryLineView
+}
+
+type custodyHistoryLineView struct {
 	AssetID   string
 	AssetName string
 	Quantity  int
@@ -116,6 +132,16 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	history, err := s.services.ListCustodyHistory.Execute(r.Context(), app.ListCustodyHistoryCommand{
+		PersonnelID: personnel.ID(),
+		Limit:       50,
+	})
+	if err != nil {
+		s.logger.Error("failed to list custody history", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
 	data := personnelShowPageData{
 		Title: personnel.FullName(),
 		Personnel: personnelView{
@@ -132,6 +158,27 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 			AssetName: item.AssetName,
 			Quantity:  item.Quantity,
 		})
+	}
+
+	for _, entry := range history {
+		historyView := custodyHistoryView{
+			ID:        string(entry.ID),
+			Type:      string(entry.Type),
+			TypeLabel: custodyTransactionTypeLabel(entry.Type),
+			Notes:     entry.Notes,
+			CreatedAt: entry.CreatedAt.Local().Format("2006-01-02 15:04"),
+			Lines:     make([]custodyHistoryLineView, 0, len(entry.Lines)),
+		}
+
+		for _, line := range entry.Lines {
+			historyView.Lines = append(historyView.Lines, custodyHistoryLineView{
+				AssetID:   string(line.AssetID),
+				AssetName: line.AssetName,
+				Quantity:  line.Quantity,
+			})
+		}
+
+		data.History = append(data.History, historyView)
 	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "personnel_show.html", data); err != nil {
@@ -197,5 +244,16 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 
 	if err := s.renderer.Render(w, http.StatusOK, "personnel_index.html", data); err != nil {
 		s.handleRenderError(w, err)
+	}
+}
+
+func custodyTransactionTypeLabel(transactionType domain.CustodyTransactionType) string {
+	switch transactionType {
+	case domain.CustodyTransactionTypeCheckout:
+		return "Checkout"
+	case domain.CustodyTransactionTypeReturn:
+		return "Return"
+	default:
+		return "Unknown"
 	}
 }

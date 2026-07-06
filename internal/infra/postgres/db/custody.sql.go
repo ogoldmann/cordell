@@ -200,3 +200,76 @@ func (q *Queries) ListCurrentCustodyByPersonnel(ctx context.Context, personnelID
 	}
 	return items, nil
 }
+
+const listCustodyHistoryByPersonnel = `-- name: ListCustodyHistoryByPersonnel :many
+WITH recent_transactions AS (
+    SELECT
+        id,
+        transaction_type,
+        personnel_id,
+        notes,
+        created_at
+    FROM custody_transactions
+    WHERE personnel_id = $1
+    ORDER BY created_at DESC, id DESC
+    LIMIT $2
+)
+SELECT
+    rt.id AS transaction_id,
+    rt.transaction_type,
+    rt.personnel_id,
+    rt.notes,
+    rt.created_at AS transaction_created_at,
+    cl.asset_id,
+    a.name AS asset_name,
+    cl.quantity
+FROM recent_transactions rt
+JOIN custody_lines cl ON cl.custody_transaction_id = rt.id
+JOIN assets a ON a.id = cl.asset_id
+ORDER BY rt.created_at DESC, rt.id DESC, cl.id ASC
+`
+
+type ListCustodyHistoryByPersonnelParams struct {
+	PersonnelID string `json:"personnel_id"`
+	LimitCount  int32  `json:"limit_count"`
+}
+
+type ListCustodyHistoryByPersonnelRow struct {
+	TransactionID        string             `json:"transaction_id"`
+	TransactionType      string             `json:"transaction_type"`
+	PersonnelID          string             `json:"personnel_id"`
+	Notes                string             `json:"notes"`
+	TransactionCreatedAt pgtype.Timestamptz `json:"transaction_created_at"`
+	AssetID              string             `json:"asset_id"`
+	AssetName            string             `json:"asset_name"`
+	Quantity             int32              `json:"quantity"`
+}
+
+func (q *Queries) ListCustodyHistoryByPersonnel(ctx context.Context, arg ListCustodyHistoryByPersonnelParams) ([]ListCustodyHistoryByPersonnelRow, error) {
+	rows, err := q.db.Query(ctx, listCustodyHistoryByPersonnel, arg.PersonnelID, arg.LimitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCustodyHistoryByPersonnelRow{}
+	for rows.Next() {
+		var i ListCustodyHistoryByPersonnelRow
+		if err := rows.Scan(
+			&i.TransactionID,
+			&i.TransactionType,
+			&i.PersonnelID,
+			&i.Notes,
+			&i.TransactionCreatedAt,
+			&i.AssetID,
+			&i.AssetName,
+			&i.Quantity,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

@@ -2,6 +2,7 @@ package ports
 
 import (
 	"context"
+	"time"
 
 	"cordell/internal/domain"
 )
@@ -12,6 +13,23 @@ type CurrentCustodyItem struct {
 	AssetID     domain.AssetID
 	AssetName   string
 	Quantity    int
+}
+
+// CustodyHistoryLine represents one asset line inside a custody history entry.
+type CustodyHistoryLine struct {
+	AssetID   domain.AssetID
+	AssetName string
+	Quantity  int
+}
+
+// CustodyHistoryEntry represents a custody transaction with its lines.
+type CustodyHistoryEntry struct {
+	ID          domain.CustodyTransactionID
+	Type        domain.CustodyTransactionType
+	PersonnelID domain.PersonnelID
+	Notes       string
+	CreatedAt   time.Time
+	Lines       []CustodyHistoryLine
 }
 
 // IDGenerator creates unique identifiers for new domain objects.
@@ -38,4 +56,5 @@ type CustodyRepository interface {
 	SaveTransaction(ctx context.Context, transaction domain.CustodyTransaction) error
 	CurrentQuantity(ctx context.Context, personnelID domain.PersonnelID, assetID domain.AssetID) (int, error)
 	ListCurrentByPersonnel(ctx context.Context, personnelID domain.PersonnelID) ([]CurrentCustodyItem, error)
+	ListHistoryByPersonnel(ctx context.Context, personnelID domain.PersonnelID, limit int) ([]CustodyHistoryEntry, error)
 }

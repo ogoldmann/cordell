@@ -3,12 +3,15 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	"cordell/internal/domain"
 	"cordell/internal/infra/postgres/db"
 	"cordell/internal/ports"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -131,4 +134,62 @@ func (r *CustodyRepository) ListCurrentByPersonnel(
 	}
 
 	return items, nil
+}
+
+// ListHistoryByPersonnel retrieves custody transaction history for a personnel record.
+func (r *CustodyRepository) ListHistoryByPersonnel(
+	ctx context.Context,
+	personnelID domain.PersonnelID,
+	limit int,
+) ([]ports.CustodyHistoryEntry, error) {
+	rows, err := r.queries.ListCustodyHistoryByPersonnel(ctx, db.ListCustodyHistoryByPersonnelParams{
+		PersonnelID: string(personnelID),
+		LimitCount:  int32(limit),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	entries := make([]ports.CustodyHistoryEntry, 0)
+	entryIndexes := make(map[string]int)
+
+	for _, row := range rows {
+		transactionID := row.TransactionID
+
+		entryIndex, ok := entryIndexes[transactionID]
+		if !ok {
+			createdAt, err := timestamptzToTime(row.TransactionCreatedAt)
+			if err != nil {
+				return nil, err
+			}
+
+			entries = append(entries, ports.CustodyHistoryEntry{
+				ID:          domain.CustodyTransactionID(row.TransactionID),
+				Type:        domain.CustodyTransactionType(row.TransactionType),
+				PersonnelID: domain.PersonnelID(row.PersonnelID),
+				Notes:       row.Notes,
+				CreatedAt:   createdAt,
+				Lines:       make([]ports.CustodyHistoryLine, 0),
+			})
+
+			entryIndex = len(entries) - 1
+			entryIndexes[transactionID] = entryIndex
+		}
+
+		entries[entryIndex].Lines = append(entries[entryIndex].Lines, ports.CustodyHistoryLine{
+			AssetID:   domain.AssetID(row.AssetID),
+			AssetName: row.AssetName,
+			Quantity:  int(row.Quantity),
+		})
+	}
+
+	return entries, nil
+}
+
+func timestamptzToTime(value pgtype.Timestamptz) (time.Time, error) {
+	if !value.Valid {
+		return time.Time{}, fmt.Errorf("invalid timestamptz value")
+	}
+
+	return value.Time, nil
 }

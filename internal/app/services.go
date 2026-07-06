@@ -11,4 +11,5 @@ type Services struct {
 	RegisterCheckout   *RegisterCheckoutService
 	RegisterReturn     *RegisterReturnService
 	ListCurrentCustody *ListCurrentCustodyService
+	ListCustodyHistory *ListCustodyHistoryService
 }

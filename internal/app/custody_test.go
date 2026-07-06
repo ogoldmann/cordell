@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"testing"
+	"time"
 
 	"cordell/internal/domain"
 	"cordell/internal/ports"
@@ -254,5 +255,65 @@ func TestListCurrentCustodyServiceExecute(t *testing.T) {
 
 	if items[0].Quantity != 2 {
 		t.Fatalf("expected quantity 2, got %d", items[0].Quantity)
+	}
+}
+
+func TestListCustodyHistoryServiceExecute(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+	custodyRepository := &fakeCustodyRepository{
+		historyByPerson: map[domain.PersonnelID][]ports.CustodyHistoryEntry{
+			"personnel-1": {
+				{
+					ID:          "transaction-1",
+					Type:        domain.CustodyTransactionTypeCheckout,
+					PersonnelID: "personnel-1",
+					Notes:       "Initial checkout",
+					CreatedAt:   time.Date(2026, 7, 6, 10, 0, 0, 0, time.UTC),
+					Lines: []ports.CustodyHistoryLine{
+						{
+							AssetID:   "asset-1",
+							AssetName: "Radio",
+							Quantity:  2,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	service := NewListCustodyHistoryService(personnelRepository, custodyRepository)
+
+	entries, err := service.Execute(context.Background(), ListCustodyHistoryCommand{
+		PersonnelID: "personnel-1",
+		Limit:       10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 history entry, got %d", len(entries))
+	}
+
+	if entries[0].Type != domain.CustodyTransactionTypeCheckout {
+		t.Fatalf("expected checkout transaction, got %s", entries[0].Type)
+	}
+
+	if len(entries[0].Lines) != 1 {
+		t.Fatalf("expected 1 history line, got %d", len(entries[0].Lines))
+	}
+
+	if entries[0].Lines[0].AssetName != "Radio" {
+		t.Fatalf("expected asset name Radio, got %s", entries[0].Lines[0].AssetName)
+	}
+
+	if entries[0].Lines[0].Quantity != 2 {
+		t.Fatalf("expected quantity 2, got %d", entries[0].Lines[0].Quantity)
 	}
 }

@@ -79,6 +79,10 @@ func main() {
 			personnelRepository,
 			custodyRepository,
 		),
+		ListCustodyHistory: app.NewListCustodyHistoryService(
+			personnelRepository,
+			custodyRepository,
+		),
 	}
 
 	server, err := web.NewServer(logger, services)

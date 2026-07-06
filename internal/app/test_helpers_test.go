@@ -110,6 +110,7 @@ type fakeCustodyRepository struct {
 	saved           []domain.CustodyTransaction
 	currentQuantity map[string]int
 	currentByPerson map[domain.PersonnelID][]ports.CurrentCustodyItem
+	historyByPerson map[domain.PersonnelID][]ports.CustodyHistoryEntry
 }
 
 func (r *fakeCustodyRepository) SaveTransaction(_ context.Context, transaction domain.CustodyTransaction) error {
@@ -141,6 +142,26 @@ func (r *fakeCustodyRepository) ListCurrentByPersonnel(
 	items := r.currentByPerson[personnelID]
 	copiedItems := make([]ports.CurrentCustodyItem, len(items))
 	copy(copiedItems, items)
+
+	return copiedItems, nil
+}
+
+func (r *fakeCustodyRepository) ListHistoryByPersonnel(
+	_ context.Context,
+	personnelID domain.PersonnelID,
+	limit int,
+) ([]ports.CustodyHistoryEntry, error) {
+	if r.historyByPerson == nil {
+		return nil, nil
+	}
+
+	items := r.historyByPerson[personnelID]
+	copiedItems := make([]ports.CustodyHistoryEntry, len(items))
+	copy(copiedItems, items)
+
+	if limit > 0 && len(copiedItems) > limit {
+		return copiedItems[:limit], nil
+	}
 
 	return copiedItems, nil
 }

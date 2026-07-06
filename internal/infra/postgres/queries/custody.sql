@@ -66,3 +66,30 @@ JOIN assets a ON a.id = cb.asset_id
 WHERE cb.personnel_id = @personnel_id
   AND cb.quantity > 0
 ORDER BY a.name ASC, cb.asset_id ASC;
+
+-- name: ListCustodyHistoryByPersonnel :many
+WITH recent_transactions AS (
+    SELECT
+        id,
+        transaction_type,
+        personnel_id,
+        notes,
+        created_at
+    FROM custody_transactions
+    WHERE personnel_id = @personnel_id
+    ORDER BY created_at DESC, id DESC
+    LIMIT sqlc.arg(limit_count)
+)
+SELECT
+    rt.id AS transaction_id,
+    rt.transaction_type,
+    rt.personnel_id,
+    rt.notes,
+    rt.created_at AS transaction_created_at,
+    cl.asset_id,
+    a.name AS asset_name,
+    cl.quantity
+FROM recent_transactions rt
+JOIN custody_lines cl ON cl.custody_transaction_id = rt.id
+JOIN assets a ON a.id = cl.asset_id
+ORDER BY rt.created_at DESC, rt.id DESC, cl.id ASC;

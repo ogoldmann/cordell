@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"time"
 
 	"cordell/internal/domain"
 	"cordell/internal/ports"
@@ -255,6 +256,104 @@ func (s *ListCurrentCustodyService) Execute(
 			AssetName:   item.AssetName,
 			Quantity:    item.Quantity,
 		})
+	}
+
+	return result, nil
+}
+
+const (
+	defaultCustodyHistoryLimit = 50
+	maxCustodyHistoryLimit     = 100
+)
+
+// CustodyHistoryLine contains display-ready asset data inside a custody history entry.
+type CustodyHistoryLine struct {
+	AssetID   domain.AssetID
+	AssetName string
+	Quantity  int
+}
+
+// CustodyHistoryEntry contains a custody transaction and its lines.
+type CustodyHistoryEntry struct {
+	ID          domain.CustodyTransactionID
+	Type        domain.CustodyTransactionType
+	PersonnelID domain.PersonnelID
+	Notes       string
+	CreatedAt   time.Time
+	Lines       []CustodyHistoryLine
+}
+
+// ListCustodyHistoryCommand contains the input data required to list custody history.
+type ListCustodyHistoryCommand struct {
+	PersonnelID domain.PersonnelID
+	Limit       int
+}
+
+// ListCustodyHistoryService handles custody history listing for personnel.
+type ListCustodyHistoryService struct {
+	personnelRepository ports.PersonnelRepository
+	custodyRepository   ports.CustodyRepository
+}
+
+// NewListCustodyHistoryService creates a ListCustodyHistoryService with its dependencies.
+func NewListCustodyHistoryService(
+	personnelRepository ports.PersonnelRepository,
+	custodyRepository ports.CustodyRepository,
+) *ListCustodyHistoryService {
+	return &ListCustodyHistoryService{
+		personnelRepository: personnelRepository,
+		custodyRepository:   custodyRepository,
+	}
+}
+
+// Execute retrieves custody history for a personnel record.
+func (s *ListCustodyHistoryService) Execute(
+	ctx context.Context,
+	cmd ListCustodyHistoryCommand,
+) ([]CustodyHistoryEntry, error) {
+	if cmd.PersonnelID == "" {
+		return nil, domain.ErrEmptyPersonnelID
+	}
+
+	if _, err := s.personnelRepository.FindByID(ctx, cmd.PersonnelID); err != nil {
+		return nil, err
+	}
+
+	limit := cmd.Limit
+	if limit <= 0 {
+		limit = defaultCustodyHistoryLimit
+	}
+
+	if limit > maxCustodyHistoryLimit {
+		limit = maxCustodyHistoryLimit
+	}
+
+	entries, err := s.custodyRepository.ListHistoryByPersonnel(ctx, cmd.PersonnelID, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]CustodyHistoryEntry, 0, len(entries))
+
+	for _, entry := range entries {
+		historyEntry := CustodyHistoryEntry{
+			ID:          entry.ID,
+			Type:        entry.Type,
+			PersonnelID: entry.PersonnelID,
+			Notes:       entry.Notes,
+			CreatedAt:   entry.CreatedAt,
+			Lines:       make([]CustodyHistoryLine, 0, len(entry.Lines)),
+		}
+
+		for _, line := range entry.Lines {
+			historyEntry.Lines = append(historyEntry.Lines, CustodyHistoryLine{
+				AssetID:   line.AssetID,
+				AssetName: line.AssetName,
+				Quantity:  line.Quantity,
+			})
+		}
+
+		result = append(result, historyEntry)
 	}
 
 	return result, nil
