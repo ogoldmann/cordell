@@ -31,6 +31,10 @@ migrate-status:
 test:
 	go test ./...
 
+.PHONY: test-integration
+test-integration:
+	CORDELL_INTEGRATION_TESTS=1 go test ./internal/infra/postgres -count=1 -v
+
 .PHONY: fmt
 fmt:
 	gofmt -w .

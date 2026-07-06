@@ -94,5 +94,5 @@ Generated code lives in:
 ```bash
 internal/infra/postgres/db
 ```
-
+w
 Do not edit generated files manually.
