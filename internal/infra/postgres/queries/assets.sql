@@ -20,3 +20,15 @@ SELECT id, name, active, created_at, updated_at
 FROM assets
 ORDER BY created_at DESC, id DESC
 LIMIT sqlc.arg(limit_count);
+
+-- name: SearchAssets :many
+SELECT
+    id,
+    name,
+    active,
+    created_at,
+    updated_at
+FROM assets
+WHERE name ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+ORDER BY created_at DESC, id DESC
+LIMIT sqlc.arg(limit_count);

@@ -159,3 +159,74 @@ func TestCreatePersonnelServiceRejectsInvalidRegistrationID(t *testing.T) {
 		t.Fatalf("expected ErrInvalidRegistrationID, got %v", err)
 	}
 }
+
+func TestSearchPersonnelServiceExecute(t *testing.T) {
+	firstPersonnel := mustBuildPersonnel(t, "personnel-1")
+
+	secondRegistrationID, err := domain.NewRegistrationID("11144477735")
+	if err != nil {
+		t.Fatalf("expected valid registration id, got %v", err)
+	}
+
+	secondPersonnel, err := domain.NewPersonnel(
+		"personnel-2",
+		"Jane Doe",
+		"Jane",
+		domain.PersonnelRankCorporal,
+		secondRegistrationID,
+		domain.PersonnelSectionLogistics,
+		domain.OrganizationUnitDefault,
+	)
+	if err != nil {
+		t.Fatalf("expected valid personnel, got %v", err)
+	}
+
+	repository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			firstPersonnel.ID():  firstPersonnel,
+			secondPersonnel.ID(): secondPersonnel,
+		},
+	}
+
+	service := NewSearchPersonnelService(repository)
+
+	personnel, err := service.Execute(context.Background(), SearchPersonnelCommand{
+		Query: "jane",
+		Limit: 10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(personnel) != 1 {
+		t.Fatalf("expected 1 personnel record, got %d", len(personnel))
+	}
+
+	if personnel[0].Alias() != "Jane" {
+		t.Fatalf("expected alias Jane, got %s", personnel[0].Alias())
+	}
+}
+
+func TestSearchPersonnelServiceFallsBackToListWhenQueryIsEmpty(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+
+	repository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+
+	service := NewSearchPersonnelService(repository)
+
+	result, err := service.Execute(context.Background(), SearchPersonnelCommand{
+		Query: "   ",
+		Limit: 10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(result) != 1 {
+		t.Fatalf("expected 1 personnel record, got %d", len(result))
+	}
+}

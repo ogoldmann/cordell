@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"strings"
 
 	"cordell/internal/domain"
 	"cordell/internal/ports"
@@ -100,15 +101,47 @@ func NewListAssetsService(assetRepository ports.AssetRepository) *ListAssetsServ
 
 // Execute retrieves a limited list of asset records.
 func (s *ListAssetsService) Execute(ctx context.Context, cmd ListAssetsCommand) ([]domain.Asset, error) {
-	limit := cmd.Limit
+	return s.assetRepository.List(ctx, normalizeAssetLimit(cmd.Limit))
+}
 
+func normalizeAssetLimit(limit int) int {
 	if limit <= 0 {
-		limit = defaultAssetListLimit
+		return defaultAssetListLimit
 	}
 
 	if limit > maxAssetListLimit {
-		limit = maxAssetListLimit
+		return maxAssetListLimit
 	}
 
-	return s.assetRepository.List(ctx, limit)
+	return limit
+}
+
+// SearchAssetsCommand contains the input data required to search assets.
+type SearchAssetsCommand struct {
+	Query string
+	Limit int
+}
+
+// SearchAssetsService handles asset search.
+type SearchAssetsService struct {
+	assetRepository ports.AssetRepository
+}
+
+// NewSearchAssetsService creates a SearchAssetsService with its dependencies.
+func NewSearchAssetsService(assetRepository ports.AssetRepository) *SearchAssetsService {
+	return &SearchAssetsService{
+		assetRepository: assetRepository,
+	}
+}
+
+// Execute searches asset records by query.
+func (s *SearchAssetsService) Execute(ctx context.Context, cmd SearchAssetsCommand) ([]domain.Asset, error) {
+	limit := normalizeAssetLimit(cmd.Limit)
+	query := strings.TrimSpace(cmd.Query)
+
+	if query == "" {
+		return s.assetRepository.List(ctx, limit)
+	}
+
+	return s.assetRepository.Search(ctx, query, limit)
 }

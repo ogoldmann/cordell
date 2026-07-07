@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"cordell/internal/app"
 	"cordell/internal/domain"
@@ -13,8 +14,9 @@ import (
 )
 
 type assetIndexPageData struct {
-	Title  string
-	Assets []assetView
+	Title       string
+	SearchQuery string
+	Assets      []assetView
 }
 
 type assetNewPageData struct {
@@ -42,7 +44,10 @@ type assetHolderView struct {
 }
 
 func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
-	assets, err := s.services.ListAssets.Execute(r.Context(), app.ListAssetsCommand{
+	searchQuery := strings.TrimSpace(r.URL.Query().Get("q"))
+
+	assets, err := s.services.SearchAssets.Execute(r.Context(), app.SearchAssetsCommand{
+		Query: searchQuery,
 		Limit: 50,
 	})
 	if err != nil {
@@ -52,8 +57,9 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := assetIndexPageData{
-		Title:  "Assets",
-		Assets: make([]assetView, 0, len(assets)),
+		Title:       "Assets",
+		SearchQuery: searchQuery,
+		Assets:      make([]assetView, 0, len(assets)),
 	}
 
 	for _, item := range assets {

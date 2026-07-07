@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"strings"
 
 	"cordell/internal/domain"
 	"cordell/internal/ports"
@@ -116,15 +117,47 @@ func NewListPersonnelService(personnelRepository ports.PersonnelRepository) *Lis
 
 // Execute retrieves a limited list of personnel records.
 func (s *ListPersonnelService) Execute(ctx context.Context, cmd ListPersonnelCommand) ([]domain.Personnel, error) {
-	limit := cmd.Limit
+	return s.personnelRepository.List(ctx, normalizePersonnelLimit(cmd.Limit))
+}
 
+func normalizePersonnelLimit(limit int) int {
 	if limit <= 0 {
-		limit = defaultPersonnelListLimit
+		return defaultPersonnelListLimit
 	}
 
 	if limit > maxPersonnelListLimit {
-		limit = maxPersonnelListLimit
+		return maxPersonnelListLimit
 	}
 
-	return s.personnelRepository.List(ctx, limit)
+	return limit
+}
+
+// SearchPersonnelCommand contains the input data required to search personnel.
+type SearchPersonnelCommand struct {
+	Query string
+	Limit int
+}
+
+// SearchPersonnelService handles personnel search.
+type SearchPersonnelService struct {
+	personnelRepository ports.PersonnelRepository
+}
+
+// NewSearchPersonnelService creates a SearchPersonnelService with its dependencies.
+func NewSearchPersonnelService(personnelRepository ports.PersonnelRepository) *SearchPersonnelService {
+	return &SearchPersonnelService{
+		personnelRepository: personnelRepository,
+	}
+}
+
+// Execute searches personnel records by query.
+func (s *SearchPersonnelService) Execute(ctx context.Context, cmd SearchPersonnelCommand) ([]domain.Personnel, error) {
+	limit := normalizePersonnelLimit(cmd.Limit)
+	query := strings.TrimSpace(cmd.Query)
+
+	if query == "" {
+		return s.personnelRepository.List(ctx, limit)
+	}
+
+	return s.personnelRepository.Search(ctx, query, limit)
 }

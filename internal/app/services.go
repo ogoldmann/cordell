@@ -5,9 +5,11 @@ type Services struct {
 	CreatePersonnel         *CreatePersonnelService
 	GetPersonnel            *GetPersonnelService
 	ListPersonnel           *ListPersonnelService
+	SearchPersonnel         *SearchPersonnelService
 	CreateAsset             *CreateAssetService
 	GetAsset                *GetAssetService
 	ListAssets              *ListAssetsService
+	SearchAssets            *SearchAssetsService
 	RegisterCheckout        *RegisterCheckoutService
 	RegisterReturn          *RegisterReturnService
 	ListCurrentCustody      *ListCurrentCustodyService

@@ -13,6 +13,27 @@
   </div>
 </section>
 
+<form class="search-form" method="get" action="/personnel">
+  <div class="search-control">
+    <label for="personnel_search">Search personnel</label>
+    <input
+      id="personnel_search"
+      name="q"
+      type="search"
+      value="{{.SearchQuery}}"
+      placeholder="Search by name, alias, registration ID, rank, section..."
+    >
+  </div>
+
+  <div class="search-actions">
+    <button type="submit">Search</button>
+
+    {{if .SearchQuery}}
+      <a class="button-secondary" href="/personnel">Clear</a>
+    {{end}}
+  </div>
+</form>
+
 {{if .Personnel}}
   <div class="list">
     {{range .Personnel}}
@@ -33,9 +54,15 @@
   </div>
 {{else}}
   <div class="empty-state">
-    <h2>No personnel registered yet</h2>
-    <p class="muted">Create the first personnel record to start using Cordell.</p>
-    <a class="button-secondary" href="/personnel/new">Create personnel</a>
+    {{if .SearchQuery}}
+      <h2>No personnel found</h2>
+      <p class="muted">No personnel records matched your search.</p>
+      <a class="button-secondary" href="/personnel">Clear search</a>
+    {{else}}
+      <h2>No personnel registered yet</h2>
+      <p class="muted">Create the first personnel record to start using Cordell.</p>
+      <a class="button-secondary" href="/personnel/new">Create personnel</a>
+    {{end}}
   </div>
 {{end}}
 

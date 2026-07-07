@@ -53,6 +53,9 @@ func main() {
 		ListPersonnel: app.NewListPersonnelService(
 			personnelRepository,
 		),
+		SearchPersonnel: app.NewSearchPersonnelService(
+			personnelRepository,
+		),
 		CreateAsset: app.NewCreateAssetService(
 			assetRepository,
 			idGenerator,
@@ -61,6 +64,9 @@ func main() {
 			assetRepository,
 		),
 		ListAssets: app.NewListAssetsService(
+			assetRepository,
+		),
+		SearchAssets: app.NewSearchAssetsService(
 			assetRepository,
 		),
 		RegisterCheckout: app.NewRegisterCheckoutService(

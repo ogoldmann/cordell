@@ -51,6 +51,34 @@ func (r *AssetRepository) FindByID(ctx context.Context, id domain.AssetID) (doma
 	)
 }
 
+// Search retrieves asset records matching a search query.
+func (r *AssetRepository) Search(ctx context.Context, query string, limit int) ([]domain.Asset, error) {
+	rows, err := r.queries.SearchAssets(ctx, db.SearchAssetsParams{
+		SearchPattern: buildTextSearchPattern(query),
+		LimitCount:    int32(limit),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	assets := make([]domain.Asset, 0, len(rows))
+
+	for _, row := range rows {
+		item, err := domain.ReconstituteAsset(
+			domain.AssetID(row.ID),
+			row.Name,
+			row.Active,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		assets = append(assets, item)
+	}
+
+	return assets, nil
+}
+
 var _ ports.AssetRepository = (*AssetRepository)(nil)
 
 // List retrieves recent asset records.

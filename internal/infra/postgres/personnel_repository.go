@@ -111,6 +111,45 @@ func (r *PersonnelRepository) List(ctx context.Context, limit int) ([]domain.Per
 	return personnel, nil
 }
 
+// Search retrieves personnel records matching a search query.
+func (r *PersonnelRepository) Search(ctx context.Context, query string, limit int) ([]domain.Personnel, error) {
+	rows, err := r.queries.SearchPersonnel(ctx, db.SearchPersonnelParams{
+		SearchPattern:       buildTextSearchPattern(query),
+		RegistrationPattern: buildRegistrationSearchPattern(query),
+		LimitCount:          int32(limit),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	personnel := make([]domain.Personnel, 0, len(rows))
+
+	for _, row := range rows {
+		registrationID, err := domain.NewRegistrationID(row.RegistrationID)
+		if err != nil {
+			return nil, err
+		}
+
+		item, err := domain.ReconstitutePersonnel(
+			domain.PersonnelID(row.ID),
+			row.FullName,
+			row.Alias,
+			domain.PersonnelRank(row.Rank),
+			registrationID,
+			domain.PersonnelSection(row.Section),
+			domain.OrganizationUnit(row.OrganizationUnit),
+			row.Active,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		personnel = append(personnel, item)
+	}
+
+	return personnel, nil
+}
+
 func isUniqueViolation(err error, constraintName string) bool {
 	var pgErr *pgconn.PgError
 	if !errors.As(err, &pgErr) {

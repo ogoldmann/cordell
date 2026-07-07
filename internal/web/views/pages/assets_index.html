@@ -13,6 +13,27 @@
   </div>
 </section>
 
+<form class="search-form" method="get" action="/assets">
+  <div class="search-control">
+    <label for="asset_search">Search assets</label>
+    <input
+      id="asset_search"
+      name="q"
+      type="search"
+      value="{{.SearchQuery}}"
+      placeholder="Search by asset name..."
+    >
+  </div>
+
+  <div class="search-actions">
+    <button type="submit">Search</button>
+
+    {{if .SearchQuery}}
+      <a class="button-secondary" href="/assets">Clear</a>
+    {{end}}
+  </div>
+</form>
+
 {{if .Assets}}
   <div class="list">
     {{range .Assets}}
@@ -32,9 +53,15 @@
   </div>
 {{else}}
   <div class="empty-state">
-    <h2>No assets registered yet</h2>
-    <p class="muted">Create the first asset record to start using Cordell.</p>
-    <a class="button-secondary" href="/assets/new">Create asset</a>
+    {{if .SearchQuery}}
+      <h2>No assets found</h2>
+      <p class="muted">No asset records matched your search.</p>
+      <a class="button-secondary" href="/assets">Clear search</a>
+    {{else}}
+      <h2>No assets registered yet</h2>
+      <p class="muted">Create the first asset record to start using Cordell.</p>
+      <a class="button-secondary" href="/assets/new">Create asset</a>
+    {{end}}
   </div>
 {{end}}
 

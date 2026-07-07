@@ -269,3 +269,32 @@ make migrate-up
 ```
 
 Do not use this process after real data exists.
+
+## Search
+
+Personnel and assets support basic server-rendered search.
+
+Personnel search:
+
+```bash
+http://localhost:8080/personnel?q=doe
+```
+
+Personnel search matches:
+
+- full name
+- alias
+- registration ID
+- rank
+- section
+- organization unit
+
+Asset search:
+
+```bash
+http://localhost:8080/assets?q=radio
+```
+
+Asset search matches:
+
+- name

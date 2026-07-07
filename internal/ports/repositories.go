@@ -50,6 +50,7 @@ type PersonnelRepository interface {
 	Save(ctx context.Context, personnel domain.Personnel) error
 	FindByID(ctx context.Context, id domain.PersonnelID) (domain.Personnel, error)
 	List(ctx context.Context, limit int) ([]domain.Personnel, error)
+	Search(ctx context.Context, query string, limit int) ([]domain.Personnel, error)
 }
 
 // AssetRepository persists and retrieves asset records.
@@ -57,6 +58,7 @@ type AssetRepository interface {
 	Save(ctx context.Context, asset domain.Asset) error
 	FindByID(ctx context.Context, id domain.AssetID) (domain.Asset, error)
 	List(ctx context.Context, limit int) ([]domain.Asset, error)
+	Search(ctx context.Context, query string, limit int) ([]domain.Asset, error)
 }
 
 // CustodyRepository persists custody transactions and reads current custody state.

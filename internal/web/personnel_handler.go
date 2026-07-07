@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"cordell/internal/app"
 	"cordell/internal/domain"
@@ -34,8 +35,9 @@ type personnelShowPageData struct {
 }
 
 type personnelIndexPageData struct {
-	Title     string
-	Personnel []personnelView
+	Title       string
+	SearchQuery string
+	Personnel   []personnelView
 }
 
 type personnelView struct {
@@ -278,7 +280,10 @@ func humanizePersonnelError(err error) string {
 }
 
 func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
-	personnel, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
+	searchQuery := strings.TrimSpace(r.URL.Query().Get("q"))
+
+	personnel, err := s.services.SearchPersonnel.Execute(r.Context(), app.SearchPersonnelCommand{
+		Query: searchQuery,
 		Limit: 50,
 	})
 	if err != nil {
@@ -288,8 +293,9 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := personnelIndexPageData{
-		Title:     "Personnel",
-		Personnel: make([]personnelView, 0, len(personnel)),
+		Title:       "Personnel",
+		SearchQuery: searchQuery,
+		Personnel:   make([]personnelView, 0, len(personnel)),
 	}
 
 	for _, item := range personnel {

@@ -138,3 +138,61 @@ func TestListAssetsServiceCapsLimit(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 }
+
+func TestSearchAssetsServiceExecute(t *testing.T) {
+	firstAsset := mustBuildAsset(t, "asset-1")
+
+	secondAsset, err := domain.NewAsset("asset-2", "Battery")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	repository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			firstAsset.ID():  firstAsset,
+			secondAsset.ID(): secondAsset,
+		},
+	}
+
+	service := NewSearchAssetsService(repository)
+
+	assets, err := service.Execute(context.Background(), SearchAssetsCommand{
+		Query: "battery",
+		Limit: 10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(assets) != 1 {
+		t.Fatalf("expected 1 asset record, got %d", len(assets))
+	}
+
+	if assets[0].Name() != "Battery" {
+		t.Fatalf("expected asset name Battery, got %s", assets[0].Name())
+	}
+}
+
+func TestSearchAssetsServiceFallsBackToListWhenQueryIsEmpty(t *testing.T) {
+	asset := mustBuildAsset(t, "asset-1")
+
+	repository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+
+	service := NewSearchAssetsService(repository)
+
+	result, err := service.Execute(context.Background(), SearchAssetsCommand{
+		Query: "   ",
+		Limit: 10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(result) != 1 {
+		t.Fatalf("expected 1 asset record, got %d", len(result))
+	}
+}

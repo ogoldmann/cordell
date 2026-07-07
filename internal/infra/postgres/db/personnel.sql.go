@@ -133,3 +133,64 @@ func (q *Queries) ListPersonnel(ctx context.Context, limitCount int32) ([]Person
 	}
 	return items, nil
 }
+
+const searchPersonnel = `-- name: SearchPersonnel :many
+SELECT
+    id,
+    full_name,
+    alias,
+    rank,
+    registration_id,
+    section,
+    organization_unit,
+    active,
+    created_at,
+    updated_at
+FROM personnel
+WHERE full_name ILIKE $1::text ESCAPE '\'
+   OR alias ILIKE $1::text ESCAPE '\'
+   OR registration_id ILIKE $1::text ESCAPE '\'
+   OR registration_id ILIKE $2::text ESCAPE '\'
+   OR rank ILIKE $1::text ESCAPE '\'
+   OR section ILIKE $1::text ESCAPE '\'
+   OR organization_unit ILIKE $1::text ESCAPE '\'
+ORDER BY created_at DESC, id DESC
+LIMIT $3
+`
+
+type SearchPersonnelParams struct {
+	SearchPattern       string `json:"search_pattern"`
+	RegistrationPattern string `json:"registration_pattern"`
+	LimitCount          int32  `json:"limit_count"`
+}
+
+func (q *Queries) SearchPersonnel(ctx context.Context, arg SearchPersonnelParams) ([]Personnel, error) {
+	rows, err := q.db.Query(ctx, searchPersonnel, arg.SearchPattern, arg.RegistrationPattern, arg.LimitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Personnel{}
+	for rows.Next() {
+		var i Personnel
+		if err := rows.Scan(
+			&i.ID,
+			&i.FullName,
+			&i.Alias,
+			&i.Rank,
+			&i.RegistrationID,
+			&i.Section,
+			&i.OrganizationUnit,
+			&i.Active,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

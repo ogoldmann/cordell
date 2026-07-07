@@ -616,3 +616,41 @@ dd {
     grid-column: span 1;
   }
 }
+
+.search-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(31, 41, 51, 0.06);
+}
+
+.search-control {
+  display: grid;
+  gap: 8px;
+}
+
+.search-actions {
+  display: flex;
+  gap: 12px;
+}
+
+@media (max-width: 760px) {
+  .search-form {
+    grid-template-columns: 1fr;
+  }
+
+  .search-actions {
+    flex-direction: column;
+  }
+
+  .search-actions button,
+  .search-actions .button-secondary {
+    width: 100%;
+  }
+}

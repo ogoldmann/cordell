@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"testing"
 
 	"cordell/internal/domain"
@@ -62,6 +63,51 @@ func (r *fakePersonnelRepository) List(_ context.Context, limit int) ([]domain.P
 	return personnel, nil
 }
 
+func (r *fakePersonnelRepository) Search(_ context.Context, query string, limit int) ([]domain.Personnel, error) {
+	query = strings.ToLower(strings.TrimSpace(query))
+
+	personnel := make([]domain.Personnel, 0, len(r.byID))
+
+	for _, item := range r.byID {
+		if personnelMatchesQuery(item, query) {
+			personnel = append(personnel, item)
+		}
+	}
+
+	sort.Slice(personnel, func(i, j int) bool {
+		return personnel[i].ID() < personnel[j].ID()
+	})
+
+	if limit > 0 && len(personnel) > limit {
+		return personnel[:limit], nil
+	}
+
+	return personnel, nil
+}
+
+func personnelMatchesQuery(personnel domain.Personnel, query string) bool {
+	if query == "" {
+		return true
+	}
+
+	values := []string{
+		personnel.FullName(),
+		personnel.Alias(),
+		personnel.RegistrationID().String(),
+		string(personnel.Rank()),
+		string(personnel.Section()),
+		string(personnel.OrganizationUnit()),
+	}
+
+	for _, value := range values {
+		if strings.Contains(strings.ToLower(value), query) {
+			return true
+		}
+	}
+
+	return false
+}
+
 type fakeAssetRepository struct {
 	saved []domain.Asset
 	byID  map[domain.AssetID]domain.Asset
@@ -93,6 +139,28 @@ func (r *fakeAssetRepository) List(_ context.Context, limit int) ([]domain.Asset
 
 	for _, item := range r.byID {
 		assets = append(assets, item)
+	}
+
+	sort.Slice(assets, func(i, j int) bool {
+		return assets[i].ID() < assets[j].ID()
+	})
+
+	if limit > 0 && len(assets) > limit {
+		return assets[:limit], nil
+	}
+
+	return assets, nil
+}
+
+func (r *fakeAssetRepository) Search(_ context.Context, query string, limit int) ([]domain.Asset, error) {
+	query = strings.ToLower(strings.TrimSpace(query))
+
+	assets := make([]domain.Asset, 0, len(r.byID))
+
+	for _, item := range r.byID {
+		if query == "" || strings.Contains(strings.ToLower(item.Name()), query) {
+			assets = append(assets, item)
+		}
 	}
 
 	sort.Slice(assets, func(i, j int) bool {
