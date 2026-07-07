@@ -298,3 +298,33 @@ http://localhost:8080/assets?q=radio
 Asset search matches:
 
 - name
+
+## CSS
+
+Cordell uses Tailwind CSS through the Tailwind CLI.
+
+The source CSS file is:
+
+```bash
+static/css/input.css
+```
+
+The compiled CSS file served by the application is:
+
+```bash
+static/css/app.css
+```
+
+Build CSS:
+
+```bash
+make css-build
+```
+
+Watch CSS during UI development:
+
+```bash
+make css-watch
+```
+
+The compiled CSS is committed so the Go application can run without requiring a CSS build step at runtime.

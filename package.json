@@ -1,0 +1,28 @@
+{
+  "name": "cordell",
+  "version": "1.0.0",
+  "description": "Cordell is a server-rendered Go web application for managing custody, checkout, and return of assets assigned to personnel designed for extreme clarity and practicality.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "css:build": "npx @tailwindcss/cli -i ./static/css/input.css -o ./static/css/app.css",
+    "css:watch": "npx @tailwindcss/cli -i ./static/css/input.css -o ./static/css/app.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ogoldmann/cordell.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ogoldmann/cordell/issues"
+  },
+  "homepage": "https://github.com/ogoldmann/cordell#readme",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.2",
+    "tailwindcss": "^4.3.2"
+  }
+}

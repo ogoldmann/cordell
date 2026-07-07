@@ -50,6 +50,14 @@ run:
 .PHONY: check
 check:
 	make fmt
+	make css-build
 	make test
 	make test-integration
-	
+
+.PHONY: css-build
+css-build:
+	npm run css:build
+
+.PHONY: css-watch
+css-watch:
+	npm run css:watch

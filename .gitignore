@@ -1,4 +1,5 @@
 AGENTS.md
+node_modules/
 
 # Local environment files
 .env
