@@ -13,9 +13,17 @@ import (
 )
 
 type personnelNewPageData struct {
-	Title    string
-	Error    string
-	FullName string
+	Title                    string
+	Error                    string
+	FullName                 string
+	Alias                    string
+	RegistrationID           string
+	SelectedRank             string
+	SelectedSection          string
+	SelectedOrganizationUnit string
+	RankOptions              []selectOption
+	SectionOptions           []selectOption
+	OrganizationUnitOptions  []selectOption
 }
 
 type personnelShowPageData struct {
@@ -31,9 +39,17 @@ type personnelIndexPageData struct {
 }
 
 type personnelView struct {
-	ID       string
-	FullName string
-	Active   bool
+	ID                    string
+	FullName              string
+	Alias                 string
+	Rank                  string
+	RankLabel             string
+	RegistrationID        string
+	Section               string
+	SectionLabel          string
+	OrganizationUnit      string
+	OrganizationUnitLabel string
+	Active                bool
 }
 
 type currentCustodyView struct {
@@ -57,10 +73,27 @@ type custodyHistoryLineView struct {
 	Quantity  int
 }
 
-func (s *Server) handleNewPersonnelForm(w http.ResponseWriter, r *http.Request) {
-	data := personnelNewPageData{
-		Title: "Create personnel",
+type selectOption struct {
+	Value string
+	Label string
+}
+
+func newPersonnelNewPageData(data personnelNewPageData) personnelNewPageData {
+	data.RankOptions = rankOptions()
+	data.SectionOptions = sectionOptions()
+	data.OrganizationUnitOptions = organizationUnitOptions()
+
+	if data.SelectedOrganizationUnit == "" {
+		data.SelectedOrganizationUnit = string(domain.OrganizationUnitDefault)
 	}
+
+	return data
+}
+
+func (s *Server) handleNewPersonnelForm(w http.ResponseWriter, r *http.Request) {
+	data := newPersonnelNewPageData(personnelNewPageData{
+		Title: "Create personnel",
+	})
 
 	if err := s.renderer.Render(w, http.StatusOK, "personnel_new.html", data); err != nil {
 		s.handleRenderError(w, err)
@@ -73,22 +106,32 @@ func (s *Server) handleCreatePersonnel(w http.ResponseWriter, r *http.Request) {
 			w,
 			http.StatusBadRequest,
 			"Invalid form submission.",
-			"",
+			r,
 		)
 		return
 	}
 
 	fullName := r.FormValue("full_name")
+	alias := r.FormValue("alias")
+	registrationID := r.FormValue("registration_id")
+	rank := r.FormValue("rank")
+	section := r.FormValue("section")
+	organizationUnit := r.FormValue("organization_unit")
 
 	personnel, err := s.services.CreatePersonnel.Execute(r.Context(), app.CreatePersonnelCommand{
-		FullName: fullName,
+		FullName:         fullName,
+		Alias:            alias,
+		Rank:             domain.PersonnelRank(rank),
+		RegistrationID:   registrationID,
+		Section:          domain.PersonnelSection(section),
+		OrganizationUnit: domain.OrganizationUnit(organizationUnit),
 	})
 	if err != nil {
 		s.renderNewPersonnelFormWithError(
 			w,
 			http.StatusBadRequest,
 			humanizePersonnelError(err),
-			fullName,
+			r,
 		)
 		return
 	}
@@ -143,12 +186,8 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := personnelShowPageData{
-		Title: personnel.FullName(),
-		Personnel: personnelView{
-			ID:       string(personnel.ID()),
-			FullName: personnel.FullName(),
-			Active:   personnel.Active(),
-		},
+		Title:          personnel.FullName(),
+		Personnel:      newPersonnelView(personnel),
 		CurrentCustody: make([]currentCustodyView, 0, len(currentCustody)),
 	}
 
@@ -190,13 +229,18 @@ func (s *Server) renderNewPersonnelFormWithError(
 	w http.ResponseWriter,
 	status int,
 	message string,
-	fullName string,
+	r *http.Request,
 ) {
-	data := personnelNewPageData{
-		Title:    "Create personnel",
-		Error:    message,
-		FullName: fullName,
-	}
+	data := newPersonnelNewPageData(personnelNewPageData{
+		Title:                    "Create personnel",
+		Error:                    message,
+		FullName:                 r.FormValue("full_name"),
+		Alias:                    r.FormValue("alias"),
+		RegistrationID:           r.FormValue("registration_id"),
+		SelectedRank:             r.FormValue("rank"),
+		SelectedSection:          r.FormValue("section"),
+		SelectedOrganizationUnit: r.FormValue("organization_unit"),
+	})
 
 	if err := s.renderer.Render(w, status, "personnel_new.html", data); err != nil {
 		s.handleRenderError(w, err)
@@ -212,6 +256,20 @@ func humanizePersonnelError(err error) string {
 	switch {
 	case errors.Is(err, domain.ErrEmptyPersonnelName):
 		return "Full name is required."
+	case errors.Is(err, domain.ErrEmptyPersonnelAlias):
+		return "Alias is required."
+	case errors.Is(err, domain.ErrEmptyRegistrationID):
+		return "Registration ID is required."
+	case errors.Is(err, domain.ErrInvalidRegistrationID):
+		return "Registration ID is invalid."
+	case errors.Is(err, domain.ErrDuplicateRegistrationID):
+		return "Registration ID is already registered."
+	case errors.Is(err, domain.ErrInvalidPersonnelRank):
+		return "Rank is required."
+	case errors.Is(err, domain.ErrInvalidPersonnelSection):
+		return "Section is required."
+	case errors.Is(err, domain.ErrInvalidOrganizationUnit):
+		return "Organization unit is required."
 	case errors.Is(err, domain.ErrEmptyPersonnelID):
 		return "Personnel ID is required."
 	default:
@@ -235,11 +293,7 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, item := range personnel {
-		data.Personnel = append(data.Personnel, personnelView{
-			ID:       string(item.ID()),
-			FullName: item.FullName(),
-			Active:   item.Active(),
-		})
+		data.Personnel = append(data.Personnel, newPersonnelView(item))
 	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "personnel_index.html", data); err != nil {
@@ -256,4 +310,92 @@ func custodyTransactionTypeLabel(transactionType domain.CustodyTransactionType) 
 	default:
 		return "Unknown"
 	}
+}
+
+func newPersonnelView(personnel domain.Personnel) personnelView {
+	return personnelView{
+		ID:                    string(personnel.ID()),
+		FullName:              personnel.FullName(),
+		Alias:                 personnel.Alias(),
+		Rank:                  string(personnel.Rank()),
+		RankLabel:             personnelRankLabel(personnel.Rank()),
+		RegistrationID:        personnel.RegistrationID().String(),
+		Section:               string(personnel.Section()),
+		SectionLabel:          personnelSectionLabel(personnel.Section()),
+		OrganizationUnit:      string(personnel.OrganizationUnit()),
+		OrganizationUnitLabel: organizationUnitLabel(personnel.OrganizationUnit()),
+		Active:                personnel.Active(),
+	}
+}
+
+func rankOptions() []selectOption {
+	options := domain.PersonnelRankOptions()
+	result := make([]selectOption, 0, len(options))
+
+	for _, option := range options {
+		result = append(result, selectOption{
+			Value: string(option.Value),
+			Label: option.Label,
+		})
+	}
+
+	return result
+}
+
+func sectionOptions() []selectOption {
+	options := domain.PersonnelSectionOptions()
+	result := make([]selectOption, 0, len(options))
+
+	for _, option := range options {
+		result = append(result, selectOption{
+			Value: string(option.Value),
+			Label: option.Label,
+		})
+	}
+
+	return result
+}
+
+func organizationUnitOptions() []selectOption {
+	options := domain.OrganizationUnitOptions()
+	result := make([]selectOption, 0, len(options))
+
+	for _, option := range options {
+		result = append(result, selectOption{
+			Value: string(option.Value),
+			Label: option.Label,
+		})
+	}
+
+	return result
+}
+
+func personnelRankLabel(rank domain.PersonnelRank) string {
+	for _, option := range domain.PersonnelRankOptions() {
+		if option.Value == rank {
+			return option.Label
+		}
+	}
+
+	return string(rank)
+}
+
+func personnelSectionLabel(section domain.PersonnelSection) string {
+	for _, option := range domain.PersonnelSectionOptions() {
+		if option.Value == section {
+			return option.Label
+		}
+	}
+
+	return string(section)
+}
+
+func organizationUnitLabel(unit domain.OrganizationUnit) string {
+	for _, option := range domain.OrganizationUnitOptions() {
+		if option.Value == unit {
+			return option.Label
+		}
+	}
+
+	return string(unit)
 }

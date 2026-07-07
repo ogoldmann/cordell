@@ -53,7 +53,8 @@
         {{range .RecentPersonnel}}
           <a class="compact-list-item" href="/personnel/{{.ID}}">
             <div>
-              <strong>{{.FullName}}</strong>
+              <strong>{{.Alias}}</strong>
+              <span>{{.FullName}} · {{.RankLabel}}</span>
               <span>{{.ID}}</span>
             </div>
 

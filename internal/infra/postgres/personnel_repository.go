@@ -9,6 +9,7 @@ import (
 	"cordell/internal/ports"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // PersonnelRepository persists personnel records in PostgreSQL.
@@ -25,12 +26,24 @@ func NewPersonnelRepository(queries *db.Queries) *PersonnelRepository {
 
 // Save persists a personnel record.
 func (r *PersonnelRepository) Save(ctx context.Context, personnel domain.Personnel) error {
-	_, err := r.queries.CreatePersonnel(ctx, db.CreatePersonnelParams{
-		ID:       string(personnel.ID()),
-		FullName: personnel.FullName(),
-		Active:   personnel.Active(),
+	err := r.queries.CreatePersonnel(ctx, db.CreatePersonnelParams{
+		ID:               string(personnel.ID()),
+		FullName:         personnel.FullName(),
+		Alias:            personnel.Alias(),
+		Rank:             string(personnel.Rank()),
+		RegistrationID:   personnel.RegistrationID().String(),
+		Section:          string(personnel.Section()),
+		OrganizationUnit: string(personnel.OrganizationUnit()),
 	})
-	return err
+	if err != nil {
+		if isUniqueViolation(err, "personnel_registration_id_unique") {
+			return domain.ErrDuplicateRegistrationID
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 // FindByID retrieves a personnel record by identifier.
@@ -44,9 +57,19 @@ func (r *PersonnelRepository) FindByID(ctx context.Context, id domain.PersonnelI
 		return domain.Personnel{}, err
 	}
 
+	registrationID, err := domain.NewRegistrationID(row.RegistrationID)
+	if err != nil {
+		return domain.Personnel{}, err
+	}
+
 	return domain.ReconstitutePersonnel(
 		domain.PersonnelID(row.ID),
 		row.FullName,
+		row.Alias,
+		domain.PersonnelRank(row.Rank),
+		registrationID,
+		domain.PersonnelSection(row.Section),
+		domain.OrganizationUnit(row.OrganizationUnit),
 		row.Active,
 	)
 }
@@ -63,9 +86,19 @@ func (r *PersonnelRepository) List(ctx context.Context, limit int) ([]domain.Per
 	personnel := make([]domain.Personnel, 0, len(rows))
 
 	for _, row := range rows {
+		registrationID, err := domain.NewRegistrationID(row.RegistrationID)
+		if err != nil {
+			return nil, err
+		}
+
 		item, err := domain.ReconstitutePersonnel(
 			domain.PersonnelID(row.ID),
 			row.FullName,
+			row.Alias,
+			domain.PersonnelRank(row.Rank),
+			registrationID,
+			domain.PersonnelSection(row.Section),
+			domain.OrganizationUnit(row.OrganizationUnit),
 			row.Active,
 		)
 		if err != nil {
@@ -76,4 +109,13 @@ func (r *PersonnelRepository) List(ctx context.Context, limit int) ([]domain.Per
 	}
 
 	return personnel, nil
+}
+
+func isUniqueViolation(err error, constraintName string) bool {
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) {
+		return false
+	}
+
+	return pgErr.Code == "23505" && pgErr.ConstraintName == constraintName
 }

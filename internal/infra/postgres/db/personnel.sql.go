@@ -9,40 +9,61 @@ import (
 	"context"
 )
 
-const createPersonnel = `-- name: CreatePersonnel :one
+const createPersonnel = `-- name: CreatePersonnel :exec
 INSERT INTO personnel (
     id,
     full_name,
-    active
+    alias,
+    rank,
+    registration_id,
+    section,
+    organization_unit
 ) VALUES (
     $1,
     $2,
-    $3
+    $3,
+    $4,
+    $5,
+    $6,
+    $7
 )
-RETURNING id, full_name, active, created_at, updated_at
 `
 
 type CreatePersonnelParams struct {
-	ID       string `json:"id"`
-	FullName string `json:"full_name"`
-	Active   bool   `json:"active"`
+	ID               string `json:"id"`
+	FullName         string `json:"full_name"`
+	Alias            string `json:"alias"`
+	Rank             string `json:"rank"`
+	RegistrationID   string `json:"registration_id"`
+	Section          string `json:"section"`
+	OrganizationUnit string `json:"organization_unit"`
 }
 
-func (q *Queries) CreatePersonnel(ctx context.Context, arg CreatePersonnelParams) (Personnel, error) {
-	row := q.db.QueryRow(ctx, createPersonnel, arg.ID, arg.FullName, arg.Active)
-	var i Personnel
-	err := row.Scan(
-		&i.ID,
-		&i.FullName,
-		&i.Active,
-		&i.CreatedAt,
-		&i.UpdatedAt,
+func (q *Queries) CreatePersonnel(ctx context.Context, arg CreatePersonnelParams) error {
+	_, err := q.db.Exec(ctx, createPersonnel,
+		arg.ID,
+		arg.FullName,
+		arg.Alias,
+		arg.Rank,
+		arg.RegistrationID,
+		arg.Section,
+		arg.OrganizationUnit,
 	)
-	return i, err
+	return err
 }
 
 const getPersonnel = `-- name: GetPersonnel :one
-SELECT id, full_name, active, created_at, updated_at
+SELECT
+    id,
+    full_name,
+    alias,
+    rank,
+    registration_id,
+    section,
+    organization_unit,
+    active,
+    created_at,
+    updated_at
 FROM personnel
 WHERE id = $1
 `
@@ -53,6 +74,11 @@ func (q *Queries) GetPersonnel(ctx context.Context, id string) (Personnel, error
 	err := row.Scan(
 		&i.ID,
 		&i.FullName,
+		&i.Alias,
+		&i.Rank,
+		&i.RegistrationID,
+		&i.Section,
+		&i.OrganizationUnit,
 		&i.Active,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -61,7 +87,17 @@ func (q *Queries) GetPersonnel(ctx context.Context, id string) (Personnel, error
 }
 
 const listPersonnel = `-- name: ListPersonnel :many
-SELECT id, full_name, active, created_at, updated_at
+SELECT
+    id,
+    full_name,
+    alias,
+    rank,
+    registration_id,
+    section,
+    organization_unit,
+    active,
+    created_at,
+    updated_at
 FROM personnel
 ORDER BY created_at DESC, id DESC
 LIMIT $1
@@ -79,6 +115,11 @@ func (q *Queries) ListPersonnel(ctx context.Context, limitCount int32) ([]Person
 		if err := rows.Scan(
 			&i.ID,
 			&i.FullName,
+			&i.Alias,
+			&i.Rank,
+			&i.RegistrationID,
+			&i.Section,
+			&i.OrganizationUnit,
 			&i.Active,
 			&i.CreatedAt,
 			&i.UpdatedAt,

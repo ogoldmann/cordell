@@ -13,9 +13,7 @@ func TestCreatePersonnelServiceExecute(t *testing.T) {
 
 	service := NewCreatePersonnelService(repository, idGenerator)
 
-	personnel, err := service.Execute(context.Background(), CreatePersonnelCommand{
-		FullName: "  John Doe  ",
-	})
+	personnel, err := service.Execute(context.Background(), validCreatePersonnelCommand("John Doe", "Doe", "52998224725"))
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -31,6 +29,14 @@ func TestCreatePersonnelServiceExecute(t *testing.T) {
 	if len(repository.saved) != 1 {
 		t.Fatalf("expected 1 saved personnel, got %d", len(repository.saved))
 	}
+
+	if personnel.Alias() != "Doe" {
+		t.Fatalf("expected alias Doe, got %s", personnel.Alias())
+	}
+
+	if personnel.RegistrationID() != "52998224725" {
+		t.Fatalf("expected registration id 52998224725, got %s", personnel.RegistrationID())
+	}
 }
 
 func TestCreatePersonnelServiceRejectsInvalidPersonnel(t *testing.T) {
@@ -39,9 +45,7 @@ func TestCreatePersonnelServiceRejectsInvalidPersonnel(t *testing.T) {
 
 	service := NewCreatePersonnelService(repository, idGenerator)
 
-	_, err := service.Execute(context.Background(), CreatePersonnelCommand{
-		FullName: "   ",
-	})
+	_, err := service.Execute(context.Background(), validCreatePersonnelCommand("   ", "Doe", "52998224725"))
 	if err != domain.ErrEmptyPersonnelName {
 		t.Fatalf("expected ErrEmptyPersonnelName, got %v", err)
 	}
@@ -136,5 +140,22 @@ func TestListPersonnelServiceCapsLimit(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
+func TestCreatePersonnelServiceRejectsInvalidRegistrationID(t *testing.T) {
+	repository := &fakePersonnelRepository{}
+	service := NewCreatePersonnelService(repository, fixedIDGenerator{id: "personnel-1"})
+
+	_, err := service.Execute(context.Background(), CreatePersonnelCommand{
+		FullName:         "John Doe",
+		Alias:            "Doe",
+		Rank:             domain.PersonnelRankSergeant,
+		RegistrationID:   "11111111111",
+		Section:          domain.PersonnelSectionOperations,
+		OrganizationUnit: domain.OrganizationUnitDefault,
+	})
+	if err != domain.ErrInvalidRegistrationID {
+		t.Fatalf("expected ErrInvalidRegistrationID, got %v", err)
 	}
 }

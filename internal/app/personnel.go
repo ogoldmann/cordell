@@ -9,7 +9,12 @@ import (
 
 // CreatePersonnelCommand contains the input data required to create personnel.
 type CreatePersonnelCommand struct {
-	FullName string
+	FullName         string
+	Alias            string
+	Rank             domain.PersonnelRank
+	RegistrationID   string
+	Section          domain.PersonnelSection
+	OrganizationUnit domain.OrganizationUnit
 }
 
 // CreatePersonnelService handles the personnel creation use case.
@@ -36,9 +41,20 @@ func (s *CreatePersonnelService) Execute(ctx context.Context, cmd CreatePersonne
 		return domain.Personnel{}, err
 	}
 
-	personnelID := domain.PersonnelID(id)
+	registrationID, err := domain.NewRegistrationID(cmd.RegistrationID)
+	if err != nil {
+		return domain.Personnel{}, err
+	}
 
-	personnel, err := domain.NewPersonnel(personnelID, cmd.FullName)
+	personnel, err := domain.NewPersonnel(
+		domain.PersonnelID(id),
+		cmd.FullName,
+		cmd.Alias,
+		cmd.Rank,
+		registrationID,
+		cmd.Section,
+		cmd.OrganizationUnit,
+	)
 	if err != nil {
 		return domain.Personnel{}, err
 	}

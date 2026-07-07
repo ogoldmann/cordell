@@ -38,11 +38,7 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, item := range personnel {
-		data.RecentPersonnel = append(data.RecentPersonnel, personnelView{
-			ID:       string(item.ID()),
-			FullName: item.FullName(),
-			Active:   item.Active(),
-		})
+		data.RecentPersonnel = append(data.RecentPersonnel, newPersonnelView(item))
 	}
 
 	for _, item := range assets {

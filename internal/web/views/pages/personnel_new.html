@@ -14,17 +14,95 @@
 {{end}}
 
 <form class="card form" method="post" action="/personnel">
-  <div class="form-group">
-    <label for="full_name">Full name</label>
-    <input
-      id="full_name"
-      name="full_name"
-      type="text"
-      value="{{.FullName}}"
-      autocomplete="off"
-      required
-    >
-  </div>
+  <section class="form-section">
+    <div class="form-section-header">
+      <p class="eyebrow">Identity</p>
+      <h2>Personnel identity</h2>
+    </div>
+
+    <div class="form-grid three-columns">
+      <div class="form-group span-2">
+        <label for="full_name">Full name</label>
+        <input
+          id="full_name"
+          name="full_name"
+          type="text"
+          value="{{.FullName}}"
+          autocomplete="off"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="alias">Alias</label>
+        <input
+          id="alias"
+          name="alias"
+          type="text"
+          value="{{.Alias}}"
+          autocomplete="off"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="registration_id">Registration ID</label>
+        <input
+          id="registration_id"
+          name="registration_id"
+          type="text"
+          value="{{.RegistrationID}}"
+          autocomplete="off"
+          required
+        >
+      </div>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <div class="form-section-header">
+      <p class="eyebrow">Assignment</p>
+      <h2>Organizational assignment</h2>
+    </div>
+
+    <div class="form-grid three-columns">
+      <div class="form-group">
+        <label for="rank">Rank</label>
+        <select id="rank" name="rank" required>
+          <option value="">Select rank</option>
+          {{range .RankOptions}}
+            <option value="{{.Value}}" {{if eq $.SelectedRank .Value}}selected{{end}}>
+              {{.Label}}
+            </option>
+          {{end}}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="section">Section</label>
+        <select id="section" name="section" required>
+          <option value="">Select section</option>
+          {{range .SectionOptions}}
+            <option value="{{.Value}}" {{if eq $.SelectedSection .Value}}selected{{end}}>
+              {{.Label}}
+            </option>
+          {{end}}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="organization_unit">Organization unit</label>
+        <select id="organization_unit" name="organization_unit" required>
+          <option value="">Select organization unit</option>
+          {{range .OrganizationUnitOptions}}
+            <option value="{{.Value}}" {{if eq $.SelectedOrganizationUnit .Value}}selected{{end}}>
+              {{.Label}}
+            </option>
+          {{end}}
+        </select>
+      </div>
+    </div>
+  </section>
 
   <div class="actions">
     <button type="submit">Create personnel</button>

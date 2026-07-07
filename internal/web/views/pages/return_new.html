@@ -21,7 +21,7 @@
         <option value="">Select personnel</option>
         {{range .Personnel}}
           <option value="{{.ID}}" {{if eq $.SelectedPersonnelID .ID}}selected{{end}}>
-            {{.FullName}}
+            {{.Alias}} — {{.FullName}}
           </option>
         {{end}}
       </select>

@@ -32,9 +32,7 @@ func TestPostgresCustodyRepositoryRegisterCheckout(t *testing.T) {
 		fixedIDGenerator{id: "transaction-1"},
 	)
 
-	_, err := createPersonnelService.Execute(context.Background(), app.CreatePersonnelCommand{
-		FullName: "John Doe",
-	})
+	_, err := createPersonnelService.Execute(context.Background(), validCreatePersonnelCommand("John Doe", "Doe", "52998224725"))
 	if err != nil {
 		t.Fatalf("expected no error creating personnel, got %v", err)
 	}
@@ -127,9 +125,7 @@ func TestPostgresCustodyRepositoryRegisterReturn(t *testing.T) {
 		fixedIDGenerator{id: "transaction-return-1"},
 	)
 
-	_, err := createPersonnelService.Execute(context.Background(), app.CreatePersonnelCommand{
-		FullName: "John Doe",
-	})
+	_, err := createPersonnelService.Execute(context.Background(), validCreatePersonnelCommand("John Doe", "Doe", "52998224725"))
 	if err != nil {
 		t.Fatalf("expected no error creating personnel, got %v", err)
 	}
@@ -216,9 +212,7 @@ func TestPostgresCustodyRepositoryRejectsInsufficientBalance(t *testing.T) {
 		fixedIDGenerator{id: "transaction-return-1"},
 	)
 
-	_, err := createPersonnelService.Execute(context.Background(), app.CreatePersonnelCommand{
-		FullName: "John Doe",
-	})
+	_, err := createPersonnelService.Execute(context.Background(), validCreatePersonnelCommand("John Doe", "Doe", "52998224725"))
 	if err != nil {
 		t.Fatalf("expected no error creating personnel, got %v", err)
 	}
@@ -299,9 +293,7 @@ func TestPostgresCustodyRepositoryListHistoryByPersonnel(t *testing.T) {
 		fixedIDGenerator{id: "transaction-return-1"},
 	)
 
-	_, err := createPersonnelService.Execute(context.Background(), app.CreatePersonnelCommand{
-		FullName: "John Doe",
-	})
+	_, err := createPersonnelService.Execute(context.Background(), validCreatePersonnelCommand("John Doe", "Doe", "52998224725"))
 	if err != nil {
 		t.Fatalf("expected no error creating personnel, got %v", err)
 	}
@@ -392,16 +384,12 @@ func TestPostgresCustodyRepositoryListCurrentByAsset(t *testing.T) {
 		fixedIDGenerator{id: "asset-1"},
 	)
 
-	_, err := createFirstPersonnelService.Execute(context.Background(), app.CreatePersonnelCommand{
-		FullName: "John Doe",
-	})
+	_, err := createFirstPersonnelService.Execute(context.Background(), validCreatePersonnelCommand("John Doe", "Doe", "52998224725"))
 	if err != nil {
 		t.Fatalf("expected no error creating first personnel, got %v", err)
 	}
 
-	_, err = createSecondPersonnelService.Execute(context.Background(), app.CreatePersonnelCommand{
-		FullName: "Jane Doe",
-	})
+	_, err = createSecondPersonnelService.Execute(context.Background(), validCreatePersonnelCommand("Jane Doe", "Jane", "11144477735"))
 	if err != nil {
 		t.Fatalf("expected no error creating second personnel, got %v", err)
 	}

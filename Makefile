@@ -5,7 +5,7 @@ MIGRATIONS_DIR := migrations
 
 .PHONY: db-up
 db-up:
-	docker compose up -d
+	docker compose up -d --wait
 
 .PHONY: db-down
 db-down:
@@ -39,10 +39,17 @@ test-integration:
 fmt:
 	gofmt -w .
 
-.PHONY: sqlc-g
+.PHONY: sqlc-generate
 sqlc-generate:
 	sqlc generate
 
 .PHONY: run
 run:
 	go run ./cmd/cordell
+
+.PHONY: check
+check:
+	make fmt
+	make test
+	make test-integration
+	

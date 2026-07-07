@@ -239,3 +239,33 @@ It provides quick access to core workflows:
 - return
 
 It also displays recent personnel and asset records.
+
+## Personnel Profile
+
+Personnel records include:
+
+- full name
+- alias
+- rank
+- registration ID
+- section
+- organization unit
+- active status
+
+`registration_id` is the conceptual personnel registration identifier.
+
+The current validation mechanism accepts CPF-like identifiers, but the domain model does not expose a CPF-specific field name.
+
+## Development Database Reset
+
+During pre-release development, early migrations may still be edited to keep the baseline schema clean.
+
+When an already-applied migration is edited, reset the local development database:
+
+```bash
+docker compose down -v
+make db-up
+make migrate-up
+```
+
+Do not use this process after real data exists.

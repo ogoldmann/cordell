@@ -18,7 +18,8 @@
     {{range .Personnel}}
       <a class="list-item" href="/personnel/{{.ID}}">
         <div>
-          <strong>{{.FullName}}</strong>
+          <strong>{{.Alias}}</strong>
+          <span>{{.FullName}} · {{.RankLabel}} · {{.SectionLabel}}</span>
           <span>{{.ID}}</span>
         </div>
 

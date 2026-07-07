@@ -29,4 +29,12 @@ var (
 
 	// ErrInsufficientCustodyBalance is returned when a return exceeds the current custody quantity.
 	ErrInsufficientCustodyBalance = errors.New("insufficient custody balance")
+
+	ErrEmptyPersonnelAlias     = errors.New("empty personnel alias")
+	ErrEmptyRegistrationID     = errors.New("empty registration id")
+	ErrInvalidRegistrationID   = errors.New("invalid registration id")
+	ErrDuplicateRegistrationID = errors.New("duplicate registration id")
+	ErrInvalidPersonnelRank    = errors.New("invalid personnel rank")
+	ErrInvalidPersonnelSection = errors.New("invalid personnel section")
+	ErrInvalidOrganizationUnit = errors.New("invalid organization unit")
 )

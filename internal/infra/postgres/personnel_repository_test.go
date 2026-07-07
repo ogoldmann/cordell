@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"cordell/internal/app"
+	"cordell/internal/domain"
 	"cordell/internal/infra/postgres"
 )
 
@@ -17,9 +18,7 @@ func TestPostgresPersonnelRepositoryCreateAndFind(t *testing.T) {
 
 	service := app.NewCreatePersonnelService(personnelRepository, idGenerator)
 
-	created, err := service.Execute(context.Background(), app.CreatePersonnelCommand{
-		FullName: "  John Doe  ",
-	})
+	created, err := service.Execute(context.Background(), validCreatePersonnelCommand("  John Doe  ", "Doe", "52998224725"))
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -57,16 +56,12 @@ func TestPostgresPersonnelRepositoryList(t *testing.T) {
 		fixedIDGenerator{id: "personnel-2"},
 	)
 
-	_, err := firstService.Execute(context.Background(), app.CreatePersonnelCommand{
-		FullName: "John Doe",
-	})
+	_, err := firstService.Execute(context.Background(), validCreatePersonnelCommand("John Doe", "Doe", "52998224725"))
 	if err != nil {
 		t.Fatalf("expected no error creating first personnel, got %v", err)
 	}
 
-	_, err = secondService.Execute(context.Background(), app.CreatePersonnelCommand{
-		FullName: "Jane Doe",
-	})
+	_, err = secondService.Execute(context.Background(), validCreatePersonnelCommand("Jane Doe", "Jane", "11144477735"))
 	if err != nil {
 		t.Fatalf("expected no error creating second personnel, got %v", err)
 	}
@@ -78,5 +73,37 @@ func TestPostgresPersonnelRepositoryList(t *testing.T) {
 
 	if len(personnel) != 2 {
 		t.Fatalf("expected 2 personnel records, got %d", len(personnel))
+	}
+}
+
+func TestPostgresPersonnelRepositoryRejectsDuplicateRegistrationID(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+
+	firstService := app.NewCreatePersonnelService(
+		personnelRepository,
+		fixedIDGenerator{id: "personnel-1"},
+	)
+	secondService := app.NewCreatePersonnelService(
+		personnelRepository,
+		fixedIDGenerator{id: "personnel-2"},
+	)
+
+	_, err := firstService.Execute(
+		context.Background(),
+		validCreatePersonnelCommand("John Doe", "Doe", "52998224725"),
+	)
+	if err != nil {
+		t.Fatalf("expected no error creating first personnel, got %v", err)
+	}
+
+	_, err = secondService.Execute(
+		context.Background(),
+		validCreatePersonnelCommand("Jane Doe", "Jane", "52998224725"),
+	)
+	if err != domain.ErrDuplicateRegistrationID {
+		t.Fatalf("expected ErrDuplicateRegistrationID, got %v", err)
 	}
 }

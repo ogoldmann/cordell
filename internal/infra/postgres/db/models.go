@@ -40,9 +40,14 @@ type CustodyTransaction struct {
 }
 
 type Personnel struct {
-	ID        string             `json:"id"`
-	FullName  string             `json:"full_name"`
-	Active    bool               `json:"active"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	ID               string             `json:"id"`
+	FullName         string             `json:"full_name"`
+	Alias            string             `json:"alias"`
+	Rank             string             `json:"rank"`
+	RegistrationID   string             `json:"registration_id"`
+	Section          string             `json:"section"`
+	OrganizationUnit string             `json:"organization_unit"`
+	Active           bool               `json:"active"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 }

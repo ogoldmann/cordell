@@ -140,11 +140,7 @@ func (s *Server) buildCheckoutNewPageData(
 
 	data.Personnel = make([]personnelView, 0, len(personnel))
 	for _, item := range personnel {
-		data.Personnel = append(data.Personnel, personnelView{
-			ID:       string(item.ID()),
-			FullName: item.FullName(),
-			Active:   item.Active(),
-		})
+		data.Personnel = append(data.Personnel, newPersonnelView(item))
 	}
 
 	data.Assets = make([]assetView, 0, len(assets))

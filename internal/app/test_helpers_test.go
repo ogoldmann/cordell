@@ -186,15 +186,39 @@ func custodyBalanceKey(personnelID domain.PersonnelID, assetID domain.AssetID) s
 	return fmt.Sprintf("%s:%s", personnelID, assetID)
 }
 
-func mustBuildPersonnel(t *testing.T, id domain.PersonnelID) domain.Personnel {
+func mustBuildPersonnel(t *testing.T, id string) domain.Personnel {
 	t.Helper()
 
-	personnel, err := domain.NewPersonnel(id, "John Doe")
+	registrationID, err := domain.NewRegistrationID("52998224725")
 	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
+		t.Fatalf("expected valid registration id, got %v", err)
+	}
+
+	personnel, err := domain.NewPersonnel(
+		domain.PersonnelID(id),
+		"John Doe",
+		"Doe",
+		domain.PersonnelRankSergeant,
+		registrationID,
+		domain.PersonnelSectionOperations,
+		domain.OrganizationUnitDefault,
+	)
+	if err != nil {
+		t.Fatalf("expected valid personnel, got %v", err)
 	}
 
 	return personnel
+}
+
+func validCreatePersonnelCommand(fullName string, alias string, registrationID string) CreatePersonnelCommand {
+	return CreatePersonnelCommand{
+		FullName:         fullName,
+		Alias:            alias,
+		Rank:             domain.PersonnelRankSergeant,
+		RegistrationID:   registrationID,
+		Section:          domain.PersonnelSectionOperations,
+		OrganizationUnit: domain.OrganizationUnitDefault,
+	}
 }
 
 func mustBuildAsset(t *testing.T, id domain.AssetID) domain.Asset {
