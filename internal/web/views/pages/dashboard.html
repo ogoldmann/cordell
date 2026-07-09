@@ -1,110 +1,116 @@
 {{define "dashboard.html"}}
 {{template "layout_start" .}}
 
-<section class="hero">
+<section class="rounded-3xl border border-cordell-border bg-linear-to-br from-cordell-primary/10 to-white p-8 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:from-cordell-primary/20 dark:to-cordell-dark-surface">
   <div>
-    <p class="eyebrow">Cordell</p>
-    <h1>Custody management dashboard</h1>
-    <p class="muted">
+    <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+      Cordell
+    </p>
+
+    <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
+      Custody management dashboard
+    </h1>
+
+    <p class="mt-3 max-w-2xl text-cordell-muted dark:text-cordell-dark-muted">
       Manage personnel, assets, checkouts, returns, and current custody status.
     </p>
   </div>
 </section>
 
-<section class="quick-actions">
-  <a class="quick-action-card" href="/personnel/new">
-    <span>Personnel</span>
-    <strong>Create personnel</strong>
-    <small>Register a person who can receive assets.</small>
+<section class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+  <a class="rounded-2xl border border-cordell-border bg-cordell-surface p-5 no-underline shadow-lg shadow-slate-900/5 transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:hover:border-cordell-dark-primary/60" href="/personnel/new">
+    <span class="block text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Personnel</span>
+    <strong class="mt-2 block text-lg">Create personnel</strong>
+    <small class="mt-2 block text-sm text-cordell-muted dark:text-cordell-dark-muted">Register a person who can receive assets.</small>
   </a>
 
-  <a class="quick-action-card" href="/assets/new">
-    <span>Assets</span>
-    <strong>Create asset</strong>
-    <small>Register a material or item.</small>
+  <a class="rounded-2xl border border-cordell-border bg-cordell-surface p-5 no-underline shadow-lg shadow-slate-900/5 transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:hover:border-cordell-dark-primary/60" href="/assets/new">
+    <span class="block text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Assets</span>
+    <strong class="mt-2 block text-lg">Create asset</strong>
+    <small class="mt-2 block text-sm text-cordell-muted dark:text-cordell-dark-muted">Register a material or item.</small>
   </a>
 
-  <a class="quick-action-card" href="/custody/checkouts/new">
-    <span>Custody</span>
-    <strong>Register checkout</strong>
-    <small>Assign assets under custody.</small>
+  <a class="rounded-2xl border border-cordell-border bg-cordell-surface p-5 no-underline shadow-lg shadow-slate-900/5 transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:hover:border-cordell-dark-primary/60" href="/custody/checkouts/new">
+    <span class="block text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Custody</span>
+    <strong class="mt-2 block text-lg">Register checkout</strong>
+    <small class="mt-2 block text-sm text-cordell-muted dark:text-cordell-dark-muted">Assign assets under custody.</small>
   </a>
 
-  <a class="quick-action-card" href="/custody/returns/new">
-    <span>Custody</span>
-    <strong>Register return</strong>
-    <small>Return assets from custody.</small>
+  <a class="rounded-2xl border border-cordell-border bg-cordell-surface p-5 no-underline shadow-lg shadow-slate-900/5 transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:hover:border-cordell-dark-primary/60" href="/custody/returns/new">
+    <span class="block text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Custody</span>
+    <strong class="mt-2 block text-lg">Register return</strong>
+    <small class="mt-2 block text-sm text-cordell-muted dark:text-cordell-dark-muted">Return assets from custody.</small>
   </a>
 </section>
 
-<section class="dashboard-grid">
-  <div class="dashboard-panel">
-    <div class="panel-header">
+<section class="mt-8 grid gap-6 lg:grid-cols-2">
+  <div class="rounded-3xl border border-cordell-border bg-white/70 p-5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/80">
+    <div class="mb-4 flex items-start justify-between gap-4">
       <div>
-        <p class="eyebrow">Recent</p>
-        <h2>Personnel</h2>
+        <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Recent</p>
+        <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Personnel</h2>
       </div>
 
-      <a href="/personnel">View all</a>
+      <a class="text-sm font-bold text-cordell-primary no-underline dark:text-cordell-dark-primary" href="/personnel">View all</a>
     </div>
 
     {{if .RecentPersonnel}}
-      <div class="compact-list">
+      <div class="grid gap-2.5">
         {{range .RecentPersonnel}}
-          <a class="compact-list-item" href="/personnel/{{.ID}}">
+          <a class="flex items-center justify-between gap-4 rounded-xl border border-cordell-border bg-cordell-surface p-3 no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:hover:border-cordell-dark-primary/60" href="/personnel/{{.ID}}">
             <div>
-              <strong>{{.Alias}}</strong>
-              <span>{{.FullName}} · {{.RankLabel}}</span>
-              <span>{{.ID}}</span>
+              <strong class="block">{{.Alias}}</strong>
+              <span class="mt-1 block text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.FullName}} · {{.RankLabel}}</span>
+              <span class="mt-1 block text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.ID}}</span>
             </div>
 
             {{if .Active}}
-              <span class="badge">Active</span>
+              <span class="rounded-full bg-cordell-primary/10 px-2.5 py-1 text-xs font-bold text-cordell-primary dark:bg-cordell-dark-primary/15 dark:text-cordell-dark-primary">Active</span>
             {{else}}
-              <span class="badge badge-muted">Inactive</span>
+              <span class="rounded-full bg-cordell-muted/10 px-2.5 py-1 text-xs font-bold text-cordell-muted dark:bg-cordell-dark-muted/15 dark:text-cordell-dark-muted">Inactive</span>
             {{end}}
           </a>
         {{end}}
       </div>
     {{else}}
-      <div class="empty-state compact-empty">
-        <h2>No personnel yet</h2>
-        <p class="muted">Create the first personnel record.</p>
+      <div class="rounded-2xl border border-dashed border-cordell-border bg-white/55 p-5 dark:border-cordell-dark-border dark:bg-cordell-dark-background/60">
+        <h2 class="m-0 text-xl font-bold">No personnel yet</h2>
+        <p class="mt-2 text-cordell-muted dark:text-cordell-dark-muted">Create the first personnel record.</p>
       </div>
     {{end}}
   </div>
 
-  <div class="dashboard-panel">
-    <div class="panel-header">
+  <div class="rounded-3xl border border-cordell-border bg-white/70 p-5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/80">
+    <div class="mb-4 flex items-start justify-between gap-4">
       <div>
-        <p class="eyebrow">Recent</p>
-        <h2>Assets</h2>
+        <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Recent</p>
+        <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Assets</h2>
       </div>
 
-      <a href="/assets">View all</a>
+      <a class="text-sm font-bold text-cordell-primary no-underline dark:text-cordell-dark-primary" href="/assets">View all</a>
     </div>
 
     {{if .RecentAssets}}
-      <div class="compact-list">
+      <div class="grid gap-2.5">
         {{range .RecentAssets}}
-          <a class="compact-list-item" href="/assets/{{.ID}}">
+          <a class="flex items-center justify-between gap-4 rounded-xl border border-cordell-border bg-cordell-surface p-3 no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:hover:border-cordell-dark-primary/60" href="/assets/{{.ID}}">
             <div>
-              <strong>{{.Name}}</strong>
-              <span>{{.ID}}</span>
+              <strong class="block">{{.Name}}</strong>
+              <span class="mt-1 block text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.ID}}</span>
             </div>
 
             {{if .Active}}
-              <span class="badge">Active</span>
+              <span class="rounded-full bg-cordell-primary/10 px-2.5 py-1 text-xs font-bold text-cordell-primary dark:bg-cordell-dark-primary/15 dark:text-cordell-dark-primary">Active</span>
             {{else}}
-              <span class="badge badge-muted">Inactive</span>
+              <span class="rounded-full bg-cordell-muted/10 px-2.5 py-1 text-xs font-bold text-cordell-muted dark:bg-cordell-dark-muted/15 dark:text-cordell-dark-muted">Inactive</span>
             {{end}}
           </a>
         {{end}}
       </div>
     {{else}}
-      <div class="empty-state compact-empty">
-        <h2>No assets yet</h2>
-        <p class="muted">Create the first asset record.</p>
+      <div class="rounded-2xl border border-dashed border-cordell-border bg-white/55 p-5 dark:border-cordell-dark-border dark:bg-cordell-dark-background/60">
+        <h2 class="m-0 text-xl font-bold">No assets yet</h2>
+        <p class="mt-2 text-cordell-muted dark:text-cordell-dark-muted">Create the first asset record.</p>
       </div>
     {{end}}
   </div>
