@@ -5,22 +5,55 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{.Title}} · Cordell</title>
+
+  <script>
+    (() => {
+      const storageKey = "cordell-theme";
+
+      try {
+        const storedTheme = localStorage.getItem(storageKey);
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = storedTheme === "dark" || storedTheme === "light"
+          ? storedTheme
+          : prefersDark
+            ? "dark"
+            : "light";
+
+        document.documentElement.dataset.theme = theme;
+      } catch {
+        document.documentElement.dataset.theme = "light";
+      }
+    })();
+  </script>
+
   <link rel="stylesheet" href="/static/css/app.css">
 </head>
 <body class="min-h-screen bg-cordell-background font-sans text-cordell-text antialiased dark:bg-cordell-dark-background dark:text-cordell-dark-text">
   <header class="border-b border-cordell-border/80 bg-white/80 backdrop-blur dark:border-cordell-dark-border dark:bg-cordell-dark-surface/80">
-    <div class="mx-auto flex h-16 max-w-5xl items-center justify-between gap-6 px-4">
+    <div class="mx-auto flex min-h-16 max-w-5xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between">
       <a class="text-lg font-extrabold tracking-[-0.03em] text-cordell-text no-underline dark:text-cordell-dark-text" href="/">
         Cordell
       </a>
 
-      <nav class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 text-sm font-medium text-cordell-muted dark:text-cordell-dark-muted">
-        <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/">Dashboard</a>
-        <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/personnel">Personnel</a>
-        <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/assets">Assets</a>
-        <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/checkouts/new">Checkout</a>
-        <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/returns/new">Return</a>
-      </nav>
+      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
+        <nav class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium text-cordell-muted dark:text-cordell-dark-muted">
+          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/">Dashboard</a>
+          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/personnel">Personnel</a>
+          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/assets">Assets</a>
+          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/checkouts/new">Checkout</a>
+          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/returns/new">Return</a>
+        </nav>
+
+        <button
+          class="inline-flex w-fit cursor-pointer items-center justify-center rounded-full border border-cordell-border bg-white px-3 py-1.5 text-xs font-bold text-cordell-text transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+          type="button"
+          data-theme-toggle
+          aria-pressed="false"
+          aria-label="Switch theme"
+        >
+          Theme: Light
+        </button>
+      </div>
     </div>
   </header>
 
@@ -29,6 +62,7 @@
 
 {{define "layout_end"}}
   </main>
+  <script src="/static/js/theme.js" defer></script>
 </body>
 </html>
 {{end}}

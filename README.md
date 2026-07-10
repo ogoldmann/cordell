@@ -355,3 +355,20 @@ The Tailwind source file should remain small and focused on:
 - source registration
 - dark mode variant
 - design tokens
+
+## Theme
+
+Cordell supports light and dark themes through a `data-theme` attribute on the root HTML element.
+
+The current implementation stores the user's visual preference in the browser through `localStorage`.
+
+No server-side user preference is persisted yet.
+
+Theme behavior:
+
+- `data-theme="light"` enables the light theme.
+- `data-theme="dark"` enables the dark theme.
+- When no preference is stored, the browser/system preference is used.
+- The theme toggle is implemented in `static/js/theme.js`.
+
+Server-side persistence may be added later when authentication and user sessions exist.
