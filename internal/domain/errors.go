@@ -37,4 +37,12 @@ var (
 	ErrInvalidPersonnelRank    = errors.New("invalid personnel rank")
 	ErrInvalidPersonnelSection = errors.New("invalid personnel section")
 	ErrInvalidOrganizationUnit = errors.New("invalid organization unit")
+
+	ErrEmptyOperatorID           = errors.New("empty operator id")
+	ErrEmptyOperatorUsername     = errors.New("empty operator username")
+	ErrInvalidOperatorUsername   = errors.New("invalid operator username")
+	ErrEmptyOperatorPasswordHash = errors.New("empty operator password hash")
+	ErrDuplicateOperatorUsername = errors.New("duplicate operator username")
+	ErrEmptyOperatorPassword     = errors.New("empty operator password")
+	ErrWeakOperatorPassword      = errors.New("weak operator password")
 )

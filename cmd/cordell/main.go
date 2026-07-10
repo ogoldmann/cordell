@@ -11,6 +11,7 @@ import (
 	"cordell/internal/infra/ids"
 	"cordell/internal/infra/postgres"
 	postgresdb "cordell/internal/infra/postgres/db"
+	"cordell/internal/security"
 	"cordell/internal/web"
 )
 
@@ -40,9 +41,17 @@ func main() {
 	assetRepository := postgres.NewAssetRepository(queries)
 	custodyRepository := postgres.NewCustodyRepository(pool, queries)
 
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	passwordHasher := security.NewDefaultArgon2idPasswordHasher()
+
 	idGenerator := ids.NewULIDGenerator()
 
 	services := app.Services{
+		CreateOperator: app.NewCreateOperatorService(
+			operatorRepository,
+			idGenerator,
+			passwordHasher,
+		),
 		CreatePersonnel: app.NewCreatePersonnelService(
 			personnelRepository,
 			idGenerator,

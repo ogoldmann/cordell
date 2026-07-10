@@ -39,6 +39,15 @@ type CustodyTransaction struct {
 	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 }
 
+type Operator struct {
+	ID           string             `json:"id"`
+	Username     string             `json:"username"`
+	PasswordHash string             `json:"password_hash"`
+	Active       bool               `json:"active"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Personnel struct {
 	ID               string             `json:"id"`
 	FullName         string             `json:"full_name"`

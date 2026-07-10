@@ -326,3 +326,63 @@ func mustBuildAsset(t *testing.T, id domain.AssetID) domain.Asset {
 
 	return asset
 }
+
+type fakeOperatorRepository struct {
+	byID       map[domain.OperatorID]domain.Operator
+	byUsername map[string]domain.Operator
+	saveErr    error
+}
+
+func (r *fakeOperatorRepository) Save(_ context.Context, operator domain.Operator) error {
+	if r.saveErr != nil {
+		return r.saveErr
+	}
+
+	if r.byID == nil {
+		r.byID = map[domain.OperatorID]domain.Operator{}
+	}
+
+	if r.byUsername == nil {
+		r.byUsername = map[string]domain.Operator{}
+	}
+
+	r.byID[operator.ID()] = operator
+	r.byUsername[operator.Username()] = operator
+
+	return nil
+}
+
+func (r *fakeOperatorRepository) FindByID(_ context.Context, id domain.OperatorID) (domain.Operator, error) {
+	operator, ok := r.byID[id]
+	if !ok {
+		return domain.Operator{}, ports.ErrNotFound
+	}
+
+	return operator, nil
+}
+
+func (r *fakeOperatorRepository) FindByUsername(_ context.Context, username string) (domain.Operator, error) {
+	operator, ok := r.byUsername[domain.NormalizeOperatorUsername(username)]
+	if !ok {
+		return domain.Operator{}, ports.ErrNotFound
+	}
+
+	return operator, nil
+}
+
+type fakePasswordHasher struct {
+	hash string
+	err  error
+}
+
+func (h fakePasswordHasher) Hash(_ string) (string, error) {
+	if h.err != nil {
+		return "", h.err
+	}
+
+	return h.hash, nil
+}
+
+func (h fakePasswordHasher) Verify(password string, encodedHash string) (bool, error) {
+	return h.hash == encodedHash && password != "", nil
+}

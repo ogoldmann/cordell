@@ -420,3 +420,23 @@ Theme behavior:
 - The theme toggle is implemented in `static/js/theme.js`.
 
 Server-side persistence may be added later when authentication and user sessions exist.
+
+## Operators
+
+Operators represent authenticated users of the system.
+
+The current authentication foundation includes:
+
+- operator domain model
+- operators database table
+- operator PostgreSQL repository
+- Argon2id password hashing
+- operator creation use case
+
+Login, logout, sessions, CSRF protection, and authorization are intentionally implemented in later milestones.
+
+Password hashes are stored using an encoded Argon2id format:
+
+```bash
+$argon2id$v=19$m=<memory>,t=<iterations>,p=<parallelism>$<salt>$<hash>
+```
