@@ -10,6 +10,7 @@ type Services struct {
 	GetAsset                *GetAssetService
 	ListAssets              *ListAssetsService
 	SearchAssets            *SearchAssetsService
+	GlobalSearch            *GlobalSearchService
 	RegisterCheckout        *RegisterCheckoutService
 	RegisterReturn          *RegisterReturnService
 	ListCurrentCustody      *ListCurrentCustodyService

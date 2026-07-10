@@ -309,6 +309,23 @@ Asset search matches:
 
 Asset search also uses tokenized matching, so all query tokens must match the asset name.
 
+## Global Search
+
+Cordell supports global server-rendered search through:
+
+```bash
+/search?q=doe
+```
+
+Global search currently includes:
+
+- personnel
+- assets
+
+Results are grouped by record type.
+
+Global search uses the same tokenized search behavior as personnel and asset listing pages.
+
 ## CSS
 
 Cordell uses Tailwind CSS through the Tailwind CLI.

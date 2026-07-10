@@ -69,6 +69,10 @@ func main() {
 		SearchAssets: app.NewSearchAssetsService(
 			assetRepository,
 		),
+		GlobalSearch: app.NewGlobalSearchService(
+			personnelRepository,
+			assetRepository,
+		),
 		RegisterCheckout: app.NewRegisterCheckoutService(
 			personnelRepository,
 			assetRepository,
