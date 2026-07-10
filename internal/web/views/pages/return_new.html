@@ -1,23 +1,40 @@
 {{define "return_new.html"}}
 {{template "layout_start" .}}
 
-<section class="page-header">
-  <p class="eyebrow">Custody</p>
-  <h1>Register return</h1>
-  <p class="muted">Return an asset quantity previously assigned under custody.</p>
+<section class="mb-6">
+  <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+    Custody
+  </p>
+
+  <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
+    Register return
+  </h1>
+
+  <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
+    Return an asset quantity previously assigned under custody.
+  </p>
 </section>
 
 {{if .Error}}
-  <div class="alert alert-error">
+  <div class="mb-4 rounded-2xl border border-cordell-danger-border bg-cordell-danger-surface px-4 py-3 font-medium text-cordell-danger-text">
     {{.Error}}
   </div>
 {{end}}
 
-<form class="card form" method="get" action="/custody/returns/new">
-  <div class="form-grid two-columns">
-    <div class="form-group">
-      <label for="personnel_id_lookup">Personnel</label>
-      <select id="personnel_id_lookup" name="personnel_id" required>
+<form
+  class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface"
+  method="get"
+  action="/custody/returns/new"
+>
+  <div class="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+    <div class="grid gap-2">
+      <label class="text-sm font-bold" for="personnel_id_lookup">Personnel</label>
+      <select
+        class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+        id="personnel_id_lookup"
+        name="personnel_id"
+        required
+      >
         <option value="">Select personnel</option>
         {{range .Personnel}}
           <option value="{{.ID}}" {{if eq $.SelectedPersonnelID .ID}}selected{{end}}>
@@ -27,29 +44,44 @@
       </select>
     </div>
 
-    <div class="form-group form-action-group">
-      <button type="submit">Load current custody</button>
-    </div>
+    <button
+      class="inline-flex cursor-pointer items-center justify-center rounded-xl border-0 bg-cordell-primary px-4 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+      type="submit"
+    >
+      Load current custody
+    </button>
   </div>
 </form>
 
 {{if .SelectedPersonnelID}}
-  <section class="section">
-    <div class="section-header">
-      <div>
-        <p class="eyebrow">Return</p>
-        <h2>Current custody items</h2>
-      </div>
+  <section class="mt-8">
+    <div class="mb-4">
+      <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+        Return
+      </p>
+
+      <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">
+        Current custody items
+      </h2>
     </div>
 
     {{if .CurrentCustody}}
-      <form class="card form" method="post" action="/custody/returns">
+      <form
+        class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface"
+        method="post"
+        action="/custody/returns"
+      >
         <input type="hidden" name="personnel_id" value="{{.SelectedPersonnelID}}">
 
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="asset_id">Asset</label>
-            <select id="asset_id" name="asset_id" required>
+        <div class="grid gap-4 md:grid-cols-[1fr_10rem]">
+          <div class="grid gap-2">
+            <label class="text-sm font-bold" for="asset_id">Asset</label>
+            <select
+              class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+              id="asset_id"
+              name="asset_id"
+              required
+            >
               <option value="">Select asset</option>
               {{range .CurrentCustody}}
                 <option value="{{.AssetID}}" {{if eq $.SelectedAssetID .AssetID}}selected{{end}}>
@@ -59,9 +91,10 @@
             </select>
           </div>
 
-          <div class="form-group">
-            <label for="quantity">Quantity</label>
+          <div class="grid gap-2">
+            <label class="text-sm font-bold" for="quantity">Quantity</label>
             <input
+              class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
               id="quantity"
               name="quantity"
               type="number"
@@ -73,28 +106,48 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="notes">Notes</label>
-          <textarea id="notes" name="notes" rows="4">{{.Notes}}</textarea>
+        <div class="mt-4 grid gap-2">
+          <label class="text-sm font-bold" for="notes">Notes</label>
+          <textarea
+            class="min-h-28 w-full resize-y rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+            id="notes"
+            name="notes"
+            rows="4"
+          >{{.Notes}}</textarea>
         </div>
 
-        <div class="actions">
-          <button type="submit">Register return</button>
-          <a class="button-secondary" href="/personnel/{{.SelectedPersonnelID}}">Cancel</a>
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+          <button
+            class="inline-flex cursor-pointer items-center justify-center rounded-xl border-0 bg-cordell-primary px-4 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+            type="submit"
+          >
+            Register return
+          </button>
+
+          <a
+            class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+            href="/personnel/{{.SelectedPersonnelID}}"
+          >
+            Cancel
+          </a>
         </div>
       </form>
     {{else}}
-      <div class="empty-state">
-        <h2>No assets currently under custody</h2>
-        <p class="muted">This personnel record has no active custody balances to return.</p>
+      <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-8 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
+        <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">No assets currently under custody</h2>
+        <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
+          This personnel record has no active custody balances to return.
+        </p>
       </div>
     {{end}}
   </section>
 {{else}}
-  <section class="section">
-    <div class="empty-state">
-      <h2>Select personnel first</h2>
-      <p class="muted">Choose a personnel record to load current custody items available for return.</p>
+  <section class="mt-8">
+    <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-8 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
+      <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Select personnel first</h2>
+      <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
+        Choose a personnel record to load current custody items available for return.
+      </p>
     </div>
   </section>
 {{end}}

@@ -340,10 +340,13 @@ Current Tailwind-migrated areas:
 - personnel listing
 - asset listing
 - search forms
+- personnel creation form
+- asset creation form
+- checkout form
+- return form
 
 Legacy CSS is still kept for:
 
 - detail pages
-- create forms
-- checkout and return forms
+- current custody sections
 - custody history timeline
