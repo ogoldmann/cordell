@@ -328,3 +328,22 @@ make css-watch
 ```
 
 The compiled CSS is committed so the Go application can run without requiring a CSS build step at runtime.
+
+## Tailwind Migration
+
+Cordell is migrating legacy CSS to Tailwind utilities incrementally.
+
+Current Tailwind-migrated areas:
+
+- base layout
+- dashboard
+- personnel listing
+- asset listing
+- search forms
+
+Legacy CSS is still kept for:
+
+- detail pages
+- create forms
+- checkout and return forms
+- custody history timeline
