@@ -331,9 +331,9 @@ The compiled CSS is committed so the Go application can run without requiring a 
 
 ## Tailwind Migration
 
-Cordell is migrating legacy CSS to Tailwind utilities incrementally.
+Cordell has migrated the current server-rendered UI to Tailwind utilities.
 
-Current Tailwind-migrated areas:
+Migrated areas:
 
 - base layout
 - dashboard
@@ -344,9 +344,14 @@ Current Tailwind-migrated areas:
 - asset creation form
 - checkout form
 - return form
-
-Legacy CSS is still kept for:
-
-- detail pages
+- personnel detail page
+- asset detail page
 - current custody sections
 - custody history timeline
+
+The Tailwind source file should remain small and focused on:
+
+- Tailwind import
+- source registration
+- dark mode variant
+- design tokens
