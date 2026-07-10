@@ -16,7 +16,7 @@ type Renderer struct {
 
 // NewRenderer parses and creates the HTML template renderer.
 func NewRenderer() (*Renderer, error) {
-	templates, err := template.ParseFS(
+	templates, err := template.New("").Funcs(templateFuncs()).ParseFS(
 		templatesFS,
 		"views/*.html",
 		"views/pages/*.html",

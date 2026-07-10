@@ -383,6 +383,27 @@ The Tailwind source file should remain small and focused on:
 - dark mode variant
 - design tokens
 
+## Template Components
+
+Cordell uses small server-rendered template components for repeated UI fragments.
+
+Current shared components:
+
+- `personnel_card`
+- `asset_card`
+
+Shared components live in:
+
+```bash
+internal/web/views/components.html
+```
+
+Template helper functions are registered by the web renderer before templates are parsed.
+
+Current template helpers:
+
+- queryEscape: escapes values for query string links.
+
 ## Theme
 
 Cordell supports light and dark themes through a `data-theme` attribute on the root HTML element.
