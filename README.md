@@ -272,12 +272,12 @@ Do not use this process after real data exists.
 
 ## Search
 
-Personnel and assets support basic server-rendered search.
+Personnel and assets support basic server-rendered tokenized search.
 
 Personnel search:
 
 ```bash
-http://localhost:8080/personnel?q=doe
+http://localhost:8080/personnel?q=sergeant%20doe
 ```
 
 Personnel search matches:
@@ -289,15 +289,25 @@ Personnel search matches:
 - section
 - organization unit
 
+Search queries are split into tokens. All tokens must match at least one searchable field in the same record.
+
+Examples:
+
+sergeant doe
+operations doe
+529.982 doe
+
 Asset search:
 
 ```bash
-http://localhost:8080/assets?q=radio
+http://localhost:8080/assets?q=radio%20battery
 ```
 
 Asset search matches:
 
 - name
+
+Asset search also uses tokenized matching, so all query tokens must match the asset name.
 
 ## CSS
 

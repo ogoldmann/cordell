@@ -123,3 +123,46 @@ func TestPostgresAssetRepositorySearch(t *testing.T) {
 		t.Fatalf("expected asset name Battery, got %s", assets[0].Name())
 	}
 }
+
+func TestPostgresAssetRepositorySearchByCombinedTerms(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	assetRepository := postgres.NewAssetRepository(queries)
+
+	firstService := app.NewCreateAssetService(
+		assetRepository,
+		fixedIDGenerator{id: "asset-1"},
+	)
+	secondService := app.NewCreateAssetService(
+		assetRepository,
+		fixedIDGenerator{id: "asset-2"},
+	)
+
+	_, err := firstService.Execute(context.Background(), app.CreateAssetCommand{
+		Name: "Radio Battery",
+	})
+	if err != nil {
+		t.Fatalf("expected no error creating first asset, got %v", err)
+	}
+
+	_, err = secondService.Execute(context.Background(), app.CreateAssetCommand{
+		Name: "Radio Cable",
+	})
+	if err != nil {
+		t.Fatalf("expected no error creating second asset, got %v", err)
+	}
+
+	assets, err := assetRepository.Search(context.Background(), "radio battery", 10)
+	if err != nil {
+		t.Fatalf("expected no error searching assets, got %v", err)
+	}
+
+	if len(assets) != 1 {
+		t.Fatalf("expected 1 asset record, got %d", len(assets))
+	}
+
+	if assets[0].ID() != "asset-1" {
+		t.Fatalf("expected asset-1, got %s", assets[0].ID())
+	}
+}

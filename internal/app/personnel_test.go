@@ -230,3 +230,66 @@ func TestSearchPersonnelServiceFallsBackToListWhenQueryIsEmpty(t *testing.T) {
 		t.Fatalf("expected 1 personnel record, got %d", len(result))
 	}
 }
+
+func TestSearchPersonnelServiceFindsPersonnelByCombinedTerms(t *testing.T) {
+	firstRegistrationID, err := domain.NewRegistrationID("52998224725")
+	if err != nil {
+		t.Fatalf("expected valid registration id, got %v", err)
+	}
+
+	firstPersonnel, err := domain.NewPersonnel(
+		"personnel-1",
+		"John Alpha",
+		"Doe",
+		domain.PersonnelRankSergeant,
+		firstRegistrationID,
+		domain.PersonnelSectionOperations,
+		domain.OrganizationUnitDefault,
+	)
+	if err != nil {
+		t.Fatalf("expected valid personnel, got %v", err)
+	}
+
+	secondRegistrationID, err := domain.NewRegistrationID("11144477735")
+	if err != nil {
+		t.Fatalf("expected valid registration id, got %v", err)
+	}
+
+	secondPersonnel, err := domain.NewPersonnel(
+		"personnel-2",
+		"Jane Doe",
+		"Smith",
+		domain.PersonnelRankCorporal,
+		secondRegistrationID,
+		domain.PersonnelSectionLogistics,
+		domain.OrganizationUnitDefault,
+	)
+	if err != nil {
+		t.Fatalf("expected valid personnel, got %v", err)
+	}
+
+	repository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			firstPersonnel.ID():  firstPersonnel,
+			secondPersonnel.ID(): secondPersonnel,
+		},
+	}
+
+	service := NewSearchPersonnelService(repository)
+
+	personnel, err := service.Execute(context.Background(), SearchPersonnelCommand{
+		Query: "sergeant doe",
+		Limit: 10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(personnel) != 1 {
+		t.Fatalf("expected 1 personnel record, got %d", len(personnel))
+	}
+
+	if personnel[0].ID() != firstPersonnel.ID() {
+		t.Fatalf("expected personnel %s, got %s", firstPersonnel.ID(), personnel[0].ID())
+	}
+}

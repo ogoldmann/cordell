@@ -86,7 +86,8 @@ func (r *fakePersonnelRepository) Search(_ context.Context, query string, limit 
 }
 
 func personnelMatchesQuery(personnel domain.Personnel, query string) bool {
-	if query == "" {
+	tokens := strings.Fields(strings.ToLower(strings.TrimSpace(query)))
+	if len(tokens) == 0 {
 		return true
 	}
 
@@ -99,8 +100,18 @@ func personnelMatchesQuery(personnel domain.Personnel, query string) bool {
 		string(personnel.OrganizationUnit()),
 	}
 
+	for _, token := range tokens {
+		if !anyValueContainsToken(values, token) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func anyValueContainsToken(values []string, token string) bool {
 	for _, value := range values {
-		if strings.Contains(strings.ToLower(value), query) {
+		if strings.Contains(strings.ToLower(value), token) {
 			return true
 		}
 	}
@@ -153,12 +164,12 @@ func (r *fakeAssetRepository) List(_ context.Context, limit int) ([]domain.Asset
 }
 
 func (r *fakeAssetRepository) Search(_ context.Context, query string, limit int) ([]domain.Asset, error) {
-	query = strings.ToLower(strings.TrimSpace(query))
+	tokens := strings.Fields(strings.ToLower(strings.TrimSpace(query)))
 
 	assets := make([]domain.Asset, 0, len(r.byID))
 
 	for _, item := range r.byID {
-		if query == "" || strings.Contains(strings.ToLower(item.Name()), query) {
+		if assetMatchesQuery(item, tokens) {
 			assets = append(assets, item)
 		}
 	}
@@ -172,6 +183,22 @@ func (r *fakeAssetRepository) Search(_ context.Context, query string, limit int)
 	}
 
 	return assets, nil
+}
+
+func assetMatchesQuery(asset domain.Asset, tokens []string) bool {
+	if len(tokens) == 0 {
+		return true
+	}
+
+	name := strings.ToLower(asset.Name())
+
+	for _, token := range tokens {
+		if !strings.Contains(name, token) {
+			return false
+		}
+	}
+
+	return true
 }
 
 type fakeCustodyRepository struct {

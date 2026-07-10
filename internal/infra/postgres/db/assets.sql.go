@@ -94,6 +94,9 @@ func (q *Queries) ListAssets(ctx context.Context, limitCount int32) ([]Asset, er
 }
 
 const searchAssets = `-- name: SearchAssets :many
+WITH search_terms AS (
+    SELECT unnest($2::text[]) AS search_pattern
+)
 SELECT
     id,
     name,
@@ -101,18 +104,24 @@ SELECT
     created_at,
     updated_at
 FROM assets
-WHERE name ILIKE $1::text ESCAPE '\'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM search_terms
+    WHERE NOT (
+        name ILIKE search_terms.search_pattern ESCAPE '\'
+    )
+)
 ORDER BY created_at DESC, id DESC
-LIMIT $2
+LIMIT $1
 `
 
 type SearchAssetsParams struct {
-	SearchPattern string `json:"search_pattern"`
-	LimitCount    int32  `json:"limit_count"`
+	LimitCount     int32    `json:"limit_count"`
+	SearchPatterns []string `json:"search_patterns"`
 }
 
 func (q *Queries) SearchAssets(ctx context.Context, arg SearchAssetsParams) ([]Asset, error) {
-	rows, err := q.db.Query(ctx, searchAssets, arg.SearchPattern, arg.LimitCount)
+	rows, err := q.db.Query(ctx, searchAssets, arg.LimitCount, arg.SearchPatterns)
 	if err != nil {
 		return nil, err
 	}

@@ -185,3 +185,56 @@ func TestPostgresPersonnelRepositorySearchByFormattedRegistrationID(t *testing.T
 		t.Fatalf("expected registration id 52998224725, got %s", personnel[0].RegistrationID().String())
 	}
 }
+
+func TestPostgresPersonnelRepositorySearchByCombinedTerms(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+
+	firstService := app.NewCreatePersonnelService(
+		personnelRepository,
+		fixedIDGenerator{id: "personnel-1"},
+	)
+	secondService := app.NewCreatePersonnelService(
+		personnelRepository,
+		fixedIDGenerator{id: "personnel-2"},
+	)
+
+	_, err := firstService.Execute(context.Background(), app.CreatePersonnelCommand{
+		FullName:         "John Alpha",
+		Alias:            "Doe",
+		Rank:             domain.PersonnelRankSergeant,
+		RegistrationID:   "52998224725",
+		Section:          domain.PersonnelSectionOperations,
+		OrganizationUnit: domain.OrganizationUnitDefault,
+	})
+	if err != nil {
+		t.Fatalf("expected no error creating first personnel, got %v", err)
+	}
+
+	_, err = secondService.Execute(context.Background(), app.CreatePersonnelCommand{
+		FullName:         "Jane Doe",
+		Alias:            "Smith",
+		Rank:             domain.PersonnelRankCorporal,
+		RegistrationID:   "11144477735",
+		Section:          domain.PersonnelSectionLogistics,
+		OrganizationUnit: domain.OrganizationUnitDefault,
+	})
+	if err != nil {
+		t.Fatalf("expected no error creating second personnel, got %v", err)
+	}
+
+	personnel, err := personnelRepository.Search(context.Background(), "sergeant doe", 10)
+	if err != nil {
+		t.Fatalf("expected no error searching personnel, got %v", err)
+	}
+
+	if len(personnel) != 1 {
+		t.Fatalf("expected 1 personnel record, got %d", len(personnel))
+	}
+
+	if personnel[0].ID() != "personnel-1" {
+		t.Fatalf("expected personnel-1, got %s", personnel[0].ID())
+	}
+}

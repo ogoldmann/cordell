@@ -5,26 +5,48 @@ import (
 	"unicode"
 )
 
-const noRegistrationSearchMatchPattern = "CORDELLNOREGISTRATIONSEARCHMATCH"
+const noDigitSearchMatchPattern = "__cordell_no_digit_search_match__"
 
-func buildTextSearchPattern(query string) string {
-	return "%" + escapeLikePattern(strings.TrimSpace(query)) + "%"
+func buildTextSearchPatterns(query string) []string {
+	tokens := searchTokens(query)
+	patterns := make([]string, 0, len(tokens))
+
+	for _, token := range tokens {
+		patterns = append(patterns, "%"+escapeLikePattern(token)+"%")
+	}
+
+	return patterns
 }
 
-func buildRegistrationSearchPattern(query string) string {
+func buildDigitSearchPatterns(query string) []string {
+	tokens := searchTokens(query)
+	patterns := make([]string, 0, len(tokens))
+
+	for _, token := range tokens {
+		patterns = append(patterns, buildDigitSearchPattern(token))
+	}
+
+	return patterns
+}
+
+func searchTokens(query string) []string {
+	return strings.Fields(strings.TrimSpace(query))
+}
+
+func buildDigitSearchPattern(token string) string {
 	var builder strings.Builder
 
-	for _, char := range strings.TrimSpace(query) {
-		if unicode.IsDigit(char) || unicode.IsLetter(char) {
-			builder.WriteRune(unicode.ToUpper(char))
+	for _, char := range token {
+		if unicode.IsDigit(char) {
+			builder.WriteRune(char)
 		}
 	}
 
 	if builder.Len() == 0 {
-		return noRegistrationSearchMatchPattern
+		return noDigitSearchMatchPattern
 	}
 
-	return "%" + escapeLikePattern(builder.String()) + "%"
+	return "%" + builder.String() + "%"
 }
 
 func escapeLikePattern(value string) string {

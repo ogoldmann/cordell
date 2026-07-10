@@ -114,9 +114,9 @@ func (r *PersonnelRepository) List(ctx context.Context, limit int) ([]domain.Per
 // Search retrieves personnel records matching a search query.
 func (r *PersonnelRepository) Search(ctx context.Context, query string, limit int) ([]domain.Personnel, error) {
 	rows, err := r.queries.SearchPersonnel(ctx, db.SearchPersonnelParams{
-		SearchPattern:       buildTextSearchPattern(query),
-		RegistrationPattern: buildRegistrationSearchPattern(query),
-		LimitCount:          int32(limit),
+		SearchPatterns:       buildTextSearchPatterns(query),
+		RegistrationPatterns: buildDigitSearchPatterns(query),
+		LimitCount:           int32(limit),
 	})
 	if err != nil {
 		return nil, err

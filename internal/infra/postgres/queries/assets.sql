@@ -22,6 +22,9 @@ ORDER BY created_at DESC, id DESC
 LIMIT sqlc.arg(limit_count);
 
 -- name: SearchAssets :many
+WITH search_terms AS (
+    SELECT unnest(sqlc.arg(search_patterns)::text[]) AS search_pattern
+)
 SELECT
     id,
     name,
@@ -29,6 +32,12 @@ SELECT
     created_at,
     updated_at
 FROM assets
-WHERE name ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM search_terms
+    WHERE NOT (
+        name ILIKE search_terms.search_pattern ESCAPE '\'
+    )
+)
 ORDER BY created_at DESC, id DESC
 LIMIT sqlc.arg(limit_count);
