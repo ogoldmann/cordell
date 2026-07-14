@@ -464,8 +464,9 @@ CORDELL_SESSION_COOKIE_SECURE=true
 ```
 
 Login, logout, and session creation are implemented.
+Route protection is implemented.
 
-Route protection, CSRF protection, and authorization are implemented in later milestones.
+CSRF protection is intentionally implemented in the next milestone.
 
 ## Admin CLI
 
@@ -486,3 +487,27 @@ make admin-create-operator USERNAME=admin
 The command prompts for the password interactively and does not echo it in the terminal.
 
 Operator creation is intentionally not exposed as a public web registration flow.
+
+## Route Protection
+
+Cordell protects private application routes through server-side session authentication.
+
+Public routes:
+
+- `GET /login`
+- `POST /login`
+- `/static/*`
+
+Private routes include:
+
+- dashboard
+- search
+- personnel
+- assets
+- checkout
+- return
+- logout
+
+The current operator is loaded from the session cookie and stored in the request context.
+
+Authorization/RBAC is intentionally implemented in a later milestone.

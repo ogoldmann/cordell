@@ -41,30 +41,34 @@ func (s *Server) Routes() http.Handler {
 	router := chi.NewRouter()
 
 	router.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-
-	router.Get("/", s.handleDashboard)
-	router.Get("/search", s.handleGlobalSearch)
-	router.Get("/health", s.handleHealthCheck)
-
 	router.Get("/login", s.handleLoginForm)
 	router.Post("/login", s.handleLogin)
-	router.Post("/logout", s.handleLogout)
 
-	router.Get("/personnel", s.handleListPersonnel)
-	router.Get("/personnel/new", s.handleNewPersonnelForm)
-	router.Post("/personnel", s.handleCreatePersonnel)
-	router.Get("/personnel/{id}", s.handleShowPersonnel)
+	router.Group(func(private chi.Router) {
+		private.Use(s.loadCurrentOperator)
+		private.Use(s.requireAuthentication)
 
-	router.Get("/assets", s.handleListAssets)
-	router.Get("/assets/new", s.handleNewAssetForm)
-	router.Post("/assets", s.handleCreateAsset)
-	router.Get("/assets/{id}", s.handleShowAsset)
+		private.Get("/", s.handleDashboard)
+		private.Get("/search", s.handleGlobalSearch)
 
-	router.Get("/custody/checkouts/new", s.handleNewCheckoutForm)
-	router.Post("/custody/checkouts", s.handleCreateCheckout)
+		private.Get("/personnel", s.handleListPersonnel)
+		private.Get("/personnel/new", s.handleNewPersonnelForm)
+		private.Post("/personnel", s.handleCreatePersonnel)
+		private.Get("/personnel/{id}", s.handleShowPersonnel)
 
-	router.Get("/custody/returns/new", s.handleNewReturnForm)
-	router.Post("/custody/returns", s.handleCreateReturn)
+		private.Get("/assets", s.handleListAssets)
+		private.Get("/assets/new", s.handleNewAssetForm)
+		private.Post("/assets", s.handleCreateAsset)
+		private.Get("/assets/{id}", s.handleShowAsset)
+
+		private.Get("/custody/checkouts/new", s.handleNewCheckoutForm)
+		private.Post("/custody/checkouts", s.handleCreateCheckout)
+
+		private.Get("/custody/returns/new", s.handleNewReturnForm)
+		private.Post("/custody/returns", s.handleCreateReturn)
+
+		private.Post("/logout", s.handleLogout)
+	})
 
 	return router
 }
