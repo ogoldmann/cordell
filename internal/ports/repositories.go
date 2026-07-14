@@ -76,3 +76,11 @@ type OperatorRepository interface {
 	FindByID(ctx context.Context, id domain.OperatorID) (domain.Operator, error)
 	FindByUsername(ctx context.Context, username string) (domain.Operator, error)
 }
+
+// OperatorSessionRepository persists operator sessions.
+type OperatorSessionRepository interface {
+	Save(ctx context.Context, session domain.OperatorSession) error
+	FindByTokenHash(ctx context.Context, tokenHash string) (domain.OperatorSession, error)
+	DeleteByTokenHash(ctx context.Context, tokenHash string) error
+	DeleteExpired(ctx context.Context, now time.Time) error
+}

@@ -44,6 +44,10 @@ func main() {
 	operatorRepository := postgres.NewOperatorRepository(queries)
 	passwordHasher := security.NewDefaultArgon2idPasswordHasher()
 
+	sessionRepository := postgres.NewOperatorSessionRepository(queries)
+	sessionTokenGenerator := security.NewDefaultRandomSessionTokenGenerator()
+	sessionTokenHasher := security.NewSHA256SessionTokenHasher()
+
 	idGenerator := ids.NewULIDGenerator()
 
 	services := app.Services{
@@ -51,6 +55,25 @@ func main() {
 			operatorRepository,
 			idGenerator,
 			passwordHasher,
+		),
+		AuthenticateOperator: app.NewAuthenticateOperatorService(
+			operatorRepository,
+			passwordHasher,
+		),
+		CreateOperatorSession: app.NewCreateOperatorSessionService(
+			sessionRepository,
+			idGenerator,
+			sessionTokenGenerator,
+			sessionTokenHasher,
+		),
+		GetOperatorBySessionToken: app.NewGetOperatorBySessionTokenService(
+			sessionRepository,
+			operatorRepository,
+			sessionTokenHasher,
+		),
+		DeleteOperatorSession: app.NewDeleteOperatorSessionService(
+			sessionRepository,
+			sessionTokenHasher,
 		),
 		CreatePersonnel: app.NewCreatePersonnelService(
 			personnelRepository,
@@ -108,7 +131,7 @@ func main() {
 		),
 	}
 
-	server, err := web.NewServer(logger, services)
+	server, err := web.NewServer(logger, services, web.NewSessionCookieConfig(cfg.SessionCookieSecure))
 	if err != nil {
 		logger.Error("failed to create web server", "error", err)
 		os.Exit(1)

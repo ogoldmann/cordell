@@ -2,7 +2,12 @@ package app
 
 // Services groups the application use cases used by delivery layers.
 type Services struct {
-	CreateOperator          *CreateOperatorService
+	CreateOperator            *CreateOperatorService
+	AuthenticateOperator      *AuthenticateOperatorService
+	CreateOperatorSession     *CreateOperatorSessionService
+	GetOperatorBySessionToken *GetOperatorBySessionTokenService
+	DeleteOperatorSession     *DeleteOperatorSessionService
+
 	CreatePersonnel         *CreatePersonnelService
 	GetPersonnel            *GetPersonnelService
 	ListPersonnel           *ListPersonnelService

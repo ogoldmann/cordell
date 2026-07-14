@@ -49,6 +49,7 @@ func cleanDatabase(t *testing.T, pool *pgxpool.Pool) {
 			custody_transactions,
 			assets,
 			personnel,
+			operator_sessions,
 			operators
 		RESTART IDENTITY CASCADE
 		`,

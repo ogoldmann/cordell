@@ -440,3 +440,29 @@ Password hashes are stored using an encoded Argon2id format:
 ```bash
 $argon2id$v=19$m=<memory>,t=<iterations>,p=<parallelism>$<salt>$<hash>
 ```
+
+## Sessions
+
+Cordell uses server-side operator sessions.
+
+The browser receives an opaque session token in a cookie.
+
+The database stores only a hash of the session token.
+
+Session cookie attributes:
+
+- `HttpOnly`
+- `SameSite=Lax`
+- `Secure` configurable through `CORDELL_SESSION_COOKIE_SECURE`
+
+In local development, `CORDELL_SESSION_COOKIE_SECURE=false`.
+
+In HTTPS production environments, set:
+
+```env
+CORDELL_SESSION_COOKIE_SECURE=true
+```
+
+Login, logout, and session creation are implemented.
+
+Route protection, CSRF protection, and authorization are implemented in later milestones.

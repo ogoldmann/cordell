@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"cordell/internal/domain"
 	"cordell/internal/ports"
@@ -385,4 +386,55 @@ func (h fakePasswordHasher) Hash(_ string) (string, error) {
 
 func (h fakePasswordHasher) Verify(password string, encodedHash string) (bool, error) {
 	return h.hash == encodedHash && password != "", nil
+}
+
+type fakeOperatorSessionRepository struct {
+	byTokenHash map[string]domain.OperatorSession
+}
+
+func (r *fakeOperatorSessionRepository) Save(_ context.Context, session domain.OperatorSession) error {
+	if r.byTokenHash == nil {
+		r.byTokenHash = map[string]domain.OperatorSession{}
+	}
+
+	r.byTokenHash[session.TokenHash()] = session
+
+	return nil
+}
+
+func (r *fakeOperatorSessionRepository) FindByTokenHash(_ context.Context, tokenHash string) (domain.OperatorSession, error) {
+	session, ok := r.byTokenHash[tokenHash]
+	if !ok {
+		return domain.OperatorSession{}, ports.ErrNotFound
+	}
+
+	return session, nil
+}
+
+func (r *fakeOperatorSessionRepository) DeleteByTokenHash(_ context.Context, tokenHash string) error {
+	delete(r.byTokenHash, tokenHash)
+	return nil
+}
+
+func (r *fakeOperatorSessionRepository) DeleteExpired(_ context.Context, _ time.Time) error {
+	return nil
+}
+
+type fixedSessionTokenGenerator struct {
+	token string
+	err   error
+}
+
+func (g fixedSessionTokenGenerator) NewToken() (string, error) {
+	if g.err != nil {
+		return "", g.err
+	}
+
+	return g.token, nil
+}
+
+type plainSessionTokenHasher struct{}
+
+func (h plainSessionTokenHasher) Hash(token string) string {
+	return "hash:" + token
 }

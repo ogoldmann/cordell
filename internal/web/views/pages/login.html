@@ -1,0 +1,69 @@
+{{define "login.html"}}
+{{template "layout_start" .}}
+
+<section class="mx-auto max-w-md">
+  <div class="mb-6">
+    <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+      Authentication
+    </p>
+
+    <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
+      Login
+    </h1>
+
+    <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
+      Sign in as a Cordell operator.
+    </p>
+  </div>
+
+  {{if .Error}}
+    <div class="mb-4 rounded-2xl border border-cordell-danger-border bg-cordell-danger-surface px-4 py-3 font-medium text-cordell-danger-text">
+      {{.Error}}
+    </div>
+  {{end}}
+
+  <form
+    class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface"
+    method="post"
+    action="/login"
+  >
+    <div class="grid gap-4">
+      <div class="grid gap-2">
+        <label class="text-sm font-bold" for="username">Username</label>
+        <input
+          class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+          id="username"
+          name="username"
+          type="text"
+          value="{{.Username}}"
+          autocomplete="username"
+          required
+        >
+      </div>
+
+      <div class="grid gap-2">
+        <label class="text-sm font-bold" for="password">Password</label>
+        <input
+          class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        >
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <button
+        class="inline-flex w-full cursor-pointer items-center justify-center rounded-xl border-0 bg-cordell-primary px-4 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+        type="submit"
+      >
+        Login
+      </button>
+    </div>
+  </form>
+</section>
+
+{{template "layout_end" .}}
+{{end}}

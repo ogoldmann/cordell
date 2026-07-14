@@ -48,6 +48,14 @@ type Operator struct {
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
+type OperatorSession struct {
+	ID         string             `json:"id"`
+	OperatorID string             `json:"operator_id"`
+	TokenHash  string             `json:"token_hash"`
+	ExpiresAt  pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
 type Personnel struct {
 	ID               string             `json:"id"`
 	FullName         string             `json:"full_name"`

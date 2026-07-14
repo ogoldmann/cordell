@@ -11,22 +11,28 @@ import (
 
 // Server owns the HTTP dependencies and route definitions for the application.
 type Server struct {
-	logger   *slog.Logger
-	services app.Services
-	renderer *Renderer
+	logger              *slog.Logger
+	services            app.Services
+	renderer            *Renderer
+	sessionCookieConfig sessionCookieConfig
 }
 
 // NewServer creates a Server with its required dependencies.
-func NewServer(logger *slog.Logger, services app.Services) (*Server, error) {
+func NewServer(
+	logger *slog.Logger,
+	services app.Services,
+	sessionCookieConfig sessionCookieConfig,
+) (*Server, error) {
 	renderer, err := NewRenderer()
 	if err != nil {
 		return nil, err
 	}
 
 	return &Server{
-		logger:   logger,
-		services: services,
-		renderer: renderer,
+		logger:              logger,
+		services:            services,
+		renderer:            renderer,
+		sessionCookieConfig: sessionCookieConfig,
 	}, nil
 }
 
@@ -39,6 +45,10 @@ func (s *Server) Routes() http.Handler {
 	router.Get("/", s.handleDashboard)
 	router.Get("/search", s.handleGlobalSearch)
 	router.Get("/health", s.handleHealthCheck)
+
+	router.Get("/login", s.handleLoginForm)
+	router.Post("/login", s.handleLogin)
+	router.Post("/logout", s.handleLogout)
 
 	router.Get("/personnel", s.handleListPersonnel)
 	router.Get("/personnel/new", s.handleNewPersonnelForm)

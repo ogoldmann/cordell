@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"os"
+	"strings"
 )
 
 const defaultHTTPAddress = ":8080"
@@ -14,8 +15,9 @@ var (
 
 // Config contains runtime settings loaded from the environment.
 type Config struct {
-	HTTPAddress string
-	DatabaseURL string
+	HTTPAddress         string
+	DatabaseURL         string
+	SessionCookieSecure bool
 }
 
 // Load reads runtime settings from environment variables and applies safe defaults.
@@ -26,8 +28,9 @@ func Load() (Config, error) {
 	}
 
 	return Config{
-		HTTPAddress: getEnv("CORDELL_HTTP_ADDRESS", defaultHTTPAddress),
-		DatabaseURL: databaseURL,
+		HTTPAddress:         getEnv("CORDELL_HTTP_ADDRESS", defaultHTTPAddress),
+		DatabaseURL:         databaseURL,
+		SessionCookieSecure: getEnvBool("CORDELL_SESSION_COOKIE_SECURE", false),
 	}, nil
 }
 
@@ -38,4 +41,13 @@ func getEnv(key, fallback string) string {
 	}
 
 	return value
+}
+
+func getEnvBool(key string, fallback bool) bool {
+	value := strings.ToLower(strings.TrimSpace(os.Getenv(key)))
+	if value == "" {
+		return fallback
+	}
+
+	return value == "true" || value == "1" || value == "yes"
 }

@@ -45,4 +45,9 @@ var (
 	ErrDuplicateOperatorUsername = errors.New("duplicate operator username")
 	ErrEmptyOperatorPassword     = errors.New("empty operator password")
 	ErrWeakOperatorPassword      = errors.New("weak operator password")
+
+	ErrEmptyOperatorSessionID        = errors.New("empty operator session id")
+	ErrEmptyOperatorSessionTokenHash = errors.New("empty operator session token hash")
+	ErrExpiredOperatorSession        = errors.New("expired operator session")
+	ErrInvalidCredentials            = errors.New("invalid credentials")
 )
