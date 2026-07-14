@@ -61,3 +61,7 @@ css-build:
 .PHONY: css-watch
 css-watch:
 	npm run css:watch
+
+.PHONY: admin-create-operator
+admin-create-operator:
+	go run ./cmd/cordell-admin create-operator -username $(USERNAME)

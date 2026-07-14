@@ -466,3 +466,23 @@ CORDELL_SESSION_COOKIE_SECURE=true
 Login, logout, and session creation are implemented.
 
 Route protection, CSRF protection, and authorization are implemented in later milestones.
+
+## Admin CLI
+
+Cordell includes a local administrative CLI for bootstrap tasks.
+
+Create an operator:
+
+```bash
+go run ./cmd/cordell-admin create-operator -username admin
+```
+
+Or through Make:
+
+```bash
+make admin-create-operator USERNAME=admin
+```
+
+The command prompts for the password interactively and does not echo it in the terminal.
+
+Operator creation is intentionally not exposed as a public web registration flow.
