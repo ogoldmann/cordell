@@ -587,20 +587,19 @@ Operator management pages and finer-grained permissions are implemented in later
 
 ## Operator Administration
 
-Admins can access a read-only operator management page at:
+Admins can create operators from the web admin area: 
 
-```txt
-/admin/operators
+```
+txt /admin/operators/new
 ```
 
-The operator list displays:
+Operator creation through the web admin area:
 
-- username
-- role
-- active status
-- creation timestamp
-- operator ID
+- requires an authenticated admin
+- is protected by CSRF
+- supports the admin and operator roles
+- hashes passwords through the application service
+- never displays password hashes
+- defaults new web-created accounts to the operator role in the form
 
-Password hashes are intentionally excluded from this read model and are never displayed in the admin UI.
-
-Operator creation, deactivation, and role changes are implemented in later milestones.
+The local admin CLI remains available for bootstrap tasks.

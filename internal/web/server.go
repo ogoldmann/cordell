@@ -69,6 +69,9 @@ func (s *Server) Routes() http.Handler {
 
 			admin.Get("/admin", s.handleAdminIndex)
 			admin.Get("/admin/operators", s.handleAdminOperatorsIndex)
+			admin.Get("/admin/operators/new", s.handleNewAdminOperatorForm)
+			admin.Post("/admin/operators", s.handleCreateAdminOperator)
+
 		})
 
 		private.Get("/personnel", s.handleListPersonnel)

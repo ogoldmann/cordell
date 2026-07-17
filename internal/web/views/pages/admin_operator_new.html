@@ -1,0 +1,121 @@
+{{define "admin_operator_new.html"}}
+{{template "layout_start" .}}
+
+<section class="mb-8">
+  <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+    Administration
+  </p>
+
+  <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <div>
+      <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
+        Create operator
+      </h1>
+
+      <p class="mt-3 max-w-2xl text-cordell-muted dark:text-cordell-dark-muted">
+        Create a Cordell operator account with an authorization role.
+      </p>
+    </div>
+
+    <a
+      class="inline-flex w-fit items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2.5 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+      href="/admin/operators"
+    >
+      Back to operators
+    </a>
+  </div>
+</section>
+
+{{if .Error}}
+  <div class="mb-4 rounded-2xl border border-cordell-danger-border bg-cordell-danger-surface px-4 py-3 font-medium text-cordell-danger-text">
+    {{.Error}}
+  </div>
+{{end}}
+
+<form
+  class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface"
+  method="post"
+  action="/admin/operators"
+>
+  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+  <div class="grid gap-5">
+    <div class="grid gap-2">
+      <label class="text-sm font-bold" for="username">Username</label>
+      <input
+        class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+        id="username"
+        name="username"
+        type="text"
+        value="{{.Username}}"
+        autocomplete="off"
+        required
+      >
+      <p class="m-0 text-xs text-cordell-muted dark:text-cordell-dark-muted">
+        Use lowercase letters, numbers, dots, underscores, or hyphens.
+      </p>
+    </div>
+
+    <div class="grid gap-2">
+      <label class="text-sm font-bold" for="role">Role</label>
+      <select
+        class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+        id="role"
+        name="role"
+        required
+      >
+        {{range .RoleOptions}}
+          <option value="{{.Value}}" {{if .Selected}}selected{{end}}>
+            {{.Label}}
+          </option>
+        {{end}}
+      </select>
+    </div>
+
+    <div class="grid gap-2">
+      <label class="text-sm font-bold" for="password">Password</label>
+      <input
+        class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+        id="password"
+        name="password"
+        type="password"
+        autocomplete="new-password"
+        required
+      >
+      <p class="m-0 text-xs text-cordell-muted dark:text-cordell-dark-muted">
+        Password must have at least 15 characters.
+      </p>
+    </div>
+
+    <div class="grid gap-2">
+      <label class="text-sm font-bold" for="confirm_password">Confirm password</label>
+      <input
+        class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+        id="confirm_password"
+        name="confirm_password"
+        type="password"
+        autocomplete="new-password"
+        required
+      >
+    </div>
+  </div>
+
+  <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+    <button
+      class="inline-flex w-fit cursor-pointer items-center justify-center rounded-xl border-0 bg-cordell-primary px-4 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+      type="submit"
+    >
+      Create operator
+    </button>
+
+    <a
+      class="inline-flex w-fit items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+      href="/admin/operators"
+    >
+      Cancel
+    </a>
+  </div>
+</form>
+
+{{template "layout_end" .}}
+{{end}}

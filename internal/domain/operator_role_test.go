@@ -36,3 +36,19 @@ func TestOperatorRoleCanManageOperators(t *testing.T) {
 		t.Fatal("expected operator not to manage operators")
 	}
 }
+
+func TestOperatorRoleOptions(t *testing.T) {
+	roles := OperatorRoleOptions()
+
+	if len(roles) != 2 {
+		t.Fatalf("expected 2 roles, got %d", len(roles))
+	}
+
+	if roles[0] != OperatorRoleAdmin {
+		t.Fatalf("expected first role admin, got %s", roles[0])
+	}
+
+	if roles[1] != OperatorRoleOperator {
+		t.Fatalf("expected second role operator, got %s", roles[1])
+	}
+}

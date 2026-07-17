@@ -50,3 +50,11 @@ func (r OperatorRole) Label() string {
 func (r OperatorRole) CanManageOperators() bool {
 	return r == OperatorRoleAdmin
 }
+
+// OperatorRoleOptions returns the available operator roles.
+func OperatorRoleOptions() []OperatorRole {
+	return []OperatorRole{
+		OperatorRoleAdmin,
+		OperatorRoleOperator,
+	}
+}
