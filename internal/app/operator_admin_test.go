@@ -15,18 +15,22 @@ func TestListOperatorsServiceExecute(t *testing.T) {
 	repository := &fakeOperatorRepository{
 		summaries: []ports.OperatorSummary{
 			{
-				ID:        "operator-1",
-				Username:  "admin",
-				Role:      domain.OperatorRoleAdmin,
-				Active:    true,
-				CreatedAt: createdAt,
+				ID:             "operator-1",
+				RegistrationID: mustRegistrationID(t, "52998224725"),
+				Alias:          "silva",
+				Rank:           domain.RankSergeant,
+				Role:           domain.OperatorRoleAdmin,
+				Active:         true,
+				CreatedAt:      createdAt,
 			},
 			{
-				ID:        "operator-2",
-				Username:  "clerk",
-				Role:      domain.OperatorRoleOperator,
-				Active:    true,
-				CreatedAt: createdAt,
+				ID:             "operator-2",
+				RegistrationID: mustRegistrationID(t, "93541134780"),
+				Alias:          "costa",
+				Rank:           domain.RankCorporal,
+				Role:           domain.OperatorRoleOperator,
+				Active:         true,
+				CreatedAt:      createdAt,
 			},
 		},
 	}
@@ -44,8 +48,8 @@ func TestListOperatorsServiceExecute(t *testing.T) {
 		t.Fatalf("expected 2 operators, got %d", len(operators))
 	}
 
-	if operators[0].Username != "admin" {
-		t.Fatalf("expected admin, got %s", operators[0].Username)
+	if operators[0].RegistrationID.String() != "52998224725" {
+		t.Fatalf("expected registration id 52998224725, got %s", operators[0].RegistrationID)
 	}
 }
 
@@ -64,22 +68,12 @@ func TestListOperatorsServiceLimitsMaximum(t *testing.T) {
 func TestDeactivateOperatorServiceExecute(t *testing.T) {
 	now := time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)
 
-	admin, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	admin, err := buildOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid admin, got %v", err)
 	}
 
-	clerk, err := domain.NewOperator(
-		"operator-2",
-		"clerk",
-		domain.OperatorRoleOperator,
-		"$argon2id$hash",
-	)
+	clerk, err := buildOperator("operator-2", "93541134780", "costa", domain.RankCorporal, domain.OperatorRoleOperator, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid clerk, got %v", err)
 	}
@@ -96,16 +90,7 @@ func TestDeactivateOperatorServiceExecute(t *testing.T) {
 		t.Fatalf("expected valid session, got %v", err)
 	}
 
-	operatorRepository := &fakeOperatorRepository{
-		byID: map[domain.OperatorID]domain.Operator{
-			admin.ID(): admin,
-			clerk.ID(): clerk,
-		},
-		byUsername: map[string]domain.Operator{
-			admin.Username(): admin,
-			clerk.Username(): clerk,
-		},
-	}
+	operatorRepository := newFakeOperatorRepository(admin, clerk)
 
 	sessionRepository := &fakeOperatorSessionRepository{
 		byTokenHash: map[string]domain.OperatorSession{
@@ -134,24 +119,12 @@ func TestDeactivateOperatorServiceExecute(t *testing.T) {
 }
 
 func TestDeactivateOperatorServiceRejectsCurrentOperator(t *testing.T) {
-	admin, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	admin, err := buildOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid admin, got %v", err)
 	}
 
-	operatorRepository := &fakeOperatorRepository{
-		byID: map[domain.OperatorID]domain.Operator{
-			admin.ID(): admin,
-		},
-		byUsername: map[string]domain.Operator{
-			admin.Username(): admin,
-		},
-	}
+	operatorRepository := newFakeOperatorRepository(admin)
 
 	sessionRepository := &fakeOperatorSessionRepository{
 		byTokenHash: map[string]domain.OperatorSession{},
@@ -169,29 +142,21 @@ func TestDeactivateOperatorServiceRejectsCurrentOperator(t *testing.T) {
 }
 
 func TestDeactivateOperatorServiceRejectsLastAdmin(t *testing.T) {
-	currentAdmin, err := domain.NewOperator(
-		"operator-1",
-		"current-admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	currentAdmin, err := buildOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid current admin, got %v", err)
 	}
 
-	targetAdmin, err := domain.NewOperator(
-		"operator-2",
-		"target-admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	targetAdmin, err := buildOperator("operator-2", "93541134780", "costa", domain.RankCorporal, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid target admin, got %v", err)
 	}
 
 	inactiveCurrentAdmin, err := domain.ReconstituteOperator(
 		currentAdmin.ID(),
-		currentAdmin.Username(),
+		currentAdmin.RegistrationID(),
+		currentAdmin.Alias(),
+		currentAdmin.Rank(),
 		currentAdmin.Role(),
 		currentAdmin.PasswordHash(),
 		false,
@@ -200,16 +165,7 @@ func TestDeactivateOperatorServiceRejectsLastAdmin(t *testing.T) {
 		t.Fatalf("expected valid inactive current admin, got %v", err)
 	}
 
-	operatorRepository := &fakeOperatorRepository{
-		byID: map[domain.OperatorID]domain.Operator{
-			inactiveCurrentAdmin.ID(): inactiveCurrentAdmin,
-			targetAdmin.ID():          targetAdmin,
-		},
-		byUsername: map[string]domain.Operator{
-			inactiveCurrentAdmin.Username(): inactiveCurrentAdmin,
-			targetAdmin.Username():          targetAdmin,
-		},
-	}
+	operatorRepository := newFakeOperatorRepository(inactiveCurrentAdmin, targetAdmin)
 
 	sessionRepository := &fakeOperatorSessionRepository{
 		byTokenHash: map[string]domain.OperatorSession{},
@@ -229,22 +185,12 @@ func TestDeactivateOperatorServiceRejectsLastAdmin(t *testing.T) {
 func TestChangeOperatorRoleServiceExecute(t *testing.T) {
 	now := time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)
 
-	admin, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	admin, err := buildOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid admin, got %v", err)
 	}
 
-	clerk, err := domain.NewOperator(
-		"operator-2",
-		"clerk",
-		domain.OperatorRoleOperator,
-		"$argon2id$hash",
-	)
+	clerk, err := buildOperator("operator-2", "93541134780", "costa", domain.RankCorporal, domain.OperatorRoleOperator, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid clerk, got %v", err)
 	}
@@ -261,16 +207,7 @@ func TestChangeOperatorRoleServiceExecute(t *testing.T) {
 		t.Fatalf("expected valid session, got %v", err)
 	}
 
-	operatorRepository := &fakeOperatorRepository{
-		byID: map[domain.OperatorID]domain.Operator{
-			admin.ID(): admin,
-			clerk.ID(): clerk,
-		},
-		byUsername: map[string]domain.Operator{
-			admin.Username(): admin,
-			clerk.Username(): clerk,
-		},
-	}
+	operatorRepository := newFakeOperatorRepository(admin, clerk)
 
 	sessionRepository := &fakeOperatorSessionRepository{
 		byTokenHash: map[string]domain.OperatorSession{
@@ -300,24 +237,12 @@ func TestChangeOperatorRoleServiceExecute(t *testing.T) {
 }
 
 func TestChangeOperatorRoleServiceRejectsCurrentOperator(t *testing.T) {
-	admin, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	admin, err := buildOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid admin, got %v", err)
 	}
 
-	operatorRepository := &fakeOperatorRepository{
-		byID: map[domain.OperatorID]domain.Operator{
-			admin.ID(): admin,
-		},
-		byUsername: map[string]domain.Operator{
-			admin.Username(): admin,
-		},
-	}
+	operatorRepository := newFakeOperatorRepository(admin)
 
 	sessionRepository := &fakeOperatorSessionRepository{
 		byTokenHash: map[string]domain.OperatorSession{},
@@ -336,29 +261,21 @@ func TestChangeOperatorRoleServiceRejectsCurrentOperator(t *testing.T) {
 }
 
 func TestChangeOperatorRoleServiceRejectsDemotingLastAdmin(t *testing.T) {
-	currentAdmin, err := domain.NewOperator(
-		"operator-1",
-		"current-admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	currentAdmin, err := buildOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid current admin, got %v", err)
 	}
 
-	targetAdmin, err := domain.NewOperator(
-		"operator-2",
-		"target-admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	targetAdmin, err := buildOperator("operator-2", "93541134780", "costa", domain.RankCorporal, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid target admin, got %v", err)
 	}
 
 	inactiveCurrentAdmin, err := domain.ReconstituteOperator(
 		currentAdmin.ID(),
-		currentAdmin.Username(),
+		currentAdmin.RegistrationID(),
+		currentAdmin.Alias(),
+		currentAdmin.Rank(),
 		currentAdmin.Role(),
 		currentAdmin.PasswordHash(),
 		false,
@@ -367,16 +284,7 @@ func TestChangeOperatorRoleServiceRejectsDemotingLastAdmin(t *testing.T) {
 		t.Fatalf("expected valid inactive current admin, got %v", err)
 	}
 
-	operatorRepository := &fakeOperatorRepository{
-		byID: map[domain.OperatorID]domain.Operator{
-			inactiveCurrentAdmin.ID(): inactiveCurrentAdmin,
-			targetAdmin.ID():          targetAdmin,
-		},
-		byUsername: map[string]domain.Operator{
-			inactiveCurrentAdmin.Username(): inactiveCurrentAdmin,
-			targetAdmin.Username():          targetAdmin,
-		},
-	}
+	operatorRepository := newFakeOperatorRepository(inactiveCurrentAdmin, targetAdmin)
 
 	sessionRepository := &fakeOperatorSessionRepository{
 		byTokenHash: map[string]domain.OperatorSession{},
@@ -395,36 +303,17 @@ func TestChangeOperatorRoleServiceRejectsDemotingLastAdmin(t *testing.T) {
 }
 
 func TestChangeOperatorRoleServiceRejectsInvalidRole(t *testing.T) {
-	admin, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	admin, err := buildOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid admin, got %v", err)
 	}
 
-	clerk, err := domain.NewOperator(
-		"operator-2",
-		"clerk",
-		domain.OperatorRoleOperator,
-		"$argon2id$hash",
-	)
+	clerk, err := buildOperator("operator-2", "93541134780", "costa", domain.RankCorporal, domain.OperatorRoleOperator, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid clerk, got %v", err)
 	}
 
-	operatorRepository := &fakeOperatorRepository{
-		byID: map[domain.OperatorID]domain.Operator{
-			admin.ID(): admin,
-			clerk.ID(): clerk,
-		},
-		byUsername: map[string]domain.Operator{
-			admin.Username(): admin,
-			clerk.Username(): clerk,
-		},
-	}
+	operatorRepository := newFakeOperatorRepository(admin, clerk)
 
 	sessionRepository := &fakeOperatorSessionRepository{
 		byTokenHash: map[string]domain.OperatorSession{},
@@ -445,22 +334,12 @@ func TestChangeOperatorRoleServiceRejectsInvalidRole(t *testing.T) {
 func TestResetOperatorPasswordServiceExecute(t *testing.T) {
 	now := time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)
 
-	admin, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$old-admin-hash",
-	)
+	admin, err := buildOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$old-admin-hash")
 	if err != nil {
 		t.Fatalf("expected valid admin, got %v", err)
 	}
 
-	clerk, err := domain.NewOperator(
-		"operator-2",
-		"clerk",
-		domain.OperatorRoleOperator,
-		"$argon2id$old-clerk-hash",
-	)
+	clerk, err := buildOperator("operator-2", "93541134780", "costa", domain.RankCorporal, domain.OperatorRoleOperator, "$argon2id$old-clerk-hash")
 	if err != nil {
 		t.Fatalf("expected valid clerk, got %v", err)
 	}
@@ -477,16 +356,7 @@ func TestResetOperatorPasswordServiceExecute(t *testing.T) {
 		t.Fatalf("expected valid session, got %v", err)
 	}
 
-	operatorRepository := &fakeOperatorRepository{
-		byID: map[domain.OperatorID]domain.Operator{
-			admin.ID(): admin,
-			clerk.ID(): clerk,
-		},
-		byUsername: map[string]domain.Operator{
-			admin.Username(): admin,
-			clerk.Username(): clerk,
-		},
-	}
+	operatorRepository := newFakeOperatorRepository(admin, clerk)
 
 	sessionRepository := &fakeOperatorSessionRepository{
 		byTokenHash: map[string]domain.OperatorSession{
@@ -520,24 +390,12 @@ func TestResetOperatorPasswordServiceExecute(t *testing.T) {
 }
 
 func TestResetOperatorPasswordServiceRejectsCurrentOperator(t *testing.T) {
-	admin, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	admin, err := buildOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid admin, got %v", err)
 	}
 
-	operatorRepository := &fakeOperatorRepository{
-		byID: map[domain.OperatorID]domain.Operator{
-			admin.ID(): admin,
-		},
-		byUsername: map[string]domain.Operator{
-			admin.Username(): admin,
-		},
-	}
+	operatorRepository := newFakeOperatorRepository(admin)
 
 	sessionRepository := &fakeOperatorSessionRepository{
 		byTokenHash: map[string]domain.OperatorSession{},
@@ -560,36 +418,17 @@ func TestResetOperatorPasswordServiceRejectsCurrentOperator(t *testing.T) {
 }
 
 func TestResetOperatorPasswordServiceRejectsWeakPassword(t *testing.T) {
-	admin, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	admin, err := buildOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid admin, got %v", err)
 	}
 
-	clerk, err := domain.NewOperator(
-		"operator-2",
-		"clerk",
-		domain.OperatorRoleOperator,
-		"$argon2id$hash",
-	)
+	clerk, err := buildOperator("operator-2", "93541134780", "costa", domain.RankCorporal, domain.OperatorRoleOperator, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid clerk, got %v", err)
 	}
 
-	operatorRepository := &fakeOperatorRepository{
-		byID: map[domain.OperatorID]domain.Operator{
-			admin.ID(): admin,
-			clerk.ID(): clerk,
-		},
-		byUsername: map[string]domain.Operator{
-			admin.Username(): admin,
-			clerk.Username(): clerk,
-		},
-	}
+	operatorRepository := newFakeOperatorRepository(admin, clerk)
 
 	sessionRepository := &fakeOperatorSessionRepository{
 		byTokenHash: map[string]domain.OperatorSession{},
@@ -617,11 +456,13 @@ func TestGetOperatorAdminServiceExecute(t *testing.T) {
 	repository := &fakeOperatorRepository{
 		summaries: []ports.OperatorSummary{
 			{
-				ID:        "operator-1",
-				Username:  "admin",
-				Role:      domain.OperatorRoleAdmin,
-				Active:    true,
-				CreatedAt: createdAt,
+				ID:             "operator-1",
+				RegistrationID: mustRegistrationID(t, "52998224725"),
+				Alias:          "silva",
+				Rank:           domain.RankSergeant,
+				Role:           domain.OperatorRoleAdmin,
+				Active:         true,
+				CreatedAt:      createdAt,
 			},
 		},
 	}
@@ -635,8 +476,8 @@ func TestGetOperatorAdminServiceExecute(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if operator.Username != "admin" {
-		t.Fatalf("expected admin, got %s", operator.Username)
+	if operator.RegistrationID.String() != "52998224725" {
+		t.Fatalf("expected registration id 52998224725, got %s", operator.RegistrationID)
 	}
 }
 
@@ -657,7 +498,9 @@ func TestReactivateOperatorServiceExecute(t *testing.T) {
 
 	inactiveOperator, err := domain.ReconstituteOperator(
 		"operator-1",
-		"clerk",
+		mustRegistrationID(t, "52998224725"),
+		"silva",
+		domain.RankSergeant,
 		domain.OperatorRoleOperator,
 		"$argon2id$hash",
 		false,
@@ -678,14 +521,7 @@ func TestReactivateOperatorServiceExecute(t *testing.T) {
 		t.Fatalf("expected valid session, got %v", err)
 	}
 
-	operatorRepository := &fakeOperatorRepository{
-		byID: map[domain.OperatorID]domain.Operator{
-			inactiveOperator.ID(): inactiveOperator,
-		},
-		byUsername: map[string]domain.Operator{
-			inactiveOperator.Username(): inactiveOperator,
-		},
-	}
+	operatorRepository := newFakeOperatorRepository(inactiveOperator)
 
 	sessionRepository := &fakeOperatorSessionRepository{
 		byTokenHash: map[string]domain.OperatorSession{
@@ -713,24 +549,12 @@ func TestReactivateOperatorServiceExecute(t *testing.T) {
 }
 
 func TestReactivateOperatorServiceIsNoOpForActiveOperator(t *testing.T) {
-	activeOperator, err := domain.NewOperator(
-		"operator-1",
-		"clerk",
-		domain.OperatorRoleOperator,
-		"$argon2id$hash",
-	)
+	activeOperator, err := buildOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleOperator, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid active operator, got %v", err)
 	}
 
-	operatorRepository := &fakeOperatorRepository{
-		byID: map[domain.OperatorID]domain.Operator{
-			activeOperator.ID(): activeOperator,
-		},
-		byUsername: map[string]domain.Operator{
-			activeOperator.Username(): activeOperator,
-		},
-	}
+	operatorRepository := newFakeOperatorRepository(activeOperator)
 
 	sessionRepository := &fakeOperatorSessionRepository{
 		byTokenHash: map[string]domain.OperatorSession{},
@@ -747,10 +571,7 @@ func TestReactivateOperatorServiceIsNoOpForActiveOperator(t *testing.T) {
 }
 
 func TestReactivateOperatorServiceReturnsNotFound(t *testing.T) {
-	operatorRepository := &fakeOperatorRepository{
-		byID:       map[domain.OperatorID]domain.Operator{},
-		byUsername: map[string]domain.Operator{},
-	}
+	operatorRepository := newFakeOperatorRepository()
 
 	sessionRepository := &fakeOperatorSessionRepository{
 		byTokenHash: map[string]domain.OperatorSession{},

@@ -11,15 +11,7 @@ import (
 func TestRequireRoleAllowsMatchingRole(t *testing.T) {
 	server := &Server{}
 
-	operator, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
-	if err != nil {
-		t.Fatalf("expected valid operator, got %v", err)
-	}
+	operator := mustBuildOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
 
 	nextCalled := false
 	handler := server.requireRole(domain.OperatorRoleAdmin)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -45,15 +37,7 @@ func TestRequireRoleAllowsMatchingRole(t *testing.T) {
 func TestRequireRoleRejectsDifferentRole(t *testing.T) {
 	server := &Server{}
 
-	operator, err := domain.NewOperator(
-		"operator-1",
-		"clerk",
-		domain.OperatorRoleOperator,
-		"$argon2id$hash",
-	)
-	if err != nil {
-		t.Fatalf("expected valid operator, got %v", err)
-	}
+	operator := mustBuildOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleOperator)
 
 	handler := server.requireRole(domain.OperatorRoleAdmin)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Fatal("expected next handler not to be called")

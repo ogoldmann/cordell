@@ -47,7 +47,8 @@
       <table class="min-w-full border-collapse text-left text-sm">
         <thead class="border-b border-cordell-border bg-cordell-background/70 text-xs uppercase tracking-[0.08em] text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-background/70 dark:text-cordell-dark-muted">
           <tr>
-            <th class="px-4 py-3 font-extrabold">Username</th>
+            <th class="px-4 py-3 font-extrabold">Operator</th>
+            <th class="px-4 py-3 font-extrabold">Registration ID</th>
             <th class="px-4 py-3 font-extrabold">Role</th>
             <th class="px-4 py-3 font-extrabold">Status</th>
             <th class="px-4 py-3 font-extrabold">Created</th>
@@ -60,7 +61,11 @@
           {{range .Operators}}
             <tr>
               <td class="px-4 py-3 font-bold">
-                {{.Username}}
+                {{.DisplayName}}
+              </td>
+
+              <td class="px-4 py-3 font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">
+                {{.RegistrationID}}
               </td>
 
               <td class="px-4 py-3">

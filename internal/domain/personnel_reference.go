@@ -1,56 +1,79 @@
 package domain
 
-// PersonnelRank represents a predefined personnel rank.
-type PersonnelRank string
+// Rank represents a predefined military/personnel rank.
+type Rank string
 
 const (
-	// PersonnelRankPrivate represents the private rank.
-	PersonnelRankPrivate PersonnelRank = "private"
-
-	// PersonnelRankCorporal represents the corporal rank.
-	PersonnelRankCorporal PersonnelRank = "corporal"
-
-	// PersonnelRankSergeant represents the sergeant rank.
-	PersonnelRankSergeant PersonnelRank = "sergeant"
-
-	// PersonnelRankLieutenant represents the lieutenant rank.
-	PersonnelRankLieutenant PersonnelRank = "lieutenant"
-
-	// PersonnelRankCaptain represents the captain rank.
-	PersonnelRankCaptain PersonnelRank = "captain"
+	RankPrivate    Rank = "private"
+	RankCorporal   Rank = "corporal"
+	RankSergeant   Rank = "sergeant"
+	RankLieutenant Rank = "lieutenant"
+	RankCaptain    Rank = "captain"
 )
 
-// PersonnelRankOption represents a selectable personnel rank.
-type PersonnelRankOption struct {
-	Value PersonnelRank
+type RankOption struct {
+	Value Rank
 	Label string
 }
 
-var personnelRankOptions = []PersonnelRankOption{
-	{Value: PersonnelRankPrivate, Label: "Private"},
-	{Value: PersonnelRankCorporal, Label: "Corporal"},
-	{Value: PersonnelRankSergeant, Label: "Sergeant"},
-	{Value: PersonnelRankLieutenant, Label: "Lieutenant"},
-	{Value: PersonnelRankCaptain, Label: "Captain"},
+var rankOptions = []RankOption{
+	{Value: RankPrivate, Label: "Private"},
+	{Value: RankCorporal, Label: "Corporal"},
+	{Value: RankSergeant, Label: "Sergeant"},
+	{Value: RankLieutenant, Label: "Lieutenant"},
+	{Value: RankCaptain, Label: "Captain"},
 }
 
-// PersonnelRankOptions returns the available personnel rank options.
-func PersonnelRankOptions() []PersonnelRankOption {
-	options := make([]PersonnelRankOption, len(personnelRankOptions))
-	copy(options, personnelRankOptions)
+func RankOptions() []RankOption {
+	options := make([]RankOption, len(rankOptions))
+	copy(options, rankOptions)
 
 	return options
 }
 
-// IsValidPersonnelRank reports whether rank is an allowed personnel rank.
-func IsValidPersonnelRank(rank PersonnelRank) bool {
-	for _, option := range personnelRankOptions {
+func IsValidRank(rank Rank) bool {
+	for _, option := range rankOptions {
 		if option.Value == rank {
 			return true
 		}
 	}
 
 	return false
+}
+
+func (r Rank) String() string {
+	return string(r)
+}
+
+func (r Rank) Label() string {
+	for _, option := range rankOptions {
+		if option.Value == r {
+			return option.Label
+		}
+	}
+
+	return string(r)
+}
+
+// PersonnelRank is kept as a compatibility alias for personnel code.
+type PersonnelRank = Rank
+
+const (
+	PersonnelRankPrivate    PersonnelRank = RankPrivate
+	PersonnelRankCorporal   PersonnelRank = RankCorporal
+	PersonnelRankSergeant   PersonnelRank = RankSergeant
+	PersonnelRankLieutenant PersonnelRank = RankLieutenant
+	PersonnelRankCaptain    PersonnelRank = RankCaptain
+)
+
+type PersonnelRankOption = RankOption
+
+func PersonnelRankOptions() []PersonnelRankOption {
+	return RankOptions()
+}
+
+func IsValidPersonnelRank(rank PersonnelRank) bool {
+	return IsValidRank(rank)
 }
 
 // PersonnelSection represents a predefined personnel section.

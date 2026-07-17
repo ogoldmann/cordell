@@ -8,18 +8,29 @@ import (
 	"cordell/internal/infra/postgres"
 )
 
-func TestPostgresOperatorRepositorySaveAndFindByUsername(t *testing.T) {
+func buildTestOperator(
+	id domain.OperatorID,
+	registrationIDValue string,
+	alias string,
+	rank domain.Rank,
+	role domain.OperatorRole,
+	passwordHash string,
+) (domain.Operator, error) {
+	registrationID, err := domain.NewRegistrationID(registrationIDValue)
+	if err != nil {
+		return domain.Operator{}, err
+	}
+
+	return domain.NewOperator(id, registrationID, alias, rank, role, passwordHash)
+}
+
+func TestPostgresOperatorRepositorySaveAndFindByRegistrationID(t *testing.T) {
 	pool := openTestPool(t)
 	queries := newTestQueries(pool)
 
 	operatorRepository := postgres.NewOperatorRepository(queries)
 
-	operator, err := domain.NewOperator(
-		"operator-1",
-		"Admin.User",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	operator, err := buildTestOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid operator, got %v", err)
 	}
@@ -28,7 +39,7 @@ func TestPostgresOperatorRepositorySaveAndFindByUsername(t *testing.T) {
 		t.Fatalf("expected no error saving operator, got %v", err)
 	}
 
-	found, err := operatorRepository.FindByUsername(context.Background(), "ADMIN.USER")
+	found, err := operatorRepository.FindByRegistrationID(context.Background(), operator.RegistrationID())
 	if err != nil {
 		t.Fatalf("expected no error finding operator, got %v", err)
 	}
@@ -41,34 +52,28 @@ func TestPostgresOperatorRepositorySaveAndFindByUsername(t *testing.T) {
 		t.Fatalf("expected operator-1, got %s", found.ID())
 	}
 
-	if found.Username() != "admin.user" {
-		t.Fatalf("expected admin.user, got %s", found.Username())
+	if found.RegistrationID() != operator.RegistrationID() {
+		t.Fatalf("expected registration id %s, got %s", operator.RegistrationID(), found.RegistrationID())
+	}
+
+	if found.Alias() != "silva" {
+		t.Fatalf("expected alias silva, got %s", found.Alias())
 	}
 
 }
 
-func TestPostgresOperatorRepositoryRejectsDuplicateUsername(t *testing.T) {
+func TestPostgresOperatorRepositoryRejectsDuplicateRegistrationID(t *testing.T) {
 	pool := openTestPool(t)
 	queries := newTestQueries(pool)
 
 	operatorRepository := postgres.NewOperatorRepository(queries)
 
-	firstOperator, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	firstOperator, err := buildTestOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid first operator, got %v", err)
 	}
 
-	secondOperator, err := domain.NewOperator(
-		"operator-2",
-		"ADMIN",
-		domain.OperatorRoleOperator,
-		"$argon2id$hash",
-	)
+	secondOperator, err := buildTestOperator("operator-2", "52998224725", "costa", domain.RankCorporal, domain.OperatorRoleOperator, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid second operator, got %v", err)
 	}
@@ -78,8 +83,8 @@ func TestPostgresOperatorRepositoryRejectsDuplicateUsername(t *testing.T) {
 	}
 
 	err = operatorRepository.Save(context.Background(), secondOperator)
-	if err != domain.ErrDuplicateOperatorUsername {
-		t.Fatalf("expected ErrDuplicateOperatorUsername, got %v", err)
+	if err != domain.ErrDuplicateRegistrationID {
+		t.Fatalf("expected ErrDuplicateRegistrationID, got %v", err)
 	}
 }
 
@@ -89,22 +94,12 @@ func TestPostgresOperatorRepositoryList(t *testing.T) {
 
 	operatorRepository := postgres.NewOperatorRepository(queries)
 
-	adminOperator, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	adminOperator, err := buildTestOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid admin operator, got %v", err)
 	}
 
-	regularOperator, err := domain.NewOperator(
-		"operator-2",
-		"clerk",
-		domain.OperatorRoleOperator,
-		"$argon2id$hash",
-	)
+	regularOperator, err := buildTestOperator("operator-2", "93541134780", "costa", domain.RankCorporal, domain.OperatorRoleOperator, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid regular operator, got %v", err)
 	}
@@ -127,8 +122,16 @@ func TestPostgresOperatorRepositoryList(t *testing.T) {
 	}
 
 	for _, operator := range operators {
-		if operator.Username == "" {
-			t.Fatal("expected username not to be empty")
+		if operator.RegistrationID.String() == "" {
+			t.Fatal("expected registration id not to be empty")
+		}
+
+		if operator.Alias == "" {
+			t.Fatal("expected alias not to be empty")
+		}
+
+		if operator.Rank == "" {
+			t.Fatal("expected rank not to be empty")
 		}
 
 		if operator.Role == "" {
@@ -147,22 +150,12 @@ func TestPostgresOperatorRepositoryDeactivate(t *testing.T) {
 
 	operatorRepository := postgres.NewOperatorRepository(queries)
 
-	adminOperator, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	adminOperator, err := buildTestOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid admin operator, got %v", err)
 	}
 
-	regularOperator, err := domain.NewOperator(
-		"operator-2",
-		"clerk",
-		domain.OperatorRoleOperator,
-		"$argon2id$hash",
-	)
+	regularOperator, err := buildTestOperator("operator-2", "93541134780", "costa", domain.RankCorporal, domain.OperatorRoleOperator, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid regular operator, got %v", err)
 	}
@@ -200,12 +193,7 @@ func TestPostgresOperatorRepositoryDoesNotDeactivateLastAdmin(t *testing.T) {
 
 	operatorRepository := postgres.NewOperatorRepository(queries)
 
-	adminOperator, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	adminOperator, err := buildTestOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid admin operator, got %v", err)
 	}
@@ -239,22 +227,12 @@ func TestPostgresOperatorRepositoryCountActiveAdmins(t *testing.T) {
 
 	operatorRepository := postgres.NewOperatorRepository(queries)
 
-	adminOperator, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	adminOperator, err := buildTestOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid admin operator, got %v", err)
 	}
 
-	regularOperator, err := domain.NewOperator(
-		"operator-2",
-		"clerk",
-		domain.OperatorRoleOperator,
-		"$argon2id$hash",
-	)
+	regularOperator, err := buildTestOperator("operator-2", "93541134780", "costa", domain.RankCorporal, domain.OperatorRoleOperator, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid regular operator, got %v", err)
 	}
@@ -283,22 +261,12 @@ func TestPostgresOperatorRepositoryChangeRole(t *testing.T) {
 
 	operatorRepository := postgres.NewOperatorRepository(queries)
 
-	adminOperator, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	adminOperator, err := buildTestOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid admin operator, got %v", err)
 	}
 
-	regularOperator, err := domain.NewOperator(
-		"operator-2",
-		"clerk",
-		domain.OperatorRoleOperator,
-		"$argon2id$hash",
-	)
+	regularOperator, err := buildTestOperator("operator-2", "93541134780", "costa", domain.RankCorporal, domain.OperatorRoleOperator, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid regular operator, got %v", err)
 	}
@@ -340,12 +308,7 @@ func TestPostgresOperatorRepositoryDoesNotDemoteLastAdmin(t *testing.T) {
 
 	operatorRepository := postgres.NewOperatorRepository(queries)
 
-	adminOperator, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	adminOperator, err := buildTestOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid admin operator, got %v", err)
 	}
@@ -383,12 +346,7 @@ func TestPostgresOperatorRepositoryUpdatePasswordHash(t *testing.T) {
 
 	operatorRepository := postgres.NewOperatorRepository(queries)
 
-	operator, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$old-hash",
-	)
+	operator, err := buildTestOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$old-hash")
 	if err != nil {
 		t.Fatalf("expected valid operator, got %v", err)
 	}
@@ -426,12 +384,7 @@ func TestPostgresOperatorRepositoryFindSummaryByID(t *testing.T) {
 
 	operatorRepository := postgres.NewOperatorRepository(queries)
 
-	operator, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	operator, err := buildTestOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid operator, got %v", err)
 	}
@@ -449,8 +402,16 @@ func TestPostgresOperatorRepositoryFindSummaryByID(t *testing.T) {
 		t.Fatalf("expected operator id %s, got %s", operator.ID(), summary.ID)
 	}
 
-	if summary.Username != operator.Username() {
-		t.Fatalf("expected username %s, got %s", operator.Username(), summary.Username)
+	if summary.RegistrationID != operator.RegistrationID() {
+		t.Fatalf("expected registration id %s, got %s", operator.RegistrationID(), summary.RegistrationID)
+	}
+
+	if summary.Alias != operator.Alias() {
+		t.Fatalf("expected alias %s, got %s", operator.Alias(), summary.Alias)
+	}
+
+	if summary.Rank != operator.Rank() {
+		t.Fatalf("expected rank %s, got %s", operator.Rank(), summary.Rank)
 	}
 
 	if summary.Role != operator.Role() {
@@ -468,12 +429,7 @@ func TestPostgresOperatorRepositoryReactivate(t *testing.T) {
 
 	operatorRepository := postgres.NewOperatorRepository(queries)
 
-	operator, err := domain.NewOperator(
-		"operator-1",
-		"clerk",
-		domain.OperatorRoleOperator,
-		"$argon2id$hash",
-	)
+	operator, err := buildTestOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleOperator, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid operator, got %v", err)
 	}

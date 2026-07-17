@@ -18,8 +18,10 @@ Cordell uses application-managed operator accounts.
 
 Operators have:
 
-- an ID
-- a username
+- an internal ID
+- a unique registration ID used for login
+- an alias
+- a rank
 - a role
 - a password hash
 - an active flag

@@ -51,16 +51,13 @@ func runCreateOperator(ctx context.Context, args []string) error {
 	flags := flag.NewFlagSet("create-operator", flag.ContinueOnError)
 	flags.SetOutput(os.Stderr)
 
-	username := flags.String("username", "", "operator username")
+	registrationID := flags.String("registration-id", "", "operator registration id")
+	alias := flags.String("alias", "", "operator alias")
+	rank := flags.String("rank", "", "operator rank")
 	role := flags.String("role", domain.OperatorRoleAdmin.String(), "operator role: admin or operator")
 
 	if err := flags.Parse(args); err != nil {
 		return err
-	}
-
-	normalizedUsername := domain.NormalizeOperatorUsername(*username)
-	if normalizedUsername == "" {
-		return errors.New("username is required")
 	}
 
 	password, err := promptPassword()
@@ -92,9 +89,11 @@ func runCreateOperator(ctx context.Context, args []string) error {
 	)
 
 	operator, err := service.Execute(ctx, app.CreateOperatorCommand{
-		Username: normalizedUsername,
-		Role:     *role,
-		Password: password,
+		RegistrationID: *registrationID,
+		Alias:          *alias,
+		Rank:           *rank,
+		Role:           *role,
+		Password:       password,
 	})
 	if err != nil {
 		return humanizeCreateOperatorError(err)
@@ -102,8 +101,10 @@ func runCreateOperator(ctx context.Context, args []string) error {
 
 	fmt.Fprintf(
 		os.Stdout,
-		"Operator created successfully: %s (%s)\n",
-		operator.Username(),
+		"Operator created successfully: %s %s (%s, %s)\n",
+		operator.Rank().Label(),
+		operator.Alias(),
+		operator.RegistrationID().String(),
 		operator.Role().Label(),
 	)
 
@@ -143,16 +144,20 @@ func promptPassword() (string, error) {
 
 func humanizeCreateOperatorError(err error) error {
 	switch {
+	case errors.Is(err, domain.ErrEmptyRegistrationID):
+		return errors.New("registration id is required")
+	case errors.Is(err, domain.ErrInvalidRegistrationID):
+		return errors.New("registration id is invalid")
+	case errors.Is(err, domain.ErrDuplicateRegistrationID):
+		return errors.New("registration id is already registered")
+	case errors.Is(err, domain.ErrEmptyOperatorAlias):
+		return errors.New("alias is required")
+	case errors.Is(err, domain.ErrInvalidOperatorRank):
+		return errors.New("rank is required")
 	case errors.Is(err, domain.ErrEmptyOperatorPassword):
 		return errors.New("password is required")
 	case errors.Is(err, domain.ErrWeakOperatorPassword):
 		return errors.New("password must have at least 15 characters")
-	case errors.Is(err, domain.ErrEmptyOperatorUsername):
-		return errors.New("username is required")
-	case errors.Is(err, domain.ErrInvalidOperatorUsername):
-		return errors.New("username must be 3-64 characters and contain only lowercase letters, numbers, dots, underscores, or hyphens")
-	case errors.Is(err, domain.ErrDuplicateOperatorUsername):
-		return errors.New("username is already registered")
 	case errors.Is(err, domain.ErrEmptyOperatorRole):
 		return errors.New("role is required")
 	case errors.Is(err, domain.ErrInvalidOperatorRole):
@@ -165,9 +170,9 @@ func humanizeCreateOperatorError(err error) error {
 func printUsage() {
 	fmt.Fprintln(os.Stderr, "Cordell admin commands:")
 	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, "  create-operator -username <username> [-role admin|operator]")
+	fmt.Fprintln(os.Stderr, "  create-operator -registration-id <id> -alias <alias> -rank <rank> [-role admin|operator]")
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Examples:")
-	fmt.Fprintln(os.Stderr, "  cordell-admin create-operator -username admin -role admin")
-	fmt.Fprintln(os.Stderr, "  go run ./cmd/cordell-admin create-operator -username clerk -role operator")
+	fmt.Fprintln(os.Stderr, "  cordell-admin create-operator -registration-id 52998224725 -alias silva -rank sergeant -role admin")
+	fmt.Fprintln(os.Stderr, "  go run ./cmd/cordell-admin create-operator -registration-id 93541134780 -alias costa -rank corporal -role operator")
 }

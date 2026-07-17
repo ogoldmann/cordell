@@ -38,6 +38,10 @@ The current quantity of a given asset under the custody of a given person.
 
 A system user who performs actions inside Cordell.
 
+Operators authenticate with a unique operator registration ID and password.
+
+Operator display names use rank and alias, such as "sergeant silva".
+
 ## Audit Log
 
 A technical append-only record of relevant actions performed in the system.

@@ -4,16 +4,24 @@ import "cordell/internal/domain"
 
 type currentOperatorView struct {
 	ID                 string
-	Username           string
+	RegistrationID     string
+	Alias              string
+	RankLabel          string
+	DisplayName        string
 	Role               string
 	RoleLabel          string
 	CanManageOperators bool
 }
 
 func newCurrentOperatorView(operator domain.Operator) currentOperatorView {
+	displayName := operator.Rank().Label() + " " + operator.Alias()
+
 	return currentOperatorView{
 		ID:                 string(operator.ID()),
-		Username:           operator.Username(),
+		RegistrationID:     operator.RegistrationID().String(),
+		Alias:              operator.Alias(),
+		RankLabel:          operator.Rank().Label(),
+		DisplayName:        displayName,
 		Role:               operator.Role().String(),
 		RoleLabel:          operator.Role().Label(),
 		CanManageOperators: operator.Role().CanManageOperators(),

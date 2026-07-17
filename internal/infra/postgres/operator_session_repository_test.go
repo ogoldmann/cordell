@@ -17,12 +17,7 @@ func TestPostgresOperatorSessionRepositoryDeleteByOperatorID(t *testing.T) {
 	operatorRepository := postgres.NewOperatorRepository(queries)
 	sessionRepository := postgres.NewOperatorSessionRepository(queries)
 
-	operator, err := domain.NewOperator(
-		"operator-1",
-		"admin",
-		domain.OperatorRoleAdmin,
-		"$argon2id$hash",
-	)
+	operator, err := buildTestOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid operator, got %v", err)
 	}

@@ -40,13 +40,15 @@ type CustodyTransaction struct {
 }
 
 type Operator struct {
-	ID           string             `json:"id"`
-	Username     string             `json:"username"`
-	Role         string             `json:"role"`
-	PasswordHash string             `json:"password_hash"`
-	Active       bool               `json:"active"`
-	CreatedAt    pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	ID             string             `json:"id"`
+	RegistrationID string             `json:"registration_id"`
+	Alias          string             `json:"alias"`
+	Rank           string             `json:"rank"`
+	Role           string             `json:"role"`
+	PasswordHash   string             `json:"password_hash"`
+	Active         bool               `json:"active"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
 
 type OperatorSession struct {

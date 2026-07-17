@@ -32,13 +32,20 @@ type adminOperatorShowPageData struct {
 
 type adminOperatorNewPageData struct {
 	privateLayoutData
-	Title           string
-	Error           string
-	Username        string
-	SelectedRole    string
-	RoleOptions     []operatorRoleOptionView
-	Password        string
-	ConfirmPassword string
+	Title          string
+	Error          string
+	RegistrationID string
+	Alias          string
+	SelectedRank   string
+	RankOptions    []operatorRankOptionView
+	SelectedRole   string
+	RoleOptions    []operatorRoleOptionView
+}
+
+type operatorRankOptionView struct {
+	Value    string
+	Label    string
+	Selected bool
 }
 
 func (s *Server) handleAdminIndex(w http.ResponseWriter, r *http.Request) {
@@ -120,7 +127,7 @@ func (s *Server) renderAdminOperatorShow(
 
 	data := adminOperatorShowPageData{
 		privateLayoutData: newPrivateLayoutData(r),
-		Title:             operator.Username,
+		Title:             operatorDisplayName(operator.Rank, operator.Alias),
 		Error:             message,
 		Operator:          newOperatorDetailView(operator, currentOperator.ID()),
 	}
@@ -147,7 +154,9 @@ func (s *Server) handleCreateAdminOperator(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	username := r.FormValue("username")
+	registrationID := r.FormValue("registration_id")
+	alias := r.FormValue("alias")
+	rank := r.FormValue("rank")
 	role := r.FormValue("role")
 	password := r.FormValue("password")
 	confirmPassword := r.FormValue("confirm_password")
@@ -158,16 +167,20 @@ func (s *Server) handleCreateAdminOperator(w http.ResponseWriter, r *http.Reques
 			r,
 			http.StatusBadRequest,
 			"Passwords do not match.",
-			username,
+			registrationID,
+			alias,
+			rank,
 			role,
 		)
 		return
 	}
 
 	_, err := s.services.CreateOperator.Execute(r.Context(), app.CreateOperatorCommand{
-		Username: username,
-		Role:     role,
-		Password: password,
+		RegistrationID: registrationID,
+		Alias:          alias,
+		Rank:           rank,
+		Role:           role,
+		Password:       password,
 	})
 	if err != nil {
 		s.renderAdminOperatorFormWithError(
@@ -175,7 +188,9 @@ func (s *Server) handleCreateAdminOperator(w http.ResponseWriter, r *http.Reques
 			r,
 			http.StatusBadRequest,
 			humanizeCreateOperatorWebError(err),
-			username,
+			registrationID,
+			alias,
+			rank,
 			role,
 		)
 		return
@@ -189,14 +204,18 @@ func (s *Server) renderAdminOperatorFormWithError(
 	r *http.Request,
 	status int,
 	message string,
-	username string,
+	registrationID string,
+	alias string,
+	rank string,
 	role string,
 ) {
 	data := newAdminOperatorNewPageData(r, adminOperatorNewPageData{
-		Title:        "Create operator",
-		Error:        message,
-		Username:     username,
-		SelectedRole: role,
+		Title:          "Create operator",
+		Error:          message,
+		RegistrationID: registrationID,
+		Alias:          alias,
+		SelectedRank:   rank,
+		SelectedRole:   role,
 	})
 
 	if err := s.renderer.Render(w, status, "admin_operator_new.html", data); err != nil {
@@ -336,21 +355,38 @@ func newAdminOperatorNewPageData(
 		data.SelectedRole = domain.OperatorRoleOperator.String()
 	}
 
-	data.RoleOptions = make([]operatorRoleOptionView, 0, len(domain.OperatorRoleOptions()))
-
+	data.RankOptions = newOperatorRankOptionViews(data.SelectedRank)
 	data.RoleOptions = newOperatorRoleOptionViews(data.SelectedRole)
 
 	return data
 }
 
+func newOperatorRankOptionViews(selectedRank string) []operatorRankOptionView {
+	options := make([]operatorRankOptionView, 0, len(domain.RankOptions()))
+
+	for _, rank := range domain.RankOptions() {
+		options = append(options, operatorRankOptionView{
+			Value:    rank.Value.String(),
+			Label:    rank.Label,
+			Selected: rank.Value.String() == selectedRank,
+		})
+	}
+
+	return options
+}
+
 func humanizeCreateOperatorWebError(err error) string {
 	switch {
-	case errors.Is(err, domain.ErrEmptyOperatorUsername):
-		return "Username is required."
-	case errors.Is(err, domain.ErrInvalidOperatorUsername):
-		return "Username must be 3-64 characters and contain only lowercase letters, numbers, dots, underscores, or hyphens."
-	case errors.Is(err, domain.ErrDuplicateOperatorUsername):
-		return "Username is already registered."
+	case errors.Is(err, domain.ErrEmptyRegistrationID):
+		return "Registration ID is required."
+	case errors.Is(err, domain.ErrInvalidRegistrationID):
+		return "Registration ID is invalid."
+	case errors.Is(err, domain.ErrDuplicateRegistrationID):
+		return "Registration ID is already registered."
+	case errors.Is(err, domain.ErrEmptyOperatorAlias):
+		return "Alias is required."
+	case errors.Is(err, domain.ErrInvalidOperatorRank):
+		return "Rank is required."
 	case errors.Is(err, domain.ErrEmptyOperatorRole):
 		return "Role is required."
 	case errors.Is(err, domain.ErrInvalidOperatorRole):

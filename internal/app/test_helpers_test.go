@@ -328,11 +328,78 @@ func mustBuildAsset(t *testing.T, id domain.AssetID) domain.Asset {
 	return asset
 }
 
+func mustBuildOperator(
+	t *testing.T,
+	id domain.OperatorID,
+	registrationIDValue string,
+	alias string,
+	rank domain.Rank,
+	role domain.OperatorRole,
+	passwordHash string,
+) domain.Operator {
+	t.Helper()
+
+	operator, err := buildOperator(id, registrationIDValue, alias, rank, role, passwordHash)
+	if err != nil {
+		t.Fatalf("expected valid operator, got %v", err)
+	}
+
+	return operator
+}
+
+func mustRegistrationID(t *testing.T, value string) domain.RegistrationID {
+	t.Helper()
+
+	registrationID, err := domain.NewRegistrationID(value)
+	if err != nil {
+		t.Fatalf("expected valid registration id, got %v", err)
+	}
+
+	return registrationID
+}
+
+func buildOperator(
+	id domain.OperatorID,
+	registrationIDValue string,
+	alias string,
+	rank domain.Rank,
+	role domain.OperatorRole,
+	passwordHash string,
+) (domain.Operator, error) {
+	registrationID, err := domain.NewRegistrationID(registrationIDValue)
+	if err != nil {
+		return domain.Operator{}, err
+	}
+
+	return domain.NewOperator(
+		id,
+		registrationID,
+		alias,
+		rank,
+		role,
+		passwordHash,
+	)
+}
+
+func newFakeOperatorRepository(operators ...domain.Operator) *fakeOperatorRepository {
+	repository := &fakeOperatorRepository{
+		byID:             map[domain.OperatorID]domain.Operator{},
+		byRegistrationID: map[domain.RegistrationID]domain.Operator{},
+	}
+
+	for _, operator := range operators {
+		repository.byID[operator.ID()] = operator
+		repository.byRegistrationID[operator.RegistrationID()] = operator
+	}
+
+	return repository
+}
+
 type fakeOperatorRepository struct {
-	byID       map[domain.OperatorID]domain.Operator
-	byUsername map[string]domain.Operator
-	summaries  []ports.OperatorSummary
-	saveErr    error
+	byID             map[domain.OperatorID]domain.Operator
+	byRegistrationID map[domain.RegistrationID]domain.Operator
+	summaries        []ports.OperatorSummary
+	saveErr          error
 }
 
 func (r *fakeOperatorRepository) Save(_ context.Context, operator domain.Operator) error {
@@ -344,12 +411,12 @@ func (r *fakeOperatorRepository) Save(_ context.Context, operator domain.Operato
 		r.byID = map[domain.OperatorID]domain.Operator{}
 	}
 
-	if r.byUsername == nil {
-		r.byUsername = map[string]domain.Operator{}
+	if r.byRegistrationID == nil {
+		r.byRegistrationID = map[domain.RegistrationID]domain.Operator{}
 	}
 
 	r.byID[operator.ID()] = operator
-	r.byUsername[operator.Username()] = operator
+	r.byRegistrationID[operator.RegistrationID()] = operator
 
 	return nil
 }
@@ -363,8 +430,11 @@ func (r *fakeOperatorRepository) FindByID(_ context.Context, id domain.OperatorI
 	return operator, nil
 }
 
-func (r *fakeOperatorRepository) FindByUsername(_ context.Context, username string) (domain.Operator, error) {
-	operator, ok := r.byUsername[domain.NormalizeOperatorUsername(username)]
+func (r *fakeOperatorRepository) FindByRegistrationID(
+	_ context.Context,
+	registrationID domain.RegistrationID,
+) (domain.Operator, error) {
+	operator, ok := r.byRegistrationID[registrationID]
 	if !ok {
 		return domain.Operator{}, ports.ErrNotFound
 	}
@@ -447,7 +517,9 @@ func (r *fakeOperatorRepository) Deactivate(_ context.Context, id domain.Operato
 
 	deactivatedOperator, err := domain.ReconstituteOperator(
 		operator.ID(),
-		operator.Username(),
+		operator.RegistrationID(),
+		operator.Alias(),
+		operator.Rank(),
 		operator.Role(),
 		operator.PasswordHash(),
 		false,
@@ -457,7 +529,7 @@ func (r *fakeOperatorRepository) Deactivate(_ context.Context, id domain.Operato
 	}
 
 	r.byID[id] = deactivatedOperator
-	r.byUsername[deactivatedOperator.Username()] = deactivatedOperator
+	r.byRegistrationID[deactivatedOperator.RegistrationID()] = deactivatedOperator
 
 	return true, nil
 }
@@ -474,7 +546,9 @@ func (r *fakeOperatorRepository) ChangeRole(
 
 	changedOperator, err := domain.ReconstituteOperator(
 		operator.ID(),
-		operator.Username(),
+		operator.RegistrationID(),
+		operator.Alias(),
+		operator.Rank(),
 		role,
 		operator.PasswordHash(),
 		operator.Active(),
@@ -484,7 +558,7 @@ func (r *fakeOperatorRepository) ChangeRole(
 	}
 
 	r.byID[id] = changedOperator
-	r.byUsername[changedOperator.Username()] = changedOperator
+	r.byRegistrationID[changedOperator.RegistrationID()] = changedOperator
 
 	return true, nil
 }
@@ -527,7 +601,9 @@ func (r *fakeOperatorRepository) UpdatePasswordHash(
 
 	updatedOperator, err := domain.ReconstituteOperator(
 		operator.ID(),
-		operator.Username(),
+		operator.RegistrationID(),
+		operator.Alias(),
+		operator.Rank(),
 		operator.Role(),
 		passwordHash,
 		operator.Active(),
@@ -537,7 +613,7 @@ func (r *fakeOperatorRepository) UpdatePasswordHash(
 	}
 
 	r.byID[id] = updatedOperator
-	r.byUsername[updatedOperator.Username()] = updatedOperator
+	r.byRegistrationID[updatedOperator.RegistrationID()] = updatedOperator
 
 	return true, nil
 }
@@ -555,10 +631,12 @@ func (r *fakeOperatorRepository) FindSummaryByID(_ context.Context, id domain.Op
 	}
 
 	return ports.OperatorSummary{
-		ID:       operator.ID(),
-		Username: operator.Username(),
-		Role:     operator.Role(),
-		Active:   operator.Active(),
+		ID:             operator.ID(),
+		RegistrationID: operator.RegistrationID(),
+		Alias:          operator.Alias(),
+		Rank:           operator.Rank(),
+		Role:           operator.Role(),
+		Active:         operator.Active(),
 	}, nil
 }
 
@@ -574,7 +652,9 @@ func (r *fakeOperatorRepository) Reactivate(_ context.Context, id domain.Operato
 
 	reactivatedOperator, err := domain.ReconstituteOperator(
 		operator.ID(),
-		operator.Username(),
+		operator.RegistrationID(),
+		operator.Alias(),
+		operator.Rank(),
 		operator.Role(),
 		operator.PasswordHash(),
 		true,
@@ -584,7 +664,7 @@ func (r *fakeOperatorRepository) Reactivate(_ context.Context, id domain.Operato
 	}
 
 	r.byID[id] = reactivatedOperator
-	r.byUsername[reactivatedOperator.Username()] = reactivatedOperator
+	r.byRegistrationID[reactivatedOperator.RegistrationID()] = reactivatedOperator
 
 	return true, nil
 }

@@ -66,13 +66,25 @@ ROLE ?= admin
 
 .PHONY: admin-create-operator
 admin-create-operator:
-	@if [ -z "$(USERNAME)" ]; then \
-		echo "USERNAME is required. Usage: make admin-create-operator USERNAME=admin ROLE=admin"; \
+	@if [ -z "$(REGISTRATION_ID)" ]; then \
+		echo "REGISTRATION_ID is required."; \
+		exit 1; \
+	fi
+	@if [ -z "$(ALIAS)" ]; then \
+		echo "ALIAS is required."; \
+		exit 1; \
+	fi
+	@if [ -z "$(RANK)" ]; then \
+		echo "RANK is required."; \
 		exit 1; \
 	fi
 	@if [ -f .env ]; then \
 		set -a; . ./.env; set +a; \
-		go run ./cmd/cordell-admin create-operator -username $(USERNAME) -role $(ROLE); \
+		go run ./cmd/cordell-admin create-operator -registration-id "$(REGISTRATION_ID)" -alias "$(ALIAS)" -rank "$(RANK)" -role "$(ROLE)"; \
 	else \
-		go run ./cmd/cordell-admin create-operator -username $(USERNAME) -role $(ROLE); \
+		go run ./cmd/cordell-admin create-operator -registration-id "$(REGISTRATION_ID)" -alias "$(ALIAS)" -rank "$(RANK)" -role "$(ROLE)"; \
 	fi
+
+.PHONY: admin
+admin:
+	$(MAKE) admin-create-operator REGISTRATION_ID=52998224725 ALIAS="John Doe" RANK=sergeant ROLE=admin

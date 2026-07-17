@@ -70,28 +70,36 @@ func (q *Queries) CountActiveAdminOperators(ctx context.Context) (int32, error) 
 const createOperator = `-- name: CreateOperator :exec
 INSERT INTO operators (
     id,
-    username,
+    registration_id,
+    alias,
+    rank,
     role,
     password_hash
 ) VALUES (
     $1,
     $2,
     $3,
-    $4
+    $4,
+    $5,
+    $6
 )
 `
 
 type CreateOperatorParams struct {
-	ID           string `json:"id"`
-	Username     string `json:"username"`
-	Role         string `json:"role"`
-	PasswordHash string `json:"password_hash"`
+	ID             string `json:"id"`
+	RegistrationID string `json:"registration_id"`
+	Alias          string `json:"alias"`
+	Rank           string `json:"rank"`
+	Role           string `json:"role"`
+	PasswordHash   string `json:"password_hash"`
 }
 
 func (q *Queries) CreateOperator(ctx context.Context, arg CreateOperatorParams) error {
 	_, err := q.db.Exec(ctx, createOperator,
 		arg.ID,
-		arg.Username,
+		arg.RegistrationID,
+		arg.Alias,
+		arg.Rank,
 		arg.Role,
 		arg.PasswordHash,
 	)
@@ -137,7 +145,9 @@ func (q *Queries) DeactivateOperator(ctx context.Context, id string) (int32, err
 const getOperatorByID = `-- name: GetOperatorByID :one
 SELECT
     id,
-    username,
+    registration_id,
+    alias,
+    rank,
     role,
     password_hash,
     active,
@@ -152,7 +162,9 @@ func (q *Queries) GetOperatorByID(ctx context.Context, id string) (Operator, err
 	var i Operator
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
+		&i.RegistrationID,
+		&i.Alias,
+		&i.Rank,
 		&i.Role,
 		&i.PasswordHash,
 		&i.Active,
@@ -162,25 +174,29 @@ func (q *Queries) GetOperatorByID(ctx context.Context, id string) (Operator, err
 	return i, err
 }
 
-const getOperatorByUsername = `-- name: GetOperatorByUsername :one
+const getOperatorByRegistrationID = `-- name: GetOperatorByRegistrationID :one
 SELECT
     id,
-    username,
+    registration_id,
+    alias,
+    rank,
     role,
     password_hash,
     active,
     created_at,
     updated_at
 FROM operators
-WHERE username = $1
+WHERE registration_id = $1
 `
 
-func (q *Queries) GetOperatorByUsername(ctx context.Context, username string) (Operator, error) {
-	row := q.db.QueryRow(ctx, getOperatorByUsername, username)
+func (q *Queries) GetOperatorByRegistrationID(ctx context.Context, registrationID string) (Operator, error) {
+	row := q.db.QueryRow(ctx, getOperatorByRegistrationID, registrationID)
 	var i Operator
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
+		&i.RegistrationID,
+		&i.Alias,
+		&i.Rank,
 		&i.Role,
 		&i.PasswordHash,
 		&i.Active,
@@ -193,7 +209,9 @@ func (q *Queries) GetOperatorByUsername(ctx context.Context, username string) (O
 const getOperatorSummaryByID = `-- name: GetOperatorSummaryByID :one
 SELECT
     id,
-    username,
+    registration_id,
+    alias,
+    rank,
     role,
     active,
     created_at
@@ -202,11 +220,13 @@ WHERE id = $1
 `
 
 type GetOperatorSummaryByIDRow struct {
-	ID        string             `json:"id"`
-	Username  string             `json:"username"`
-	Role      string             `json:"role"`
-	Active    bool               `json:"active"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID             string             `json:"id"`
+	RegistrationID string             `json:"registration_id"`
+	Alias          string             `json:"alias"`
+	Rank           string             `json:"rank"`
+	Role           string             `json:"role"`
+	Active         bool               `json:"active"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) GetOperatorSummaryByID(ctx context.Context, id string) (GetOperatorSummaryByIDRow, error) {
@@ -214,7 +234,9 @@ func (q *Queries) GetOperatorSummaryByID(ctx context.Context, id string) (GetOpe
 	var i GetOperatorSummaryByIDRow
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
+		&i.RegistrationID,
+		&i.Alias,
+		&i.Rank,
 		&i.Role,
 		&i.Active,
 		&i.CreatedAt,
@@ -225,7 +247,9 @@ func (q *Queries) GetOperatorSummaryByID(ctx context.Context, id string) (GetOpe
 const listOperators = `-- name: ListOperators :many
 SELECT
     id,
-    username,
+    registration_id,
+    alias,
+    rank,
     role,
     active,
     created_at
@@ -235,11 +259,13 @@ LIMIT $1
 `
 
 type ListOperatorsRow struct {
-	ID        string             `json:"id"`
-	Username  string             `json:"username"`
-	Role      string             `json:"role"`
-	Active    bool               `json:"active"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID             string             `json:"id"`
+	RegistrationID string             `json:"registration_id"`
+	Alias          string             `json:"alias"`
+	Rank           string             `json:"rank"`
+	Role           string             `json:"role"`
+	Active         bool               `json:"active"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) ListOperators(ctx context.Context, limitCount int32) ([]ListOperatorsRow, error) {
@@ -253,7 +279,9 @@ func (q *Queries) ListOperators(ctx context.Context, limitCount int32) ([]ListOp
 		var i ListOperatorsRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.Username,
+			&i.RegistrationID,
+			&i.Alias,
+			&i.Rank,
 			&i.Role,
 			&i.Active,
 			&i.CreatedAt,

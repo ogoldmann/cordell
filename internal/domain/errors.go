@@ -38,21 +38,17 @@ var (
 	ErrInvalidOrganizationUnit = errors.New("invalid organization unit")
 
 	// ErrEmptyOperatorID is returned when an operator identifier is required but empty.
-	ErrEmptyOperatorID = errors.New("empty operator id")
-	// ErrEmptyOperatorUsername is returned when an operator username is required but empty.
-	ErrEmptyOperatorUsername = errors.New("empty operator username")
-	// ErrInvalidOperatorUsername is returned when an operator username has an invalid format.
-	ErrInvalidOperatorUsername = errors.New("invalid operator username")
-	// ErrEmptyOperatorPasswordHash is returned when an operator password hash is required but empty.
+	ErrEmptyOperatorID           = errors.New("empty operator id")
 	ErrEmptyOperatorPasswordHash = errors.New("empty operator password hash")
-	// ErrDuplicateOperatorUsername is returned when an operator username is already in use.
-	ErrDuplicateOperatorUsername = errors.New("duplicate operator username")
-	// ErrEmptyOperatorPassword is returned when an operator password is required but empty.
-	ErrEmptyOperatorPassword = errors.New("empty operator password")
+	ErrEmptyOperatorPassword     = errors.New("empty operator password")
 	// ErrWeakOperatorPassword is returned when an operator password does not satisfy password policy.
 	ErrWeakOperatorPassword = errors.New("weak operator password")
-	ErrEmptyOperatorRole    = errors.New("empty operator role")
-	ErrInvalidOperatorRole  = errors.New("invalid operator role")
+	// ErrEmptyOperatorAlias is returned when an operator alias is required but empty.
+	ErrEmptyOperatorAlias = errors.New("empty operator alias")
+	// ErrInvalidOperatorRank is returned when an operator rank is unsupported.
+	ErrInvalidOperatorRank = errors.New("invalid operator rank")
+	ErrEmptyOperatorRole   = errors.New("empty operator role")
+	ErrInvalidOperatorRole = errors.New("invalid operator role")
 
 	// ErrEmptyOperatorSessionID is returned when an operator session identifier is required but empty.
 	ErrEmptyOperatorSessionID = errors.New("empty operator session id")

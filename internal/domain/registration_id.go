@@ -17,7 +17,7 @@ func NewRegistrationID(value string) (RegistrationID, error) {
 		return "", ErrEmptyRegistrationID
 	}
 
-	normalized := normalizeRegistrationID(value)
+	normalized := NormalizeRegistrationID(value)
 	if normalized == "" {
 		return "", ErrInvalidRegistrationID
 	}
@@ -34,7 +34,8 @@ func (id RegistrationID) String() string {
 	return string(id)
 }
 
-func normalizeRegistrationID(value string) string {
+// NormalizeRegistrationID keeps only digits from a registration identifier.
+func NormalizeRegistrationID(value string) string {
 	var builder strings.Builder
 
 	for _, char := range strings.TrimSpace(value) {

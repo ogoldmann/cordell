@@ -31,11 +31,11 @@ func newLoginRateLimiter() *loginRateLimiter {
 	}
 }
 
-func (l *loginRateLimiter) allow(r *http.Request, username string, now time.Time) bool {
+func (l *loginRateLimiter) allow(r *http.Request, registrationID string, now time.Time) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	key := loginRateLimitKey(r, username)
+	key := loginRateLimitKey(r, registrationID)
 	state, ok := l.attempts[key]
 	if !ok {
 		return true
@@ -49,11 +49,11 @@ func (l *loginRateLimiter) allow(r *http.Request, username string, now time.Time
 	return state.failures < loginRateLimitMaxFailures
 }
 
-func (l *loginRateLimiter) recordFailure(r *http.Request, username string, now time.Time) {
+func (l *loginRateLimiter) recordFailure(r *http.Request, registrationID string, now time.Time) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	key := loginRateLimitKey(r, username)
+	key := loginRateLimitKey(r, registrationID)
 	state, ok := l.attempts[key]
 	if !ok || !now.Before(state.windowEnds) {
 		l.attempts[key] = loginAttemptState{
@@ -67,15 +67,20 @@ func (l *loginRateLimiter) recordFailure(r *http.Request, username string, now t
 	l.attempts[key] = state
 }
 
-func (l *loginRateLimiter) recordSuccess(r *http.Request, username string) {
+func (l *loginRateLimiter) recordSuccess(r *http.Request, registrationID string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	delete(l.attempts, loginRateLimitKey(r, username))
+	delete(l.attempts, loginRateLimitKey(r, registrationID))
 }
 
-func loginRateLimitKey(r *http.Request, username string) string {
-	return clientIP(r) + "|" + domain.NormalizeOperatorUsername(username)
+func loginRateLimitKey(r *http.Request, registrationID string) string {
+	normalized := domain.NormalizeRegistrationID(registrationID)
+	if normalized == "" {
+		normalized = strings.ToLower(strings.TrimSpace(registrationID))
+	}
+
+	return clientIP(r) + "|" + normalized
 }
 
 func clientIP(r *http.Request) string {

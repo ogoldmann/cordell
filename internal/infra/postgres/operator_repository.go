@@ -26,14 +26,16 @@ func NewOperatorRepository(queries *db.Queries) *OperatorRepository {
 // Save persists an operator record.
 func (r *OperatorRepository) Save(ctx context.Context, operator domain.Operator) error {
 	err := r.queries.CreateOperator(ctx, db.CreateOperatorParams{
-		ID:           string(operator.ID()),
-		Username:     operator.Username(),
-		Role:         operator.Role().String(),
-		PasswordHash: operator.PasswordHash(),
+		ID:             string(operator.ID()),
+		RegistrationID: operator.RegistrationID().String(),
+		Alias:          operator.Alias(),
+		Rank:           operator.Rank().String(),
+		Role:           operator.Role().String(),
+		PasswordHash:   operator.PasswordHash(),
 	})
 	if err != nil {
-		if isUniqueViolation(err, "operators_username_unique") {
-			return domain.ErrDuplicateOperatorUsername
+		if isUniqueViolation(err, "operators_registration_id_unique") {
+			return domain.ErrDuplicateRegistrationID
 		}
 
 		return err
@@ -55,16 +57,21 @@ func (r *OperatorRepository) FindByID(ctx context.Context, id domain.OperatorID)
 
 	return domain.ReconstituteOperator(
 		domain.OperatorID(row.ID),
-		row.Username,
+		domain.RegistrationID(row.RegistrationID),
+		row.Alias,
+		domain.Rank(row.Rank),
 		domain.OperatorRole(row.Role),
 		row.PasswordHash,
 		row.Active,
 	)
 }
 
-// FindByUsername retrieves an operator by username.
-func (r *OperatorRepository) FindByUsername(ctx context.Context, username string) (domain.Operator, error) {
-	row, err := r.queries.GetOperatorByUsername(ctx, domain.NormalizeOperatorUsername(username))
+// FindByRegistrationID retrieves an operator by registration id.
+func (r *OperatorRepository) FindByRegistrationID(
+	ctx context.Context,
+	registrationID domain.RegistrationID,
+) (domain.Operator, error) {
+	row, err := r.queries.GetOperatorByRegistrationID(ctx, registrationID.String())
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.Operator{}, ports.ErrNotFound
@@ -75,7 +82,9 @@ func (r *OperatorRepository) FindByUsername(ctx context.Context, username string
 
 	return domain.ReconstituteOperator(
 		domain.OperatorID(row.ID),
-		row.Username,
+		domain.RegistrationID(row.RegistrationID),
+		row.Alias,
+		domain.Rank(row.Rank),
 		domain.OperatorRole(row.Role),
 		row.PasswordHash,
 		row.Active,
@@ -99,11 +108,13 @@ func (r *OperatorRepository) FindSummaryByID(ctx context.Context, id domain.Oper
 	}
 
 	return ports.OperatorSummary{
-		ID:        domain.OperatorID(row.ID),
-		Username:  row.Username,
-		Role:      role,
-		Active:    row.Active,
-		CreatedAt: row.CreatedAt.Time,
+		ID:             domain.OperatorID(row.ID),
+		RegistrationID: domain.RegistrationID(row.RegistrationID),
+		Alias:          row.Alias,
+		Rank:           domain.Rank(row.Rank),
+		Role:           role,
+		Active:         row.Active,
+		CreatedAt:      row.CreatedAt.Time,
 	}, nil
 }
 
@@ -125,11 +136,13 @@ func (r *OperatorRepository) List(ctx context.Context, limit int) ([]ports.Opera
 		}
 
 		operators = append(operators, ports.OperatorSummary{
-			ID:        domain.OperatorID(row.ID),
-			Username:  row.Username,
-			Role:      role,
-			Active:    row.Active,
-			CreatedAt: row.CreatedAt.Time,
+			ID:             domain.OperatorID(row.ID),
+			RegistrationID: domain.RegistrationID(row.RegistrationID),
+			Alias:          row.Alias,
+			Rank:           domain.Rank(row.Rank),
+			Role:           role,
+			Active:         row.Active,
+			CreatedAt:      row.CreatedAt.Time,
 		})
 	}
 

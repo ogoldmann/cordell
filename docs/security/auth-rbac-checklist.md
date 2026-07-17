@@ -12,8 +12,8 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 
 ## Authentication
 
-- [ ] Valid username and password logs in successfully.
-- [ ] Invalid username returns a generic invalid credentials message.
+- [ ] Valid registration ID and password logs in successfully.
+- [ ] Invalid registration ID returns a generic invalid credentials message.
 - [ ] Invalid password returns a generic invalid credentials message.
 - [ ] Inactive operator cannot log in.
 - [ ] Already authenticated operator visiting `/login` is redirected to `/`.

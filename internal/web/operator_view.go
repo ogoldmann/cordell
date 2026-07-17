@@ -8,17 +8,25 @@ import (
 )
 
 type operatorSummaryView struct {
-	ID        string
-	Username  string
-	Role      string
-	RoleLabel string
-	Active    bool
-	CreatedAt string
+	ID             string
+	RegistrationID string
+	Alias          string
+	Rank           string
+	RankLabel      string
+	DisplayName    string
+	Role           string
+	RoleLabel      string
+	Active         bool
+	CreatedAt      string
 }
 
 type operatorDetailView struct {
 	ID               string
-	Username         string
+	RegistrationID   string
+	Alias            string
+	Rank             string
+	RankLabel        string
+	DisplayName      string
 	Role             string
 	RoleLabel        string
 	Active           bool
@@ -38,12 +46,16 @@ type operatorRoleOptionView struct {
 
 func newOperatorSummaryView(operator ports.OperatorSummary) operatorSummaryView {
 	return operatorSummaryView{
-		ID:        string(operator.ID),
-		Username:  operator.Username,
-		Role:      operator.Role.String(),
-		RoleLabel: operator.Role.Label(),
-		Active:    operator.Active,
-		CreatedAt: formatTimestamp(operator.CreatedAt),
+		ID:             string(operator.ID),
+		RegistrationID: operator.RegistrationID.String(),
+		Alias:          operator.Alias,
+		Rank:           operator.Rank.String(),
+		RankLabel:      operator.Rank.Label(),
+		DisplayName:    operatorDisplayName(operator.Rank, operator.Alias),
+		Role:           operator.Role.String(),
+		RoleLabel:      operator.Role.Label(),
+		Active:         operator.Active,
+		CreatedAt:      formatTimestamp(operator.CreatedAt),
 	}
 }
 
@@ -53,7 +65,11 @@ func newOperatorDetailView(
 ) operatorDetailView {
 	return operatorDetailView{
 		ID:               string(operator.ID),
-		Username:         operator.Username,
+		RegistrationID:   operator.RegistrationID.String(),
+		Alias:            operator.Alias,
+		Rank:             operator.Rank.String(),
+		RankLabel:        operator.Rank.Label(),
+		DisplayName:      operatorDisplayName(operator.Rank, operator.Alias),
 		Role:             operator.Role.String(),
 		RoleLabel:        operator.Role.Label(),
 		Active:           operator.Active,
@@ -86,4 +102,12 @@ func formatTimestamp(value time.Time) string {
 	}
 
 	return value.UTC().Format("2006-01-02 15:04 UTC")
+}
+
+func operatorDisplayName(rank domain.Rank, alias string) string {
+	if alias == "" {
+		return rank.Label()
+	}
+
+	return rank.Label() + " " + alias
 }

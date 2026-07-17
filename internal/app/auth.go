@@ -14,8 +14,8 @@ const defaultOperatorSessionDuration = 12 * time.Hour
 
 // AuthenticateOperatorCommand contains login credentials.
 type AuthenticateOperatorCommand struct {
-	Username string
-	Password string
+	RegistrationID string
+	Password       string
 }
 
 // AuthenticateOperatorService verifies operator credentials.
@@ -37,9 +37,12 @@ func NewAuthenticateOperatorService(
 
 // Execute authenticates an operator.
 func (s *AuthenticateOperatorService) Execute(ctx context.Context, cmd AuthenticateOperatorCommand) (domain.Operator, error) {
-	username := domain.NormalizeOperatorUsername(cmd.Username)
+	registrationID, err := domain.NewRegistrationID(cmd.RegistrationID)
+	if err != nil {
+		return domain.Operator{}, domain.ErrInvalidCredentials
+	}
 
-	operator, err := s.operatorRepository.FindByUsername(ctx, username)
+	operator, err := s.operatorRepository.FindByRegistrationID(ctx, registrationID)
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) {
 			return domain.Operator{}, domain.ErrInvalidCredentials

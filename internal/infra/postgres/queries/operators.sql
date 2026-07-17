@@ -1,12 +1,16 @@
 -- name: CreateOperator :exec
 INSERT INTO operators (
     id,
-    username,
+    registration_id,
+    alias,
+    rank,
     role,
     password_hash
 ) VALUES (
     @id,
-    @username,
+    @registration_id,
+    @alias,
+    @rank,
     @role,
     @password_hash
 );
@@ -14,7 +18,9 @@ INSERT INTO operators (
 -- name: GetOperatorByID :one
 SELECT
     id,
-    username,
+    registration_id,
+    alias,
+    rank,
     role,
     password_hash,
     active,
@@ -23,22 +29,38 @@ SELECT
 FROM operators
 WHERE id = @id;
 
--- name: GetOperatorByUsername :one
+-- name: GetOperatorByRegistrationID :one
 SELECT
     id,
-    username,
+    registration_id,
+    alias,
+    rank,
     role,
     password_hash,
     active,
     created_at,
     updated_at
 FROM operators
-WHERE username = @username;
+WHERE registration_id = @registration_id;
+
+-- name: GetOperatorSummaryByID :one
+SELECT
+    id,
+    registration_id,
+    alias,
+    rank,
+    role,
+    active,
+    created_at
+FROM operators
+WHERE id = @id;
 
 -- name: ListOperators :many
 SELECT
     id,
-    username,
+    registration_id,
+    alias,
+    rank,
     role,
     active,
     created_at
@@ -121,16 +143,6 @@ WITH updated AS (
 )
 SELECT count(*)::int
 FROM updated;
-
--- name: GetOperatorSummaryByID :one
-SELECT
-    id,
-    username,
-    role,
-    active,
-    created_at
-FROM operators
-WHERE id = @id;
 
 -- name: ReactivateOperator :one
 WITH updated AS (

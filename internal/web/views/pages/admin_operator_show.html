@@ -9,7 +9,7 @@
   <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
     <div>
       <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
-        {{.Operator.Username}}
+        {{.Operator.DisplayName}}
       </h1>
 
       <p class="mt-3 max-w-2xl text-cordell-muted dark:text-cordell-dark-muted">
@@ -37,8 +37,18 @@
 
   <dl class="mt-5 grid gap-4 md:grid-cols-2">
     <div>
-      <dt class="text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">Username</dt>
-      <dd class="mt-1 font-bold">{{.Operator.Username}}</dd>
+      <dt class="text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">Registration ID</dt>
+      <dd class="mt-1 font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.Operator.RegistrationID}}</dd>
+    </div>
+
+    <div>
+      <dt class="text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">Alias</dt>
+      <dd class="mt-1 font-bold">{{.Operator.Alias}}</dd>
+    </div>
+
+    <div>
+      <dt class="text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">Rank</dt>
+      <dd class="mt-1 text-cordell-muted dark:text-cordell-dark-muted">{{.Operator.RankLabel}}</dd>
     </div>
 
     <div>

@@ -10,10 +10,10 @@ import (
 )
 
 type loginPageData struct {
-	Title    string
-	Error    string
-	Username string
-	ReturnTo string
+	Title          string
+	Error          string
+	RegistrationID string
+	ReturnTo       string
 }
 
 func (s *Server) handleLoginForm(w http.ResponseWriter, r *http.Request) {
@@ -43,24 +43,24 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := r.FormValue("username")
+	registrationID := r.FormValue("registration_id")
 	password := r.FormValue("password")
 	returnTo := sanitizeReturnTo(r.FormValue("return_to"))
 	now := time.Now().UTC()
 
-	if !s.loginRateLimiter.allow(r, username, now) {
-		s.renderLoginError(w, http.StatusTooManyRequests, username, returnTo, "Too many login attempts. Try again later.")
+	if !s.loginRateLimiter.allow(r, registrationID, now) {
+		s.renderLoginError(w, http.StatusTooManyRequests, registrationID, returnTo, "Too many login attempts. Try again later.")
 		return
 	}
 
 	operator, err := s.services.AuthenticateOperator.Execute(r.Context(), app.AuthenticateOperatorCommand{
-		Username: username,
-		Password: password,
+		RegistrationID: registrationID,
+		Password:       password,
 	})
 	if err != nil {
 		if errors.Is(err, domain.ErrInvalidCredentials) {
-			s.loginRateLimiter.recordFailure(r, username, now)
-			s.renderLoginError(w, http.StatusUnauthorized, username, returnTo, "Invalid username or password.")
+			s.loginRateLimiter.recordFailure(r, registrationID, now)
+			s.renderLoginError(w, http.StatusUnauthorized, registrationID, returnTo, "Invalid registration ID or password.")
 			return
 		}
 
@@ -69,7 +69,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.loginRateLimiter.recordSuccess(r, username)
+	s.loginRateLimiter.recordSuccess(r, registrationID)
 
 	if err := s.services.DeleteExpiredOperatorSessions.Execute(r.Context(), app.DeleteExpiredOperatorSessionsCommand{
 		Now: now,
@@ -114,15 +114,15 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 func (s *Server) renderLoginError(
 	w http.ResponseWriter,
 	status int,
-	username string,
+	registrationID string,
 	returnTo string,
 	message string,
 ) {
 	if err := s.renderer.Render(w, status, "login.html", loginPageData{
-		Title:    "Login",
-		Error:    message,
-		Username: username,
-		ReturnTo: returnTo,
+		Title:          "Login",
+		Error:          message,
+		RegistrationID: registrationID,
+		ReturnTo:       returnTo,
 	}); err != nil {
 		s.handleRenderError(w, err)
 	}

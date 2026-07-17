@@ -426,7 +426,15 @@ Server-side persistence may be added later when authentication and user sessions
 
 Operators represent authenticated users of the system.
 
-Each operator has a role.
+Each operator has:
+
+- an internal ID
+- a unique registration ID used for login
+- an alias
+- a rank
+- a role
+- a password hash
+- an active flag
 
 Current roles:
 
@@ -439,7 +447,7 @@ The current RBAC foundation includes:
 - role validation in the domain
 - role persistence in PostgreSQL
 - role support in the admin CLI
-- current operator role display in the layout
+- layout identity display with `Signed in as` followed by rank and alias
 
 Route-level authorization is implemented in a later milestone.
 
@@ -487,13 +495,13 @@ set +a
 Create an admin operator:
 
 ```bash
-go run ./cmd/cordell-admin create-operator -username admin -role admin
+go run ./cmd/cordell-admin create-operator -registration-id 52998224725 -alias silva -rank sergeant -role admin
 ```
 
 Or through Make:
 
 ```bash
-make admin-create-operator USERNAME=admin ROLE=admin
+make admin-create-operator REGISTRATION_ID=52998224725 ALIAS=silva RANK=sergeant ROLE=admin
 ```
 
 The Make target automatically loads .env when the file exists.
@@ -501,7 +509,7 @@ The Make target automatically loads .env when the file exists.
 Create a regular operator:
 
 ```bash
-make admin-create-operator USERNAME=clerk ROLE=operator
+make admin-create-operator REGISTRATION_ID=93541134780 ALIAS=costa RANK=corporal ROLE=operator
 ```
 
 The command prompts for the password interactively and does not echo it in the terminal.
@@ -589,7 +597,9 @@ Admins can access a read-only operator management page at:
 
 The operator list displays:
 
-- username
+- registration ID
+- rank
+- alias
 - role
 - active status
 - creation timestamp

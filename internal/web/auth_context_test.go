@@ -9,10 +9,7 @@ import (
 )
 
 func TestCurrentOperatorFromContext(t *testing.T) {
-	operator, err := domain.NewOperator("operator-1", "admin", domain.OperatorRoleAdmin, "$argon2id$hash")
-	if err != nil {
-		t.Fatalf("expected valid operator, got %v", err)
-	}
+	operator := mustBuildOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
 
 	ctx := withCurrentOperator(context.Background(), operator)
 
@@ -24,6 +21,36 @@ func TestCurrentOperatorFromContext(t *testing.T) {
 	if currentOperator.ID() != operator.ID() {
 		t.Fatalf("expected operator %s, got %s", operator.ID(), currentOperator.ID())
 	}
+}
+
+func mustBuildOperator(
+	t *testing.T,
+	id domain.OperatorID,
+	registrationIDValue string,
+	alias string,
+	rank domain.Rank,
+	role domain.OperatorRole,
+) domain.Operator {
+	t.Helper()
+
+	registrationID, err := domain.NewRegistrationID(registrationIDValue)
+	if err != nil {
+		t.Fatalf("expected valid registration id, got %v", err)
+	}
+
+	operator, err := domain.NewOperator(
+		id,
+		registrationID,
+		alias,
+		rank,
+		role,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid operator, got %v", err)
+	}
+
+	return operator
 }
 
 func TestCurrentOperatorFromContextReturnsFalseWhenMissing(t *testing.T) {

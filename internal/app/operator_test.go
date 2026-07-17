@@ -16,9 +16,11 @@ func TestCreateOperatorServiceExecute(t *testing.T) {
 	)
 
 	operator, err := service.Execute(context.Background(), CreateOperatorCommand{
-		Username: "Admin.User",
-		Role:     domain.OperatorRoleAdmin.String(),
-		Password: "correct horse battery staple",
+		RegistrationID: "52998224725",
+		Alias:          "silva",
+		Rank:           domain.RankSergeant.String(),
+		Role:           domain.OperatorRoleAdmin.String(),
+		Password:       "correct horse battery staple",
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -32,8 +34,16 @@ func TestCreateOperatorServiceExecute(t *testing.T) {
 		t.Fatalf("expected operator-1, got %s", operator.ID())
 	}
 
-	if operator.Username() != "admin.user" {
-		t.Fatalf("expected admin.user, got %s", operator.Username())
+	if operator.RegistrationID().String() != "52998224725" {
+		t.Fatalf("expected registration id 52998224725, got %s", operator.RegistrationID())
+	}
+
+	if operator.Alias() != "silva" {
+		t.Fatalf("expected alias silva, got %s", operator.Alias())
+	}
+
+	if operator.Rank() != domain.RankSergeant {
+		t.Fatalf("expected rank sergeant, got %s", operator.Rank())
 	}
 
 	if operator.PasswordHash() != "$argon2id$hash" {
@@ -50,9 +60,11 @@ func TestCreateOperatorServiceRejectsWeakPassword(t *testing.T) {
 	)
 
 	_, err := service.Execute(context.Background(), CreateOperatorCommand{
-		Username: "admin",
-		Role:     domain.OperatorRoleAdmin.String(),
-		Password: "short",
+		RegistrationID: "52998224725",
+		Alias:          "silva",
+		Rank:           domain.RankSergeant.String(),
+		Role:           domain.OperatorRoleAdmin.String(),
+		Password:       "short",
 	})
 	if err != domain.ErrWeakOperatorPassword {
 		t.Fatalf("expected ErrWeakOperatorPassword, got %v", err)
@@ -68,9 +80,11 @@ func TestCreateOperatorServiceRejectsEmptyPassword(t *testing.T) {
 	)
 
 	_, err := service.Execute(context.Background(), CreateOperatorCommand{
-		Username: "admin",
-		Role:     domain.OperatorRoleAdmin.String(),
-		Password: "   ",
+		RegistrationID: "52998224725",
+		Alias:          "silva",
+		Rank:           domain.RankSergeant.String(),
+		Role:           domain.OperatorRoleAdmin.String(),
+		Password:       "   ",
 	})
 	if err != domain.ErrEmptyOperatorPassword {
 		t.Fatalf("expected ErrEmptyOperatorPassword, got %v", err)
@@ -86,9 +100,11 @@ func TestCreateOperatorServiceRejectsInvalidRole(t *testing.T) {
 	)
 
 	_, err := service.Execute(context.Background(), CreateOperatorCommand{
-		Username: "admin",
-		Role:     "root",
-		Password: "correct horse battery staple",
+		RegistrationID: "52998224725",
+		Alias:          "silva",
+		Rank:           domain.RankSergeant.String(),
+		Role:           "root",
+		Password:       "correct horse battery staple",
 	})
 	if err != domain.ErrInvalidOperatorRole {
 		t.Fatalf("expected ErrInvalidOperatorRole, got %v", err)

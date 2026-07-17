@@ -9,19 +9,9 @@ import (
 )
 
 func TestAuthenticateOperatorServiceExecute(t *testing.T) {
-	operator, err := domain.NewOperator("operator-1", "admin", domain.OperatorRoleAdmin, "$argon2id$hash")
-	if err != nil {
-		t.Fatalf("expected valid operator, got %v", err)
-	}
+	operator := mustBuildOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 
-	repository := &fakeOperatorRepository{
-		byID: map[domain.OperatorID]domain.Operator{
-			operator.ID(): operator,
-		},
-		byUsername: map[string]domain.Operator{
-			operator.Username(): operator,
-		},
-	}
+	repository := newFakeOperatorRepository(operator)
 
 	service := NewAuthenticateOperatorService(
 		repository,
@@ -29,8 +19,8 @@ func TestAuthenticateOperatorServiceExecute(t *testing.T) {
 	)
 
 	result, err := service.Execute(context.Background(), AuthenticateOperatorCommand{
-		Username: "ADMIN",
-		Password: "correct horse battery staple",
+		RegistrationID: "529.982.247-25",
+		Password:       "correct horse battery staple",
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -49,8 +39,8 @@ func TestAuthenticateOperatorServiceRejectsInvalidCredentials(t *testing.T) {
 	)
 
 	_, err := service.Execute(context.Background(), AuthenticateOperatorCommand{
-		Username: "missing",
-		Password: "correct horse battery staple",
+		RegistrationID: "93541134780",
+		Password:       "correct horse battery staple",
 	})
 	if err != domain.ErrInvalidCredentials {
 		t.Fatalf("expected ErrInvalidCredentials, got %v", err)
@@ -92,10 +82,7 @@ func TestCreateOperatorSessionServiceExecute(t *testing.T) {
 func TestGetOperatorBySessionTokenServiceExecute(t *testing.T) {
 	now := time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)
 
-	operator, err := domain.NewOperator("operator-1", "admin", domain.OperatorRoleAdmin, "$argon2id$hash")
-	if err != nil {
-		t.Fatalf("expected valid operator, got %v", err)
-	}
+	operator := mustBuildOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
 
 	session, err := domain.NewOperatorSession(
 		"session-1",
@@ -115,14 +102,7 @@ func TestGetOperatorBySessionTokenServiceExecute(t *testing.T) {
 		},
 	}
 
-	operatorRepository := &fakeOperatorRepository{
-		byID: map[domain.OperatorID]domain.Operator{
-			operator.ID(): operator,
-		},
-		byUsername: map[string]domain.Operator{
-			operator.Username(): operator,
-		},
-	}
+	operatorRepository := newFakeOperatorRepository(operator)
 
 	service := NewGetOperatorBySessionTokenService(
 		sessionRepository,

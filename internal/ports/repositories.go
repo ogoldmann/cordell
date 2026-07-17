@@ -74,7 +74,7 @@ type CustodyRepository interface {
 type OperatorRepository interface {
 	Save(ctx context.Context, operator domain.Operator) error
 	FindByID(ctx context.Context, id domain.OperatorID) (domain.Operator, error)
-	FindByUsername(ctx context.Context, username string) (domain.Operator, error)
+	FindByRegistrationID(ctx context.Context, registrationID domain.RegistrationID) (domain.Operator, error)
 	FindSummaryByID(ctx context.Context, id domain.OperatorID) (OperatorSummary, error)
 	List(ctx context.Context, limit int) ([]OperatorSummary, error)
 	Deactivate(ctx context.Context, id domain.OperatorID) (bool, error)
@@ -95,9 +95,11 @@ type OperatorSessionRepository interface {
 
 // OperatorSummary is a read model for operator administration.
 type OperatorSummary struct {
-	ID        domain.OperatorID
-	Username  string
-	Role      domain.OperatorRole
-	Active    bool
-	CreatedAt time.Time
+	ID             domain.OperatorID
+	RegistrationID domain.RegistrationID
+	Alias          string
+	Rank           domain.Rank
+	Role           domain.OperatorRole
+	Active         bool
+	CreatedAt      time.Time
 }
