@@ -276,3 +276,48 @@ func NewGetOperatorAdminService(operatorRepository ports.OperatorRepository) *Ge
 func (s *GetOperatorAdminService) Execute(ctx context.Context, cmd GetOperatorAdminCommand) (ports.OperatorSummary, error) {
 	return s.operatorRepository.FindSummaryByID(ctx, cmd.OperatorID)
 }
+
+// ReactivateOperatorCommand contains input required to reactivate an operator.
+type ReactivateOperatorCommand struct {
+	OperatorID domain.OperatorID
+}
+
+// ReactivateOperatorService reactivates operators from administration workflows.
+type ReactivateOperatorService struct {
+	operatorRepository ports.OperatorRepository
+	sessionRepository  ports.OperatorSessionRepository
+}
+
+// NewReactivateOperatorService creates a ReactivateOperatorService.
+func NewReactivateOperatorService(
+	operatorRepository ports.OperatorRepository,
+	sessionRepository ports.OperatorSessionRepository,
+) *ReactivateOperatorService {
+	return &ReactivateOperatorService{
+		operatorRepository: operatorRepository,
+		sessionRepository:  sessionRepository,
+	}
+}
+
+// Execute reactivates an operator and removes any stale sessions.
+func (s *ReactivateOperatorService) Execute(ctx context.Context, cmd ReactivateOperatorCommand) error {
+	operator, err := s.operatorRepository.FindByID(ctx, cmd.OperatorID)
+	if err != nil {
+		return err
+	}
+
+	if operator.Active() {
+		return nil
+	}
+
+	reactivated, err := s.operatorRepository.Reactivate(ctx, operator.ID())
+	if err != nil {
+		return err
+	}
+
+	if !reactivated {
+		return ports.ErrNotFound
+	}
+
+	return s.sessionRepository.DeleteByOperatorID(ctx, operator.ID())
+}

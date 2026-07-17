@@ -6,6 +6,7 @@ type Services struct {
 	GetOperatorAdmin      *GetOperatorAdminService
 	ListOperators         *ListOperatorsService
 	DeactivateOperator    *DeactivateOperatorService
+	ReactivateOperator    *ReactivateOperatorService
 	ChangeOperatorRole    *ChangeOperatorRoleService
 	ResetOperatorPassword *ResetOperatorPasswordService
 

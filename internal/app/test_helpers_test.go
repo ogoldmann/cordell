@@ -542,25 +542,6 @@ func (r *fakeOperatorRepository) UpdatePasswordHash(
 	return true, nil
 }
 
-type fixedSessionTokenGenerator struct {
-	token string
-	err   error
-}
-
-func (g fixedSessionTokenGenerator) NewToken() (string, error) {
-	if g.err != nil {
-		return "", g.err
-	}
-
-	return g.token, nil
-}
-
-type plainSessionTokenHasher struct{}
-
-func (h plainSessionTokenHasher) Hash(token string) string {
-	return "hash:" + token
-}
-
 func (r *fakeOperatorRepository) FindSummaryByID(_ context.Context, id domain.OperatorID) (ports.OperatorSummary, error) {
 	for _, summary := range r.summaries {
 		if summary.ID == id {
@@ -579,4 +560,50 @@ func (r *fakeOperatorRepository) FindSummaryByID(_ context.Context, id domain.Op
 		Role:     operator.Role(),
 		Active:   operator.Active(),
 	}, nil
+}
+
+func (r *fakeOperatorRepository) Reactivate(_ context.Context, id domain.OperatorID) (bool, error) {
+	operator, ok := r.byID[id]
+	if !ok {
+		return false, nil
+	}
+
+	if operator.Active() {
+		return false, nil
+	}
+
+	reactivatedOperator, err := domain.ReconstituteOperator(
+		operator.ID(),
+		operator.Username(),
+		operator.Role(),
+		operator.PasswordHash(),
+		true,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	r.byID[id] = reactivatedOperator
+	r.byUsername[reactivatedOperator.Username()] = reactivatedOperator
+
+	return true, nil
+}
+
+type fixedSessionTokenGenerator struct {
+	token string
+	err   error
+}
+
+func (g fixedSessionTokenGenerator) NewToken() (string, error) {
+	if g.err != nil {
+		return "", g.err
+	}
+
+	return g.token, nil
+}
+
+type plainSessionTokenHasher struct{}
+
+func (h plainSessionTokenHasher) Hash(token string) string {
+	return "hash:" + token
 }

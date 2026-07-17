@@ -24,6 +24,7 @@ type operatorDetailView struct {
 	Active           bool
 	CreatedAt        string
 	CanDeactivate    bool
+	CanReactivate    bool
 	CanChangeRole    bool
 	CanResetPassword bool
 	RoleOptions      []operatorRoleOptionView
@@ -58,6 +59,7 @@ func newOperatorDetailView(
 		Active:           operator.Active,
 		CreatedAt:        formatTimestamp(operator.CreatedAt),
 		CanDeactivate:    operator.Active && operator.ID != currentOperatorID,
+		CanReactivate:    !operator.Active,
 		CanChangeRole:    operator.ID != currentOperatorID,
 		CanResetPassword: operator.Active && operator.ID != currentOperatorID,
 		RoleOptions:      newOperatorRoleOptionViews(operator.Role.String()),

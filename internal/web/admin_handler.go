@@ -306,6 +306,26 @@ func (s *Server) handleResetAdminOperatorPassword(w http.ResponseWriter, r *http
 	http.Redirect(w, r, "/admin/operators/"+string(operatorID), http.StatusSeeOther)
 }
 
+func (s *Server) handleReactivateAdminOperator(w http.ResponseWriter, r *http.Request) {
+	operatorID := domain.OperatorID(chi.URLParam(r, "id"))
+
+	err := s.services.ReactivateOperator.Execute(r.Context(), app.ReactivateOperatorCommand{
+		OperatorID: operatorID,
+	})
+	if err != nil {
+		s.renderAdminOperatorShow(
+			w,
+			r,
+			http.StatusBadRequest,
+			operatorID,
+			humanizeReactivateOperatorWebError(err),
+		)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/operators/"+string(operatorID), http.StatusSeeOther)
+}
+
 func newAdminOperatorNewPageData(
 	r *http.Request,
 	data adminOperatorNewPageData,
@@ -386,5 +406,14 @@ func humanizeResetOperatorPasswordWebError(err error) string {
 		return "Operator not found or inactive."
 	default:
 		return "Could not reset operator password."
+	}
+}
+
+func humanizeReactivateOperatorWebError(err error) string {
+	switch {
+	case errors.Is(err, ports.ErrNotFound):
+		return "Operator not found."
+	default:
+		return "Could not reactivate operator."
 	}
 }

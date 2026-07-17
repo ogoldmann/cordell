@@ -651,3 +651,117 @@ func TestGetOperatorAdminServiceReturnsNotFound(t *testing.T) {
 		t.Fatalf("expected ErrNotFound, got %v", err)
 	}
 }
+
+func TestReactivateOperatorServiceExecute(t *testing.T) {
+	now := time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)
+
+	inactiveOperator, err := domain.ReconstituteOperator(
+		"operator-1",
+		"clerk",
+		domain.OperatorRoleOperator,
+		"$argon2id$hash",
+		false,
+	)
+	if err != nil {
+		t.Fatalf("expected valid inactive operator, got %v", err)
+	}
+
+	session, err := domain.NewOperatorSession(
+		"session-1",
+		inactiveOperator.ID(),
+		"hash:token",
+		"csrf-token",
+		now.Add(time.Hour),
+		now,
+	)
+	if err != nil {
+		t.Fatalf("expected valid session, got %v", err)
+	}
+
+	operatorRepository := &fakeOperatorRepository{
+		byID: map[domain.OperatorID]domain.Operator{
+			inactiveOperator.ID(): inactiveOperator,
+		},
+		byUsername: map[string]domain.Operator{
+			inactiveOperator.Username(): inactiveOperator,
+		},
+	}
+
+	sessionRepository := &fakeOperatorSessionRepository{
+		byTokenHash: map[string]domain.OperatorSession{
+			session.TokenHash(): session,
+		},
+	}
+
+	service := NewReactivateOperatorService(operatorRepository, sessionRepository)
+
+	err = service.Execute(context.Background(), ReactivateOperatorCommand{
+		OperatorID: inactiveOperator.ID(),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	reactivatedOperator := operatorRepository.byID[inactiveOperator.ID()]
+	if !reactivatedOperator.Active() {
+		t.Fatal("expected operator to be active")
+	}
+
+	if _, ok := sessionRepository.byTokenHash[session.TokenHash()]; ok {
+		t.Fatal("expected stale sessions to be deleted")
+	}
+}
+
+func TestReactivateOperatorServiceIsNoOpForActiveOperator(t *testing.T) {
+	activeOperator, err := domain.NewOperator(
+		"operator-1",
+		"clerk",
+		domain.OperatorRoleOperator,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid active operator, got %v", err)
+	}
+
+	operatorRepository := &fakeOperatorRepository{
+		byID: map[domain.OperatorID]domain.Operator{
+			activeOperator.ID(): activeOperator,
+		},
+		byUsername: map[string]domain.Operator{
+			activeOperator.Username(): activeOperator,
+		},
+	}
+
+	sessionRepository := &fakeOperatorSessionRepository{
+		byTokenHash: map[string]domain.OperatorSession{},
+	}
+
+	service := NewReactivateOperatorService(operatorRepository, sessionRepository)
+
+	err = service.Execute(context.Background(), ReactivateOperatorCommand{
+		OperatorID: activeOperator.ID(),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
+func TestReactivateOperatorServiceReturnsNotFound(t *testing.T) {
+	operatorRepository := &fakeOperatorRepository{
+		byID:       map[domain.OperatorID]domain.Operator{},
+		byUsername: map[string]domain.Operator{},
+	}
+
+	sessionRepository := &fakeOperatorSessionRepository{
+		byTokenHash: map[string]domain.OperatorSession{},
+	}
+
+	service := NewReactivateOperatorService(operatorRepository, sessionRepository)
+
+	err := service.Execute(context.Background(), ReactivateOperatorCommand{
+		OperatorID: "missing",
+	})
+	if err != ports.ErrNotFound {
+		t.Fatalf("expected ErrNotFound, got %v", err)
+	}
+}

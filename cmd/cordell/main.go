@@ -63,6 +63,10 @@ func main() {
 			operatorRepository,
 			sessionRepository,
 		),
+		ReactivateOperator: app.NewReactivateOperatorService(
+			operatorRepository,
+			sessionRepository,
+		),
 		ChangeOperatorRole: app.NewChangeOperatorRoleService(
 			operatorRepository,
 			sessionRepository,

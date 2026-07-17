@@ -461,3 +461,51 @@ func TestPostgresOperatorRepositoryFindSummaryByID(t *testing.T) {
 		t.Fatal("expected created_at not to be zero")
 	}
 }
+
+func TestPostgresOperatorRepositoryReactivate(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	operatorRepository := postgres.NewOperatorRepository(queries)
+
+	operator, err := domain.NewOperator(
+		"operator-1",
+		"clerk",
+		domain.OperatorRoleOperator,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	deactivated, err := operatorRepository.Deactivate(context.Background(), operator.ID())
+	if err != nil {
+		t.Fatalf("expected no error deactivating operator, got %v", err)
+	}
+
+	if !deactivated {
+		t.Fatal("expected operator to be deactivated")
+	}
+
+	reactivated, err := operatorRepository.Reactivate(context.Background(), operator.ID())
+	if err != nil {
+		t.Fatalf("expected no error reactivating operator, got %v", err)
+	}
+
+	if !reactivated {
+		t.Fatal("expected operator to be reactivated")
+	}
+
+	found, err := operatorRepository.FindByID(context.Background(), operator.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding operator, got %v", err)
+	}
+
+	if !found.Active() {
+		t.Fatal("expected operator to be active")
+	}
+}

@@ -131,3 +131,16 @@ SELECT
     created_at
 FROM operators
 WHERE id = @id;
+
+-- name: ReactivateOperator :one
+WITH updated AS (
+    UPDATE operators
+    SET
+        active = true,
+        updated_at = now()
+    WHERE id = @id
+      AND active = false
+    RETURNING id
+)
+SELECT count(*)::int
+FROM updated;

@@ -268,6 +268,27 @@ func (q *Queries) ListOperators(ctx context.Context, limitCount int32) ([]ListOp
 	return items, nil
 }
 
+const reactivateOperator = `-- name: ReactivateOperator :one
+WITH updated AS (
+    UPDATE operators
+    SET
+        active = true,
+        updated_at = now()
+    WHERE id = $1
+      AND active = false
+    RETURNING id
+)
+SELECT count(*)::int
+FROM updated
+`
+
+func (q *Queries) ReactivateOperator(ctx context.Context, id string) (int32, error) {
+	row := q.db.QueryRow(ctx, reactivateOperator, id)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const updateOperatorPasswordHash = `-- name: UpdateOperatorPasswordHash :one
 WITH updated AS (
     UPDATE operators

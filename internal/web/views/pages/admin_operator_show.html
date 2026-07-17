@@ -176,9 +176,24 @@
           Deactivate operator
         </button>
       </form>
+    {{else if .Operator.CanReactivate}}
+      <p class="mt-2 text-sm text-cordell-danger-text">
+        Reactivate this operator. The account will be able to authenticate again using its current password.
+      </p>
+
+      <form class="mt-4" method="post" action="/admin/operators/{{.Operator.ID}}/reactivate">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+        <button
+          class="inline-flex w-fit cursor-pointer items-center justify-center rounded-xl border border-cordell-danger-border bg-white px-3 py-2 text-xs font-bold text-cordell-danger-text transition hover:brightness-95"
+          type="submit"
+        >
+          Reactivate operator
+        </button>
+      </form>
     {{else}}
       <p class="mt-2 text-sm text-cordell-danger-text">
-        Deactivation is unavailable for this operator from this action.
+        Status changes are unavailable for this operator from this action.
       </p>
     {{end}}
   </div>

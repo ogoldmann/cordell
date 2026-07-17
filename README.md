@@ -682,3 +682,16 @@ Sensitive operator actions are handled on the operator detail page:
 - deactivation
 
 This keeps the admin list readable and gives each sensitive action more context.
+
+Admins can reactivate inactive operators.
+
+Operator reactivation:
+
+- marks the operator as active
+- does not change the operator password
+- does not create a session automatically
+- removes any stale sessions for the operator
+- requires an authenticated admin
+- is protected by CSRF
+
+Reactivated operators can authenticate again using their current password.

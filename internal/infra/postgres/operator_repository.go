@@ -146,6 +146,16 @@ func (r *OperatorRepository) Deactivate(ctx context.Context, id domain.OperatorI
 	return updatedCount > 0, nil
 }
 
+// Reactivate marks an operator as active.
+func (r *OperatorRepository) Reactivate(ctx context.Context, id domain.OperatorID) (bool, error) {
+	updatedCount, err := r.queries.ReactivateOperator(ctx, string(id))
+	if err != nil {
+		return false, err
+	}
+
+	return updatedCount > 0, nil
+}
+
 // ChangeRole changes an operator role.
 func (r *OperatorRepository) ChangeRole(
 	ctx context.Context,
