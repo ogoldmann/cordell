@@ -12,6 +12,7 @@ import (
 )
 
 type checkoutNewPageData struct {
+	privateLayoutData
 	Title               string
 	Error               string
 	Personnel           []personnelView
@@ -124,6 +125,8 @@ func (s *Server) buildCheckoutNewPageData(
 	r *http.Request,
 	data checkoutNewPageData,
 ) (checkoutNewPageData, error) {
+	data.privateLayoutData = newPrivateLayoutData(r)
+
 	personnel, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
 		Limit: 100,
 	})

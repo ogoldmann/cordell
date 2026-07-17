@@ -65,9 +65,9 @@ func TestCreateOperatorSessionServiceExecute(t *testing.T) {
 		repository,
 		fixedIDGenerator{id: "session-1"},
 		fixedSessionTokenGenerator{token: "raw-token"},
+		fixedSessionTokenGenerator{token: "csrf-token"},
 		plainSessionTokenHasher{},
 	)
-
 	result, err := service.Execute(context.Background(), CreateOperatorSessionCommand{
 		OperatorID: "operator-1",
 		Now:        now,
@@ -78,6 +78,10 @@ func TestCreateOperatorSessionServiceExecute(t *testing.T) {
 
 	if result.Token != "raw-token" {
 		t.Fatalf("expected raw-token, got %s", result.Token)
+	}
+
+	if result.Session.CSRFToken() != "csrf-token" {
+		t.Fatalf("expected csrf-token, got %s", result.Session.CSRFToken())
 	}
 
 	if result.Session.TokenHash() != "hash:raw-token" {
@@ -97,6 +101,7 @@ func TestGetOperatorBySessionTokenServiceExecute(t *testing.T) {
 		"session-1",
 		operator.ID(),
 		"hash:raw-token",
+		"csrf-token",
 		now.Add(time.Hour),
 		now,
 	)
@@ -129,12 +134,12 @@ func TestGetOperatorBySessionTokenServiceExecute(t *testing.T) {
 		Token: "raw-token",
 		Now:   now,
 	})
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
+	if result.Operator.ID() != operator.ID() {
+		t.Fatalf("expected operator %s, got %s", operator.ID(), result.Operator.ID())
 	}
 
-	if result.ID() != operator.ID() {
-		t.Fatalf("expected operator %s, got %s", operator.ID(), result.ID())
+	if result.Session.ID() != session.ID() {
+		t.Fatalf("expected session %s, got %s", session.ID(), result.Session.ID())
 	}
 }
 

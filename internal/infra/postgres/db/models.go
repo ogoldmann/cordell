@@ -54,6 +54,7 @@ type OperatorSession struct {
 	TokenHash  string             `json:"token_hash"`
 	ExpiresAt  pgtype.Timestamptz `json:"expires_at"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	CsrfToken  string             `json:"csrf_token"`
 }
 
 type Personnel struct {

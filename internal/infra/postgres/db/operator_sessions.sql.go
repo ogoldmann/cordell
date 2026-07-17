@@ -16,6 +16,7 @@ INSERT INTO operator_sessions (
     id,
     operator_id,
     token_hash,
+    csrf_token,
     expires_at,
     created_at
 ) VALUES (
@@ -23,7 +24,8 @@ INSERT INTO operator_sessions (
     $2,
     $3,
     $4,
-    $5
+    $5,
+    $6
 )
 `
 
@@ -31,6 +33,7 @@ type CreateOperatorSessionParams struct {
 	ID         string             `json:"id"`
 	OperatorID string             `json:"operator_id"`
 	TokenHash  string             `json:"token_hash"`
+	CsrfToken  string             `json:"csrf_token"`
 	ExpiresAt  pgtype.Timestamptz `json:"expires_at"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
@@ -40,6 +43,7 @@ func (q *Queries) CreateOperatorSession(ctx context.Context, arg CreateOperatorS
 		arg.ID,
 		arg.OperatorID,
 		arg.TokenHash,
+		arg.CsrfToken,
 		arg.ExpiresAt,
 		arg.CreatedAt,
 	)
@@ -71,19 +75,30 @@ SELECT
     id,
     operator_id,
     token_hash,
+    csrf_token,
     expires_at,
     created_at
 FROM operator_sessions
 WHERE token_hash = $1
 `
 
-func (q *Queries) GetOperatorSessionByTokenHash(ctx context.Context, tokenHash string) (OperatorSession, error) {
+type GetOperatorSessionByTokenHashRow struct {
+	ID         string             `json:"id"`
+	OperatorID string             `json:"operator_id"`
+	TokenHash  string             `json:"token_hash"`
+	CsrfToken  string             `json:"csrf_token"`
+	ExpiresAt  pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetOperatorSessionByTokenHash(ctx context.Context, tokenHash string) (GetOperatorSessionByTokenHashRow, error) {
 	row := q.db.QueryRow(ctx, getOperatorSessionByTokenHash, tokenHash)
-	var i OperatorSession
+	var i GetOperatorSessionByTokenHashRow
 	err := row.Scan(
 		&i.ID,
 		&i.OperatorID,
 		&i.TokenHash,
+		&i.CsrfToken,
 		&i.ExpiresAt,
 		&i.CreatedAt,
 	)

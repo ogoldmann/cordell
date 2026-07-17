@@ -13,6 +13,7 @@ func TestNewOperatorSession(t *testing.T) {
 		"session-1",
 		"operator-1",
 		"token-hash",
+		"csrf-token",
 		expiresAt,
 		now,
 	)
@@ -32,6 +33,7 @@ func TestOperatorSessionExpired(t *testing.T) {
 		"session-1",
 		"operator-1",
 		"token-hash",
+		"csrf-token",
 		now.Add(time.Hour),
 		now,
 	)
@@ -45,5 +47,21 @@ func TestOperatorSessionExpired(t *testing.T) {
 
 	if !session.Expired(now.Add(time.Hour)) {
 		t.Fatal("expected session to be expired")
+	}
+}
+
+func TestNewOperatorSessionRejectsEmptyCSRFToken(t *testing.T) {
+	now := time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)
+
+	_, err := NewOperatorSession(
+		"session-1",
+		"operator-1",
+		"token-hash",
+		"",
+		now.Add(time.Hour),
+		now,
+	)
+	if err != ErrEmptyOperatorSessionCSRFToken {
+		t.Fatalf("expected ErrEmptyOperatorSessionCSRFToken, got %v", err)
 	}
 }

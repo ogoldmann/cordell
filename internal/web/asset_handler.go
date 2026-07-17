@@ -14,18 +14,21 @@ import (
 )
 
 type assetIndexPageData struct {
+	privateLayoutData
 	Title       string
 	SearchQuery string
 	Assets      []assetView
 }
 
 type assetNewPageData struct {
+	privateLayoutData
 	Title string
 	Error string
 	Name  string
 }
 
 type assetShowPageData struct {
+	privateLayoutData
 	Title   string
 	Asset   assetView
 	Holders []assetHolderView
@@ -57,9 +60,10 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := assetIndexPageData{
-		Title:       "Assets",
-		SearchQuery: searchQuery,
-		Assets:      make([]assetView, 0, len(assets)),
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             "Assets",
+		SearchQuery:       searchQuery,
+		Assets:            make([]assetView, 0, len(assets)),
 	}
 
 	for _, item := range assets {
@@ -77,7 +81,8 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleNewAssetForm(w http.ResponseWriter, r *http.Request) {
 	data := assetNewPageData{
-		Title: "Create asset",
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             "Create asset",
 	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "assets_new.html", data); err != nil {
@@ -89,6 +94,7 @@ func (s *Server) handleCreateAsset(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		s.renderNewAssetFormWithError(
 			w,
+			r,
 			http.StatusBadRequest,
 			"Invalid form submission.",
 			"",
@@ -104,6 +110,7 @@ func (s *Server) handleCreateAsset(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.renderNewAssetFormWithError(
 			w,
+			r,
 			http.StatusBadRequest,
 			humanizeAssetError(err),
 			name,
@@ -151,7 +158,8 @@ func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := assetShowPageData{
-		Title: asset.Name(),
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             asset.Name(),
 		Asset: assetView{
 			ID:     string(asset.ID()),
 			Name:   asset.Name(),
@@ -175,14 +183,16 @@ func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) renderNewAssetFormWithError(
 	w http.ResponseWriter,
+	r *http.Request,
 	status int,
 	message string,
 	name string,
 ) {
 	data := assetNewPageData{
-		Title: "Create asset",
-		Error: message,
-		Name:  name,
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             "Create asset",
+		Error:             message,
+		Name:              name,
 	}
 
 	if err := s.renderer.Render(w, status, "assets_new.html", data); err != nil {

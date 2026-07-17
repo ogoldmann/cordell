@@ -71,6 +71,7 @@
         method="post"
         action="/custody/returns"
       >
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
         <input type="hidden" name="personnel_id" value="{{.SelectedPersonnelID}}">
 
         <div class="grid gap-4 md:grid-cols-[1fr_10rem]">

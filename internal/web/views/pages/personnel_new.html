@@ -26,6 +26,8 @@
   method="post"
   action="/personnel"
 >
+  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
   <section class="border-b border-cordell-border pb-6 dark:border-cordell-dark-border">
     <div class="mb-4">
       <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">

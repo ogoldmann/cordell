@@ -464,9 +464,7 @@ CORDELL_SESSION_COOKIE_SECURE=true
 ```
 
 Login, logout, and session creation are implemented.
-Route protection is implemented.
-
-CSRF protection is intentionally implemented in the next milestone.
+Route protection and CSRF protection are implemented.
 
 ## Admin CLI
 
@@ -511,3 +509,20 @@ Private routes include:
 The current operator is loaded from the session cookie and stored in the request context.
 
 Authorization/RBAC is intentionally implemented in a later milestone.
+
+## CSRF Protection
+
+Cordell protects authenticated state-changing requests with CSRF tokens.
+
+The current implementation uses a synchronizer token pattern:
+
+- a CSRF token is generated when an operator session is created
+- the token is stored server-side in the operator session
+- private HTML forms include the token as a hidden field
+- unsafe authenticated methods require a valid token
+- CSRF tokens are not placed in URLs
+- CSRF tokens are not stored in cookies
+
+Safe methods such as `GET`, `HEAD`, and `OPTIONS` do not require CSRF tokens.
+
+Public login CSRF protection may be revisited later with a pre-session flow if needed.

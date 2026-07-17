@@ -7,6 +7,7 @@ import (
 )
 
 type dashboardPageData struct {
+	privateLayoutData
 	Title           string
 	RecentPersonnel []personnelView
 	RecentAssets    []assetView
@@ -32,9 +33,10 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := dashboardPageData{
-		Title:           "Dashboard",
-		RecentPersonnel: make([]personnelView, 0, len(personnel)),
-		RecentAssets:    make([]assetView, 0, len(assets)),
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             "Dashboard",
+		RecentPersonnel:   make([]personnelView, 0, len(personnel)),
+		RecentAssets:      make([]assetView, 0, len(assets)),
 	}
 
 	for _, item := range personnel {

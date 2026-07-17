@@ -47,6 +47,7 @@ func main() {
 	sessionRepository := postgres.NewOperatorSessionRepository(queries)
 	sessionTokenGenerator := security.NewDefaultRandomSessionTokenGenerator()
 	sessionTokenHasher := security.NewSHA256SessionTokenHasher()
+	csrfTokenGenerator := security.NewDefaultRandomSessionTokenGenerator()
 
 	idGenerator := ids.NewULIDGenerator()
 
@@ -64,6 +65,7 @@ func main() {
 			sessionRepository,
 			idGenerator,
 			sessionTokenGenerator,
+			csrfTokenGenerator,
 			sessionTokenHasher,
 		),
 		GetOperatorBySessionToken: app.NewGetOperatorBySessionTokenService(

@@ -78,10 +78,11 @@ type CreateOperatorSessionResult struct {
 
 // CreateOperatorSessionService creates operator sessions.
 type CreateOperatorSessionService struct {
-	sessionRepository ports.OperatorSessionRepository
-	idGenerator       ports.IDGenerator
-	tokenGenerator    ports.SessionTokenGenerator
-	tokenHasher       ports.SessionTokenHasher
+	sessionRepository  ports.OperatorSessionRepository
+	idGenerator        ports.IDGenerator
+	tokenGenerator     ports.SessionTokenGenerator
+	csrfTokenGenerator ports.SessionTokenGenerator
+	tokenHasher        ports.SessionTokenHasher
 }
 
 // NewCreateOperatorSessionService creates a CreateOperatorSessionService.
@@ -89,13 +90,15 @@ func NewCreateOperatorSessionService(
 	sessionRepository ports.OperatorSessionRepository,
 	idGenerator ports.IDGenerator,
 	tokenGenerator ports.SessionTokenGenerator,
+	csrfTokenGenerator ports.SessionTokenGenerator,
 	tokenHasher ports.SessionTokenHasher,
 ) *CreateOperatorSessionService {
 	return &CreateOperatorSessionService{
-		sessionRepository: sessionRepository,
-		idGenerator:       idGenerator,
-		tokenGenerator:    tokenGenerator,
-		tokenHasher:       tokenHasher,
+		sessionRepository:  sessionRepository,
+		idGenerator:        idGenerator,
+		tokenGenerator:     tokenGenerator,
+		csrfTokenGenerator: csrfTokenGenerator,
+		tokenHasher:        tokenHasher,
 	}
 }
 
@@ -116,10 +119,16 @@ func (s *CreateOperatorSessionService) Execute(ctx context.Context, cmd CreateOp
 		return CreateOperatorSessionResult{}, err
 	}
 
+	csrfToken, err := s.csrfTokenGenerator.NewToken()
+	if err != nil {
+		return CreateOperatorSessionResult{}, err
+	}
+
 	session, err := domain.NewOperatorSession(
 		domain.OperatorSessionID(id),
 		cmd.OperatorID,
 		s.tokenHasher.Hash(token),
+		csrfToken,
 		now.Add(defaultOperatorSessionDuration),
 		now,
 	)
@@ -164,10 +173,11 @@ func NewGetOperatorBySessionTokenService(
 }
 
 // Execute loads an active operator from a raw session token.
-func (s *GetOperatorBySessionTokenService) Execute(ctx context.Context, cmd GetOperatorBySessionTokenCommand) (domain.Operator, error) {
+func (s *GetOperatorBySessionTokenService) Execute(ctx context.Context, cmd GetOperatorBySessionTokenCommand) (CurrentOperatorSession, error) {
+
 	token := strings.TrimSpace(cmd.Token)
 	if token == "" {
-		return domain.Operator{}, ports.ErrNotFound
+		return CurrentOperatorSession{}, ports.ErrNotFound
 	}
 
 	now := cmd.Now.UTC()
@@ -177,24 +187,27 @@ func (s *GetOperatorBySessionTokenService) Execute(ctx context.Context, cmd GetO
 
 	session, err := s.sessionRepository.FindByTokenHash(ctx, s.tokenHasher.Hash(token))
 	if err != nil {
-		return domain.Operator{}, err
+		return CurrentOperatorSession{}, err
 	}
 
 	if session.Expired(now) {
 		_ = s.sessionRepository.DeleteByTokenHash(ctx, session.TokenHash())
-		return domain.Operator{}, domain.ErrExpiredOperatorSession
+		return CurrentOperatorSession{}, domain.ErrExpiredOperatorSession
 	}
 
 	operator, err := s.operatorRepository.FindByID(ctx, session.OperatorID())
 	if err != nil {
-		return domain.Operator{}, err
+		return CurrentOperatorSession{}, err
 	}
 
 	if !operator.Active() {
-		return domain.Operator{}, ports.ErrNotFound
+		return CurrentOperatorSession{}, ports.ErrNotFound
 	}
 
-	return operator, nil
+	return CurrentOperatorSession{
+		Operator: operator,
+		Session:  session,
+	}, nil
 }
 
 // DeleteOperatorSessionCommand contains input required to delete a session.
@@ -227,4 +240,10 @@ func (s *DeleteOperatorSessionService) Execute(ctx context.Context, cmd DeleteOp
 	}
 
 	return s.sessionRepository.DeleteByTokenHash(ctx, s.tokenHasher.Hash(token))
+}
+
+// CurrentOperatorSession contains the authenticated operator and session.
+type CurrentOperatorSession struct {
+	Operator domain.Operator
+	Session  domain.OperatorSession
 }

@@ -3,12 +3,14 @@ INSERT INTO operator_sessions (
     id,
     operator_id,
     token_hash,
+    csrf_token,
     expires_at,
     created_at
 ) VALUES (
     @id,
     @operator_id,
     @token_hash,
+    @csrf_token,
     @expires_at,
     @created_at
 );
@@ -18,6 +20,7 @@ SELECT
     id,
     operator_id,
     token_hash,
+    csrf_token,
     expires_at,
     created_at
 FROM operator_sessions

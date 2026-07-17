@@ -9,6 +9,7 @@ import (
 )
 
 type globalSearchPageData struct {
+	privateLayoutData
 	Title       string
 	SearchQuery string
 	HasQuery    bool
@@ -31,11 +32,12 @@ func (s *Server) handleGlobalSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := globalSearchPageData{
-		Title:       "Search",
-		SearchQuery: result.Query,
-		HasQuery:    result.Query != "",
-		Personnel:   make([]personnelView, 0, len(result.Personnel)),
-		Assets:      make([]assetView, 0, len(result.Assets)),
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             "Search",
+		SearchQuery:       result.Query,
+		HasQuery:          result.Query != "",
+		Personnel:         make([]personnelView, 0, len(result.Personnel)),
+		Assets:            make([]assetView, 0, len(result.Assets)),
 	}
 
 	for _, item := range result.Personnel {

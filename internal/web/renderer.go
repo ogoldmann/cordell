@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"embed"
 	"html/template"
 	"net/http"
@@ -32,8 +33,15 @@ func NewRenderer() (*Renderer, error) {
 
 // Render writes a named HTML template response.
 func (r *Renderer) Render(w http.ResponseWriter, status int, name string, data any) error {
+	var buffer bytes.Buffer
+
+	if err := r.templates.ExecuteTemplate(&buffer, name, data); err != nil {
+		return err
+	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
 
-	return r.templates.ExecuteTemplate(w, name, data)
+	_, err := buffer.WriteTo(w)
+	return err
 }

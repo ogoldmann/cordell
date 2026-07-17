@@ -26,6 +26,8 @@
   method="post"
   action="/custody/checkouts"
 >
+  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
   <div class="grid gap-4 lg:grid-cols-[1fr_1fr_10rem]">
     <div class="grid gap-2">
       <label class="text-sm font-bold" for="personnel_id">Personnel</label>

@@ -18,7 +18,7 @@ func (s *Server) loadCurrentOperator(next http.Handler) http.Handler {
 			return
 		}
 
-		operator, err := s.services.GetOperatorBySessionToken.Execute(r.Context(), app.GetOperatorBySessionTokenCommand{
+		current, err := s.services.GetOperatorBySessionToken.Execute(r.Context(), app.GetOperatorBySessionTokenCommand{
 			Token: token,
 			Now:   time.Now().UTC(),
 		})
@@ -34,7 +34,10 @@ func (s *Server) loadCurrentOperator(next http.Handler) http.Handler {
 			return
 		}
 
-		next.ServeHTTP(w, r.WithContext(withCurrentOperator(r.Context(), operator)))
+		ctx := withCurrentOperator(r.Context(), current.Operator)
+		ctx = withCurrentSession(ctx, current.Session)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 

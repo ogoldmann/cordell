@@ -47,6 +47,7 @@ func (s *Server) Routes() http.Handler {
 	router.Group(func(private chi.Router) {
 		private.Use(s.loadCurrentOperator)
 		private.Use(s.requireAuthentication)
+		private.Use(s.requireCSRF)
 
 		private.Get("/", s.handleDashboard)
 		private.Get("/search", s.handleGlobalSearch)

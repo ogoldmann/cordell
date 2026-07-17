@@ -50,4 +50,7 @@ var (
 	ErrEmptyOperatorSessionTokenHash = errors.New("empty operator session token hash")
 	ErrExpiredOperatorSession        = errors.New("expired operator session")
 	ErrInvalidCredentials            = errors.New("invalid credentials")
+
+	ErrEmptyOperatorSessionCSRFToken = errors.New("empty operator session csrf token")
+	ErrInvalidCSRFToken              = errors.New("invalid csrf token")
 )

@@ -31,6 +31,7 @@ func (r *OperatorSessionRepository) Save(ctx context.Context, session domain.Ope
 		ID:         string(session.ID()),
 		OperatorID: string(session.OperatorID()),
 		TokenHash:  session.TokenHash(),
+		CsrfToken:  session.CSRFToken(),
 		ExpiresAt:  timeToTimestamptz(session.ExpiresAt()),
 		CreatedAt:  timeToTimestamptz(session.CreatedAt()),
 	})
@@ -51,6 +52,7 @@ func (r *OperatorSessionRepository) FindByTokenHash(ctx context.Context, tokenHa
 		domain.OperatorSessionID(row.ID),
 		domain.OperatorID(row.OperatorID),
 		row.TokenHash,
+		row.CsrfToken,
 		row.ExpiresAt.Time,
 		row.CreatedAt.Time,
 	)

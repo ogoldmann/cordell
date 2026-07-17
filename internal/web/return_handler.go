@@ -12,6 +12,7 @@ import (
 )
 
 type returnNewPageData struct {
+	privateLayoutData
 	Title               string
 	Error               string
 	Personnel           []personnelView
@@ -128,6 +129,8 @@ func (s *Server) buildReturnNewPageData(
 	r *http.Request,
 	data returnNewPageData,
 ) (returnNewPageData, error) {
+	data.privateLayoutData = newPrivateLayoutData(r)
+
 	personnel, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
 		Limit: 100,
 	})

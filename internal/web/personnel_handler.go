@@ -14,6 +14,7 @@ import (
 )
 
 type personnelNewPageData struct {
+	privateLayoutData
 	Title                    string
 	Error                    string
 	FullName                 string
@@ -28,6 +29,7 @@ type personnelNewPageData struct {
 }
 
 type personnelShowPageData struct {
+	privateLayoutData
 	Title          string
 	Personnel      personnelView
 	CurrentCustody []currentCustodyView
@@ -35,6 +37,7 @@ type personnelShowPageData struct {
 }
 
 type personnelIndexPageData struct {
+	privateLayoutData
 	Title       string
 	SearchQuery string
 	Personnel   []personnelView
@@ -94,7 +97,8 @@ func newPersonnelNewPageData(data personnelNewPageData) personnelNewPageData {
 
 func (s *Server) handleNewPersonnelForm(w http.ResponseWriter, r *http.Request) {
 	data := newPersonnelNewPageData(personnelNewPageData{
-		Title: "Create personnel",
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             "Create personnel",
 	})
 
 	if err := s.renderer.Render(w, http.StatusOK, "personnel_new.html", data); err != nil {
@@ -188,9 +192,10 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := personnelShowPageData{
-		Title:          personnel.FullName(),
-		Personnel:      newPersonnelView(personnel),
-		CurrentCustody: make([]currentCustodyView, 0, len(currentCustody)),
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             personnel.FullName(),
+		Personnel:         newPersonnelView(personnel),
+		CurrentCustody:    make([]currentCustodyView, 0, len(currentCustody)),
 	}
 
 	for _, item := range currentCustody {
@@ -234,6 +239,7 @@ func (s *Server) renderNewPersonnelFormWithError(
 	r *http.Request,
 ) {
 	data := newPersonnelNewPageData(personnelNewPageData{
+		privateLayoutData:        newPrivateLayoutData(r),
 		Title:                    "Create personnel",
 		Error:                    message,
 		FullName:                 r.FormValue("full_name"),

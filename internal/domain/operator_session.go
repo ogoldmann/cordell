@@ -13,6 +13,7 @@ type OperatorSession struct {
 	id         OperatorSessionID
 	operatorID OperatorID
 	tokenHash  string
+	csrfToken  string
 	expiresAt  time.Time
 	createdAt  time.Time
 }
@@ -22,6 +23,7 @@ func NewOperatorSession(
 	id OperatorSessionID,
 	operatorID OperatorID,
 	tokenHash string,
+	csrfToken string,
 	expiresAt time.Time,
 	createdAt time.Time,
 ) (OperatorSession, error) {
@@ -38,10 +40,16 @@ func NewOperatorSession(
 		return OperatorSession{}, ErrEmptyOperatorSessionTokenHash
 	}
 
+	csrfToken = strings.TrimSpace(csrfToken)
+	if csrfToken == "" {
+		return OperatorSession{}, ErrEmptyOperatorSessionCSRFToken
+	}
+
 	return OperatorSession{
 		id:         id,
 		operatorID: operatorID,
 		tokenHash:  tokenHash,
+		csrfToken:  csrfToken,
 		expiresAt:  expiresAt.UTC(),
 		createdAt:  createdAt.UTC(),
 	}, nil
@@ -60,6 +68,11 @@ func (s OperatorSession) OperatorID() OperatorID {
 // TokenHash returns the session token hash.
 func (s OperatorSession) TokenHash() string {
 	return s.tokenHash
+}
+
+// CSRFToken returns the session CSRF token.
+func (s OperatorSession) CSRFToken() string {
+	return s.csrfToken
 }
 
 // ExpiresAt returns the session expiration time.
