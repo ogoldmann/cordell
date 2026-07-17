@@ -75,6 +75,7 @@ type OperatorRepository interface {
 	Save(ctx context.Context, operator domain.Operator) error
 	FindByID(ctx context.Context, id domain.OperatorID) (domain.Operator, error)
 	FindByUsername(ctx context.Context, username string) (domain.Operator, error)
+	List(ctx context.Context, limit int) ([]OperatorSummary, error)
 }
 
 // OperatorSessionRepository persists operator sessions.
@@ -83,4 +84,13 @@ type OperatorSessionRepository interface {
 	FindByTokenHash(ctx context.Context, tokenHash string) (domain.OperatorSession, error)
 	DeleteByTokenHash(ctx context.Context, tokenHash string) error
 	DeleteExpired(ctx context.Context, now time.Time) error
+}
+
+// OperatorSummary is a read model for operator administration.
+type OperatorSummary struct {
+	ID        domain.OperatorID
+	Username  string
+	Role      domain.OperatorRole
+	Active    bool
+	CreatedAt time.Time
 }

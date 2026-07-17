@@ -314,8 +314,14 @@
   .max-w-md {
     max-width: var(--container-md);
   }
+  .min-w-full {
+    min-width: 100%;
+  }
   .grow {
     flex-grow: 1;
+  }
+  .border-collapse {
+    border-collapse: collapse;
   }
   .cursor-pointer {
     cursor: pointer;
@@ -377,6 +383,26 @@
   .gap-y-2 {
     row-gap: calc(var(--spacing) * 2);
   }
+  .divide-y {
+    :where(& > :not(:last-child)) {
+      --tw-divide-y-reverse: 0;
+      border-bottom-style: var(--tw-border-style);
+      border-top-style: var(--tw-border-style);
+      border-top-width: calc(1px * var(--tw-divide-y-reverse));
+      border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));
+    }
+  }
+  .divide-cordell-border {
+    :where(& > :not(:last-child)) {
+      border-color: var(--color-cordell-border);
+    }
+  }
+  .overflow-hidden {
+    overflow: hidden;
+  }
+  .overflow-x-auto {
+    overflow-x: auto;
+  }
   .rounded-2xl {
     border-radius: var(--radius-2xl);
   }
@@ -422,6 +448,12 @@
   }
   .bg-cordell-background {
     background-color: var(--color-cordell-background);
+  }
+  .bg-cordell-background\/70 {
+    background-color: color-mix(in srgb, #f6f5f1 70%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-cordell-background) 70%, transparent);
+    }
   }
   .bg-cordell-danger-surface {
     background-color: var(--color-cordell-danger-surface);
@@ -542,6 +574,12 @@
   }
   .pb-6 {
     padding-bottom: calc(var(--spacing) * 6);
+  }
+  .text-center {
+    text-align: center;
+  }
+  .text-left {
+    text-align: left;
   }
   .font-mono {
     font-family: var(--font-mono);
@@ -782,6 +820,11 @@
       align-items: flex-end;
     }
   }
+  .md\:items-start {
+    @media (width >= 48rem) {
+      align-items: flex-start;
+    }
+  }
   .md\:justify-between {
     @media (width >= 48rem) {
       justify-content: space-between;
@@ -807,6 +850,13 @@
       grid-template-columns: 1fr 1fr 10rem;
     }
   }
+  .dark\:divide-cordell-dark-border {
+    &:where([data-theme=dark], [data-theme=dark] *) {
+      :where(& > :not(:last-child)) {
+        border-color: var(--color-cordell-dark-border);
+      }
+    }
+  }
   .dark\:border-cordell-dark-border {
     &:where([data-theme=dark], [data-theme=dark] *) {
       border-color: var(--color-cordell-dark-border);
@@ -827,6 +877,14 @@
       background-color: color-mix(in srgb, #101418 60%, transparent);
       @supports (color: color-mix(in lab, red, red)) {
         background-color: color-mix(in oklab, var(--color-cordell-dark-background) 60%, transparent);
+      }
+    }
+  }
+  .dark\:bg-cordell-dark-background\/70 {
+    &:where([data-theme=dark], [data-theme=dark] *) {
+      background-color: color-mix(in srgb, #101418 70%, transparent);
+      @supports (color: color-mix(in lab, red, red)) {
+        background-color: color-mix(in oklab, var(--color-cordell-dark-background) 70%, transparent);
       }
     }
   }
@@ -967,6 +1025,11 @@
       }
     }
   }
+}
+@property --tw-divide-y-reverse {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
 }
 @property --tw-border-style {
   syntax: "*";
@@ -1131,6 +1194,7 @@
 @layer properties {
   @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
     *, ::before, ::after, ::backdrop {
+      --tw-divide-y-reverse: 0;
       --tw-border-style: solid;
       --tw-gradient-position: initial;
       --tw-gradient-from: #0000;

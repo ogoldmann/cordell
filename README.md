@@ -19,10 +19,10 @@ Cordell is a server-rendered Go web application for managing custody, checkout, 
 GET /health
 ```
 
-Expected response: 
+Expected response:
 
 ```json
-{"status":"ok","service":"cordell"}
+{ "status": "ok", "service": "cordell" }
 ```
 
 ## Running Locally
@@ -40,6 +40,7 @@ curl http://localhost:8080/health
 ## Architecture Direction
 
 The project is organized around explicit responsibilities:
+
 - `cmd/cordell`: application entrypoint
 - `internal/web`: HTTP server, routes, handlers and middleware
 - `internal/domain`: core business concepts and rules
@@ -583,3 +584,23 @@ Current authorization behavior:
 Authorization is implemented through web middleware using the authenticated operator stored in the request context.
 
 Operator management pages and finer-grained permissions are implemented in later milestones.
+
+## Operator Administration
+
+Admins can access a read-only operator management page at:
+
+```txt
+/admin/operators
+```
+
+The operator list displays:
+
+- username
+- role
+- active status
+- creation timestamp
+- operator ID
+
+Password hashes are intentionally excluded from this read model and are never displayed in the admin UI.
+
+Operator creation, deactivation, and role changes are implemented in later milestones.

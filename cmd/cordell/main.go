@@ -57,6 +57,7 @@ func main() {
 			idGenerator,
 			passwordHasher,
 		),
+		ListOperators: app.NewListOperatorsService(operatorRepository),
 		AuthenticateOperator: app.NewAuthenticateOperatorService(
 			operatorRepository,
 			passwordHasher,

@@ -55,19 +55,9 @@ FROM operators
 WHERE id = $1
 `
 
-type GetOperatorByIDRow struct {
-	ID           string             `json:"id"`
-	Username     string             `json:"username"`
-	Role         string             `json:"role"`
-	PasswordHash string             `json:"password_hash"`
-	Active       bool               `json:"active"`
-	CreatedAt    pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
-}
-
-func (q *Queries) GetOperatorByID(ctx context.Context, id string) (GetOperatorByIDRow, error) {
+func (q *Queries) GetOperatorByID(ctx context.Context, id string) (Operator, error) {
 	row := q.db.QueryRow(ctx, getOperatorByID, id)
-	var i GetOperatorByIDRow
+	var i Operator
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
@@ -93,19 +83,9 @@ FROM operators
 WHERE username = $1
 `
 
-type GetOperatorByUsernameRow struct {
-	ID           string             `json:"id"`
-	Username     string             `json:"username"`
-	Role         string             `json:"role"`
-	PasswordHash string             `json:"password_hash"`
-	Active       bool               `json:"active"`
-	CreatedAt    pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
-}
-
-func (q *Queries) GetOperatorByUsername(ctx context.Context, username string) (GetOperatorByUsernameRow, error) {
+func (q *Queries) GetOperatorByUsername(ctx context.Context, username string) (Operator, error) {
 	row := q.db.QueryRow(ctx, getOperatorByUsername, username)
-	var i GetOperatorByUsernameRow
+	var i Operator
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
@@ -116,4 +96,50 @@ func (q *Queries) GetOperatorByUsername(ctx context.Context, username string) (G
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const listOperators = `-- name: ListOperators :many
+SELECT
+    id,
+    username,
+    role,
+    active,
+    created_at
+FROM operators
+ORDER BY created_at DESC, id DESC
+LIMIT $1
+`
+
+type ListOperatorsRow struct {
+	ID        string             `json:"id"`
+	Username  string             `json:"username"`
+	Role      string             `json:"role"`
+	Active    bool               `json:"active"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) ListOperators(ctx context.Context, limitCount int32) ([]ListOperatorsRow, error) {
+	rows, err := q.db.Query(ctx, listOperators, limitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListOperatorsRow{}
+	for rows.Next() {
+		var i ListOperatorsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Role,
+			&i.Active,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

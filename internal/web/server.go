@@ -68,6 +68,7 @@ func (s *Server) Routes() http.Handler {
 			admin.Use(s.requireAdmin)
 
 			admin.Get("/admin", s.handleAdminIndex)
+			admin.Get("/admin/operators", s.handleAdminOperatorsIndex)
 		})
 
 		private.Get("/personnel", s.handleListPersonnel)

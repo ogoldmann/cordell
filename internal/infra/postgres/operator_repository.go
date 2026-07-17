@@ -83,3 +83,30 @@ func (r *OperatorRepository) FindByUsername(ctx context.Context, username string
 }
 
 var _ ports.OperatorRepository = (*OperatorRepository)(nil)
+
+// List retrieves operator summaries for administration.
+func (r *OperatorRepository) List(ctx context.Context, limit int) ([]ports.OperatorSummary, error) {
+	rows, err := r.queries.ListOperators(ctx, int32(limit))
+	if err != nil {
+		return nil, err
+	}
+
+	operators := make([]ports.OperatorSummary, 0, len(rows))
+
+	for _, row := range rows {
+		role, err := domain.NewOperatorRole(row.Role)
+		if err != nil {
+			return nil, err
+		}
+
+		operators = append(operators, ports.OperatorSummary{
+			ID:        domain.OperatorID(row.ID),
+			Username:  row.Username,
+			Role:      role,
+			Active:    row.Active,
+			CreatedAt: row.CreatedAt.Time,
+		})
+	}
+
+	return operators, nil
+}

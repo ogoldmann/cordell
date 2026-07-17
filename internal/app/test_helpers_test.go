@@ -331,6 +331,7 @@ func mustBuildAsset(t *testing.T, id domain.AssetID) domain.Asset {
 type fakeOperatorRepository struct {
 	byID       map[domain.OperatorID]domain.Operator
 	byUsername map[string]domain.Operator
+	summaries  []ports.OperatorSummary
 	saveErr    error
 }
 
@@ -443,4 +444,12 @@ type plainSessionTokenHasher struct{}
 
 func (h plainSessionTokenHasher) Hash(token string) string {
 	return "hash:" + token
+}
+
+func (r *fakeOperatorRepository) List(_ context.Context, limit int) ([]ports.OperatorSummary, error) {
+	if limit > len(r.summaries) {
+		limit = len(r.summaries)
+	}
+
+	return r.summaries[:limit], nil
 }

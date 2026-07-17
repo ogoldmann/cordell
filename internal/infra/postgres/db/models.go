@@ -42,11 +42,11 @@ type CustodyTransaction struct {
 type Operator struct {
 	ID           string             `json:"id"`
 	Username     string             `json:"username"`
+	Role         string             `json:"role"`
 	PasswordHash string             `json:"password_hash"`
 	Active       bool               `json:"active"`
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
-	Role         string             `json:"role"`
 }
 
 type OperatorSession struct {

@@ -82,3 +82,61 @@ func TestPostgresOperatorRepositoryRejectsDuplicateUsername(t *testing.T) {
 		t.Fatalf("expected ErrDuplicateOperatorUsername, got %v", err)
 	}
 }
+
+func TestPostgresOperatorRepositoryList(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	operatorRepository := postgres.NewOperatorRepository(queries)
+
+	adminOperator, err := domain.NewOperator(
+		"operator-1",
+		"admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid admin operator, got %v", err)
+	}
+
+	regularOperator, err := domain.NewOperator(
+		"operator-2",
+		"clerk",
+		domain.OperatorRoleOperator,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid regular operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), adminOperator); err != nil {
+		t.Fatalf("expected no error saving admin operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), regularOperator); err != nil {
+		t.Fatalf("expected no error saving regular operator, got %v", err)
+	}
+
+	operators, err := operatorRepository.List(context.Background(), 10)
+	if err != nil {
+		t.Fatalf("expected no error listing operators, got %v", err)
+	}
+
+	if len(operators) != 2 {
+		t.Fatalf("expected 2 operators, got %d", len(operators))
+	}
+
+	for _, operator := range operators {
+		if operator.Username == "" {
+			t.Fatal("expected username not to be empty")
+		}
+
+		if operator.Role == "" {
+			t.Fatal("expected role not to be empty")
+		}
+
+		if operator.CreatedAt.IsZero() {
+			t.Fatal("expected created_at not to be zero")
+		}
+	}
+}
