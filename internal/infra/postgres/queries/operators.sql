@@ -121,3 +121,13 @@ WITH updated AS (
 )
 SELECT count(*)::int
 FROM updated;
+
+-- name: GetOperatorSummaryByID :one
+SELECT
+    id,
+    username,
+    role,
+    active,
+    created_at
+FROM operators
+WHERE id = @id;

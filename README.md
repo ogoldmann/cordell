@@ -663,3 +663,22 @@ Password reset:
 - only applies to active operators
 
 This is an administrative reset flow, not a self-service password change flow.
+
+The operator administration UI separates listing from sensitive actions.
+
+Routes:
+
+```txt
+/admin/operators
+/admin/operators/{id}
+```
+
+The operators index is a read-oriented table.
+
+Sensitive operator actions are handled on the operator detail page:
+
+- role change
+- password reset
+- deactivation
+
+This keeps the admin list readable and gives each sensitive action more context.

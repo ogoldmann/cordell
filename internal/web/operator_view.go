@@ -8,6 +8,15 @@ import (
 )
 
 type operatorSummaryView struct {
+	ID        string
+	Username  string
+	Role      string
+	RoleLabel string
+	Active    bool
+	CreatedAt string
+}
+
+type operatorDetailView struct {
 	ID               string
 	Username         string
 	Role             string
@@ -26,11 +35,22 @@ type operatorRoleOptionView struct {
 	Selected bool
 }
 
-func newOperatorSummaryView(
+func newOperatorSummaryView(operator ports.OperatorSummary) operatorSummaryView {
+	return operatorSummaryView{
+		ID:        string(operator.ID),
+		Username:  operator.Username,
+		Role:      operator.Role.String(),
+		RoleLabel: operator.Role.Label(),
+		Active:    operator.Active,
+		CreatedAt: formatTimestamp(operator.CreatedAt),
+	}
+}
+
+func newOperatorDetailView(
 	operator ports.OperatorSummary,
 	currentOperatorID domain.OperatorID,
-) operatorSummaryView {
-	return operatorSummaryView{
+) operatorDetailView {
+	return operatorDetailView{
 		ID:               string(operator.ID),
 		Username:         operator.Username,
 		Role:             operator.Role.String(),

@@ -35,6 +35,12 @@
   </div>
 </section>
 
+{{if .Error}}
+  <div class="mb-4 rounded-2xl border border-cordell-danger-border bg-cordell-danger-surface px-4 py-3 font-medium text-cordell-danger-text">
+    {{.Error}}
+  </div>
+{{end}}
+
 {{if .Operators}}
   <section class="overflow-hidden rounded-3xl border border-cordell-border bg-cordell-surface shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
     <div class="overflow-x-auto">
@@ -58,34 +64,9 @@
               </td>
 
               <td class="px-4 py-3">
-                {{if .CanChangeRole}}
-                  <form class="flex flex-col gap-2 sm:flex-row sm:items-center" method="post" action="/admin/operators/{{.ID}}/role">
-                    <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-
-                    <select
-                      class="w-full rounded-xl border border-cordell-border bg-white px-3 py-2 text-sm font-bold text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15 sm:w-auto"
-                      name="role"
-                      aria-label="Operator role"
-                    >
-                      {{range .RoleOptions}}
-                        <option value="{{.Value}}" {{if .Selected}}selected{{end}}>
-                          {{.Label}}
-                        </option>
-                      {{end}}
-                    </select>
-
-                    <button
-                      class="inline-flex w-fit cursor-pointer items-center justify-center rounded-xl border border-cordell-border bg-white px-3 py-2 text-xs font-bold text-cordell-text transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
-                      type="submit"
-                    >
-                      Update
-                    </button>
-                  </form>
-                {{else}}
-                  <span class="inline-flex w-fit rounded-full bg-cordell-primary/10 px-3 py-1 text-xs font-bold text-cordell-primary dark:bg-cordell-dark-primary/15 dark:text-cordell-dark-primary">
-                    {{.RoleLabel}}
-                  </span>
-                {{end}}
+                <span class="inline-flex w-fit rounded-full bg-cordell-primary/10 px-3 py-1 text-xs font-bold text-cordell-primary dark:bg-cordell-dark-primary/15 dark:text-cordell-dark-primary">
+                  {{.RoleLabel}}
+                </span>
               </td>
 
               <td class="px-4 py-3">
@@ -109,59 +90,12 @@
               </td>
 
               <td class="px-4 py-3">
-                <div class="flex flex-col gap-3">
-                  {{if .CanResetPassword}}
-                    <form class="grid gap-2" method="post" action="/admin/operators/{{.ID}}/password">
-                      <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-
-                      <div class="grid gap-2 sm:grid-cols-2">
-                        <input
-                          class="w-full rounded-xl border border-cordell-border bg-white px-3 py-2 text-sm text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-                          name="password"
-                          type="password"
-                          placeholder="New password"
-                          autocomplete="new-password"
-                          required
-                        >
-
-                        <input
-                          class="w-full rounded-xl border border-cordell-border bg-white px-3 py-2 text-sm text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-                          name="confirm_password"
-                          type="password"
-                          placeholder="Confirm password"
-                          autocomplete="new-password"
-                          required
-                        >
-                      </div>
-
-                      <button
-                        class="inline-flex w-fit cursor-pointer items-center justify-center rounded-xl border border-cordell-border bg-white px-3 py-2 text-xs font-bold text-cordell-text transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
-                        type="submit"
-                      >
-                        Reset password
-                      </button>
-                    </form>
-                  {{end}}
-
-                  {{if .CanDeactivate}}
-                    <form method="post" action="/admin/operators/{{.ID}}/deactivate">
-                      <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-
-                      <button
-                        class="inline-flex w-fit cursor-pointer items-center justify-center rounded-xl border border-cordell-danger-border bg-cordell-danger-surface px-3 py-2 text-xs font-bold text-cordell-danger-text transition hover:brightness-95"
-                        type="submit"
-                      >
-                        Deactivate
-                      </button>
-                    </form>
-                  {{end}}
-
-                  {{if and (not .CanResetPassword) (not .CanDeactivate)}}
-                    <span class="text-xs font-bold text-cordell-muted dark:text-cordell-dark-muted">
-                      —
-                    </span>
-                  {{end}}
-                </div>
+                <a
+                  class="inline-flex w-fit items-center justify-center rounded-xl border border-cordell-border bg-white px-3 py-2 text-xs font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+                  href="/admin/operators/{{.ID}}"
+                >
+                  View
+                </a>
               </td>
             </tr>
           {{end}}
@@ -173,12 +107,6 @@
   <section class="rounded-3xl border border-dashed border-cordell-border bg-cordell-surface p-8 text-center text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-muted">
     No operators found.
   </section>
-{{end}}
-
-{{if .Error}}
-  <div class="mb-4 rounded-2xl border border-cordell-danger-border bg-cordell-danger-surface px-4 py-3 font-medium text-cordell-danger-text">
-    {{.Error}}
-  </div>
 {{end}}
 
 {{template "layout_end" .}}

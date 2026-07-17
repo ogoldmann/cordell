@@ -190,6 +190,38 @@ func (q *Queries) GetOperatorByUsername(ctx context.Context, username string) (O
 	return i, err
 }
 
+const getOperatorSummaryByID = `-- name: GetOperatorSummaryByID :one
+SELECT
+    id,
+    username,
+    role,
+    active,
+    created_at
+FROM operators
+WHERE id = $1
+`
+
+type GetOperatorSummaryByIDRow struct {
+	ID        string             `json:"id"`
+	Username  string             `json:"username"`
+	Role      string             `json:"role"`
+	Active    bool               `json:"active"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetOperatorSummaryByID(ctx context.Context, id string) (GetOperatorSummaryByIDRow, error) {
+	row := q.db.QueryRow(ctx, getOperatorSummaryByID, id)
+	var i GetOperatorSummaryByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Role,
+		&i.Active,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const listOperators = `-- name: ListOperators :many
 SELECT
     id,

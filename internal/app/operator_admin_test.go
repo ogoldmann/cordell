@@ -610,3 +610,44 @@ func TestResetOperatorPasswordServiceRejectsWeakPassword(t *testing.T) {
 		t.Fatalf("expected ErrWeakOperatorPassword, got %v", err)
 	}
 }
+
+func TestGetOperatorAdminServiceExecute(t *testing.T) {
+	createdAt := time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)
+
+	repository := &fakeOperatorRepository{
+		summaries: []ports.OperatorSummary{
+			{
+				ID:        "operator-1",
+				Username:  "admin",
+				Role:      domain.OperatorRoleAdmin,
+				Active:    true,
+				CreatedAt: createdAt,
+			},
+		},
+	}
+
+	service := NewGetOperatorAdminService(repository)
+
+	operator, err := service.Execute(context.Background(), GetOperatorAdminCommand{
+		OperatorID: "operator-1",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if operator.Username != "admin" {
+		t.Fatalf("expected admin, got %s", operator.Username)
+	}
+}
+
+func TestGetOperatorAdminServiceReturnsNotFound(t *testing.T) {
+	repository := &fakeOperatorRepository{}
+	service := NewGetOperatorAdminService(repository)
+
+	_, err := service.Execute(context.Background(), GetOperatorAdminCommand{
+		OperatorID: "missing",
+	})
+	if err != ports.ErrNotFound {
+		t.Fatalf("expected ErrNotFound, got %v", err)
+	}
+}

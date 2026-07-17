@@ -82,6 +82,31 @@ func (r *OperatorRepository) FindByUsername(ctx context.Context, username string
 	)
 }
 
+// FindSummaryByID retrieves an operator summary by id.
+func (r *OperatorRepository) FindSummaryByID(ctx context.Context, id domain.OperatorID) (ports.OperatorSummary, error) {
+	row, err := r.queries.GetOperatorSummaryByID(ctx, string(id))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ports.OperatorSummary{}, ports.ErrNotFound
+		}
+
+		return ports.OperatorSummary{}, err
+	}
+
+	role, err := domain.NewOperatorRole(row.Role)
+	if err != nil {
+		return ports.OperatorSummary{}, err
+	}
+
+	return ports.OperatorSummary{
+		ID:        domain.OperatorID(row.ID),
+		Username:  row.Username,
+		Role:      role,
+		Active:    row.Active,
+		CreatedAt: row.CreatedAt.Time,
+	}, nil
+}
+
 var _ ports.OperatorRepository = (*OperatorRepository)(nil)
 
 // List retrieves operator summaries for administration.

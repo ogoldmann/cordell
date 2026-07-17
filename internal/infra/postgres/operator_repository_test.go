@@ -419,3 +419,45 @@ func TestPostgresOperatorRepositoryUpdatePasswordHash(t *testing.T) {
 		t.Fatalf("expected updated password hash, got %s", found.PasswordHash())
 	}
 }
+
+func TestPostgresOperatorRepositoryFindSummaryByID(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	operatorRepository := postgres.NewOperatorRepository(queries)
+
+	operator, err := domain.NewOperator(
+		"operator-1",
+		"admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	summary, err := operatorRepository.FindSummaryByID(context.Background(), operator.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding operator summary, got %v", err)
+	}
+
+	if summary.ID != operator.ID() {
+		t.Fatalf("expected operator id %s, got %s", operator.ID(), summary.ID)
+	}
+
+	if summary.Username != operator.Username() {
+		t.Fatalf("expected username %s, got %s", operator.Username(), summary.Username)
+	}
+
+	if summary.Role != operator.Role() {
+		t.Fatalf("expected role %s, got %s", operator.Role(), summary.Role)
+	}
+
+	if summary.CreatedAt.IsZero() {
+		t.Fatal("expected created_at not to be zero")
+	}
+}

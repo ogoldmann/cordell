@@ -75,6 +75,7 @@ type OperatorRepository interface {
 	Save(ctx context.Context, operator domain.Operator) error
 	FindByID(ctx context.Context, id domain.OperatorID) (domain.Operator, error)
 	FindByUsername(ctx context.Context, username string) (domain.Operator, error)
+	FindSummaryByID(ctx context.Context, id domain.OperatorID) (OperatorSummary, error)
 	List(ctx context.Context, limit int) ([]OperatorSummary, error)
 	Deactivate(ctx context.Context, id domain.OperatorID) (bool, error)
 	ChangeRole(ctx context.Context, id domain.OperatorID, role domain.OperatorRole) (bool, error)

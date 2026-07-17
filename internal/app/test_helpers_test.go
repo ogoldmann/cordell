@@ -560,3 +560,23 @@ type plainSessionTokenHasher struct{}
 func (h plainSessionTokenHasher) Hash(token string) string {
 	return "hash:" + token
 }
+
+func (r *fakeOperatorRepository) FindSummaryByID(_ context.Context, id domain.OperatorID) (ports.OperatorSummary, error) {
+	for _, summary := range r.summaries {
+		if summary.ID == id {
+			return summary, nil
+		}
+	}
+
+	operator, ok := r.byID[id]
+	if !ok {
+		return ports.OperatorSummary{}, ports.ErrNotFound
+	}
+
+	return ports.OperatorSummary{
+		ID:       operator.ID(),
+		Username: operator.Username(),
+		Role:     operator.Role(),
+		Active:   operator.Active(),
+	}, nil
+}

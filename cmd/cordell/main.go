@@ -57,7 +57,8 @@ func main() {
 			idGenerator,
 			passwordHasher,
 		),
-		ListOperators: app.NewListOperatorsService(operatorRepository),
+		GetOperatorAdmin: app.NewGetOperatorAdminService(operatorRepository),
+		ListOperators:    app.NewListOperatorsService(operatorRepository),
 		DeactivateOperator: app.NewDeactivateOperatorService(
 			operatorRepository,
 			sessionRepository,

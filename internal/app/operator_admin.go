@@ -254,3 +254,25 @@ func (s *ResetOperatorPasswordService) Execute(ctx context.Context, cmd ResetOpe
 
 	return s.sessionRepository.DeleteByOperatorID(ctx, operator.ID())
 }
+
+// GetOperatorAdminCommand contains input required to retrieve an operator for administration.
+type GetOperatorAdminCommand struct {
+	OperatorID domain.OperatorID
+}
+
+// GetOperatorAdminService retrieves operator administration details.
+type GetOperatorAdminService struct {
+	operatorRepository ports.OperatorRepository
+}
+
+// NewGetOperatorAdminService creates a GetOperatorAdminService.
+func NewGetOperatorAdminService(operatorRepository ports.OperatorRepository) *GetOperatorAdminService {
+	return &GetOperatorAdminService{
+		operatorRepository: operatorRepository,
+	}
+}
+
+// Execute retrieves an operator administration read model.
+func (s *GetOperatorAdminService) Execute(ctx context.Context, cmd GetOperatorAdminCommand) (ports.OperatorSummary, error) {
+	return s.operatorRepository.FindSummaryByID(ctx, cmd.OperatorID)
+}

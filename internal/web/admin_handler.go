@@ -23,6 +23,13 @@ type adminOperatorsIndexPageData struct {
 	Operators []operatorSummaryView
 }
 
+type adminOperatorShowPageData struct {
+	privateLayoutData
+	Title    string
+	Error    string
+	Operator operatorDetailView
+}
+
 type adminOperatorNewPageData struct {
 	privateLayoutData
 	Title           string
@@ -62,12 +69,6 @@ func (s *Server) renderAdminOperatorsIndex(
 		return
 	}
 
-	currentOperator, ok := currentOperatorFromContext(r.Context())
-	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
 	data := adminOperatorsIndexPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Operators",
@@ -76,13 +77,55 @@ func (s *Server) renderAdminOperatorsIndex(
 	}
 
 	for _, operator := range operators {
-		data.Operators = append(data.Operators, newOperatorSummaryView(
-			operator,
-			currentOperator.ID(),
-		))
+		data.Operators = append(data.Operators, newOperatorSummaryView(operator))
 	}
 
 	if err := s.renderer.Render(w, status, "admin_operators_index.html", data); err != nil {
+		s.handleRenderError(w, err)
+	}
+}
+
+func (s *Server) handleShowAdminOperator(w http.ResponseWriter, r *http.Request) {
+	operatorID := domain.OperatorID(chi.URLParam(r, "id"))
+
+	s.renderAdminOperatorShow(w, r, http.StatusOK, operatorID, "")
+}
+
+func (s *Server) renderAdminOperatorShow(
+	w http.ResponseWriter,
+	r *http.Request,
+	status int,
+	operatorID domain.OperatorID,
+	message string,
+) {
+	operator, err := s.services.GetOperatorAdmin.Execute(r.Context(), app.GetOperatorAdminCommand{
+		OperatorID: operatorID,
+	})
+	if err != nil {
+		if errors.Is(err, ports.ErrNotFound) {
+			http.NotFound(w, r)
+			return
+		}
+
+		s.logger.Error("failed to get operator admin detail", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	currentOperator, ok := currentOperatorFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	data := adminOperatorShowPageData{
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             operator.Username,
+		Error:             message,
+		Operator:          newOperatorDetailView(operator, currentOperator.ID()),
+	}
+
+	if err := s.renderer.Render(w, status, "admin_operator_show.html", data); err != nil {
 		s.handleRenderError(w, err)
 	}
 }
@@ -175,16 +218,17 @@ func (s *Server) handleDeactivateAdminOperator(w http.ResponseWriter, r *http.Re
 		OperatorID:        operatorID,
 	})
 	if err != nil {
-		s.renderAdminOperatorsIndex(
+		s.renderAdminOperatorShow(
 			w,
 			r,
 			http.StatusBadRequest,
+			operatorID,
 			humanizeDeactivateOperatorWebError(err),
 		)
 		return
 	}
 
-	http.Redirect(w, r, "/admin/operators", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/operators/"+string(operatorID), http.StatusSeeOther)
 }
 
 func (s *Server) handleChangeAdminOperatorRole(w http.ResponseWriter, r *http.Request) {
@@ -203,16 +247,17 @@ func (s *Server) handleChangeAdminOperatorRole(w http.ResponseWriter, r *http.Re
 		Role:              role,
 	})
 	if err != nil {
-		s.renderAdminOperatorsIndex(
+		s.renderAdminOperatorShow(
 			w,
 			r,
 			http.StatusBadRequest,
+			operatorID,
 			humanizeChangeOperatorRoleWebError(err),
 		)
 		return
 	}
 
-	http.Redirect(w, r, "/admin/operators", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/operators/"+string(operatorID), http.StatusSeeOther)
 }
 
 func (s *Server) handleResetAdminOperatorPassword(w http.ResponseWriter, r *http.Request) {
@@ -232,10 +277,11 @@ func (s *Server) handleResetAdminOperatorPassword(w http.ResponseWriter, r *http
 	confirmPassword := r.FormValue("confirm_password")
 
 	if password != confirmPassword {
-		s.renderAdminOperatorsIndex(
+		s.renderAdminOperatorShow(
 			w,
 			r,
 			http.StatusBadRequest,
+			operatorID,
 			"Passwords do not match.",
 		)
 		return
@@ -247,16 +293,17 @@ func (s *Server) handleResetAdminOperatorPassword(w http.ResponseWriter, r *http
 		Password:          password,
 	})
 	if err != nil {
-		s.renderAdminOperatorsIndex(
+		s.renderAdminOperatorShow(
 			w,
 			r,
 			http.StatusBadRequest,
+			operatorID,
 			humanizeResetOperatorPasswordWebError(err),
 		)
 		return
 	}
 
-	http.Redirect(w, r, "/admin/operators", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/operators/"+string(operatorID), http.StatusSeeOther)
 }
 
 func newAdminOperatorNewPageData(
