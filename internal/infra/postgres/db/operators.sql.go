@@ -7,28 +7,38 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createOperator = `-- name: CreateOperator :exec
 INSERT INTO operators (
     id,
     username,
+    role,
     password_hash
 ) VALUES (
     $1,
     $2,
-    $3
+    $3,
+    $4
 )
 `
 
 type CreateOperatorParams struct {
 	ID           string `json:"id"`
 	Username     string `json:"username"`
+	Role         string `json:"role"`
 	PasswordHash string `json:"password_hash"`
 }
 
 func (q *Queries) CreateOperator(ctx context.Context, arg CreateOperatorParams) error {
-	_, err := q.db.Exec(ctx, createOperator, arg.ID, arg.Username, arg.PasswordHash)
+	_, err := q.db.Exec(ctx, createOperator,
+		arg.ID,
+		arg.Username,
+		arg.Role,
+		arg.PasswordHash,
+	)
 	return err
 }
 
@@ -36,6 +46,7 @@ const getOperatorByID = `-- name: GetOperatorByID :one
 SELECT
     id,
     username,
+    role,
     password_hash,
     active,
     created_at,
@@ -44,12 +55,23 @@ FROM operators
 WHERE id = $1
 `
 
-func (q *Queries) GetOperatorByID(ctx context.Context, id string) (Operator, error) {
+type GetOperatorByIDRow struct {
+	ID           string             `json:"id"`
+	Username     string             `json:"username"`
+	Role         string             `json:"role"`
+	PasswordHash string             `json:"password_hash"`
+	Active       bool               `json:"active"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) GetOperatorByID(ctx context.Context, id string) (GetOperatorByIDRow, error) {
 	row := q.db.QueryRow(ctx, getOperatorByID, id)
-	var i Operator
+	var i GetOperatorByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
+		&i.Role,
 		&i.PasswordHash,
 		&i.Active,
 		&i.CreatedAt,
@@ -62,6 +84,7 @@ const getOperatorByUsername = `-- name: GetOperatorByUsername :one
 SELECT
     id,
     username,
+    role,
     password_hash,
     active,
     created_at,
@@ -70,12 +93,23 @@ FROM operators
 WHERE username = $1
 `
 
-func (q *Queries) GetOperatorByUsername(ctx context.Context, username string) (Operator, error) {
+type GetOperatorByUsernameRow struct {
+	ID           string             `json:"id"`
+	Username     string             `json:"username"`
+	Role         string             `json:"role"`
+	PasswordHash string             `json:"password_hash"`
+	Active       bool               `json:"active"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) GetOperatorByUsername(ctx context.Context, username string) (GetOperatorByUsernameRow, error) {
 	row := q.db.QueryRow(ctx, getOperatorByUsername, username)
-	var i Operator
+	var i GetOperatorByUsernameRow
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
+		&i.Role,
 		&i.PasswordHash,
 		&i.Active,
 		&i.CreatedAt,

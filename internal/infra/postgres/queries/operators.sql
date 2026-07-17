@@ -2,10 +2,12 @@
 INSERT INTO operators (
     id,
     username,
+    role,
     password_hash
 ) VALUES (
     @id,
     @username,
+    @role,
     @password_hash
 );
 
@@ -13,6 +15,7 @@ INSERT INTO operators (
 SELECT
     id,
     username,
+    role,
     password_hash,
     active,
     created_at,
@@ -24,6 +27,7 @@ WHERE id = @id;
 SELECT
     id,
     username,
+    role,
     password_hash,
     active,
     created_at,

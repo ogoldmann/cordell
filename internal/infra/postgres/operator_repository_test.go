@@ -17,6 +17,7 @@ func TestPostgresOperatorRepositorySaveAndFindByUsername(t *testing.T) {
 	operator, err := domain.NewOperator(
 		"operator-1",
 		"Admin.User",
+		domain.OperatorRoleAdmin,
 		"$argon2id$hash",
 	)
 	if err != nil {
@@ -32,6 +33,10 @@ func TestPostgresOperatorRepositorySaveAndFindByUsername(t *testing.T) {
 		t.Fatalf("expected no error finding operator, got %v", err)
 	}
 
+	if found.Role() != domain.OperatorRoleAdmin {
+		t.Fatalf("expected admin role, got %s", found.Role())
+	}
+
 	if found.ID() != "operator-1" {
 		t.Fatalf("expected operator-1, got %s", found.ID())
 	}
@@ -39,6 +44,7 @@ func TestPostgresOperatorRepositorySaveAndFindByUsername(t *testing.T) {
 	if found.Username() != "admin.user" {
 		t.Fatalf("expected admin.user, got %s", found.Username())
 	}
+
 }
 
 func TestPostgresOperatorRepositoryRejectsDuplicateUsername(t *testing.T) {
@@ -50,6 +56,7 @@ func TestPostgresOperatorRepositoryRejectsDuplicateUsername(t *testing.T) {
 	firstOperator, err := domain.NewOperator(
 		"operator-1",
 		"admin",
+		domain.OperatorRoleAdmin,
 		"$argon2id$hash",
 	)
 	if err != nil {
@@ -59,6 +66,7 @@ func TestPostgresOperatorRepositoryRejectsDuplicateUsername(t *testing.T) {
 	secondOperator, err := domain.NewOperator(
 		"operator-2",
 		"ADMIN",
+		domain.OperatorRoleOperator,
 		"$argon2id$hash",
 	)
 	if err != nil {

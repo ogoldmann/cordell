@@ -14,6 +14,7 @@ const minOperatorPasswordLength = 15
 // CreateOperatorCommand contains the input data required to create an operator.
 type CreateOperatorCommand struct {
 	Username string
+	Role     string
 	Password string
 }
 
@@ -47,6 +48,11 @@ func (s *CreateOperatorService) Execute(ctx context.Context, cmd CreateOperatorC
 		return domain.Operator{}, domain.ErrWeakOperatorPassword
 	}
 
+	role, err := domain.NewOperatorRole(cmd.Role)
+	if err != nil {
+		return domain.Operator{}, err
+	}
+
 	id, err := s.idGenerator.NewID()
 	if err != nil {
 		return domain.Operator{}, err
@@ -60,6 +66,7 @@ func (s *CreateOperatorService) Execute(ctx context.Context, cmd CreateOperatorC
 	operator, err := domain.NewOperator(
 		domain.OperatorID(id),
 		cmd.Username,
+		role,
 		passwordHash,
 	)
 	if err != nil {

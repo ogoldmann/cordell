@@ -12,21 +12,34 @@ type OperatorID string
 type Operator struct {
 	id           OperatorID
 	username     string
+	role         OperatorRole
 	passwordHash string
 	active       bool
 }
 
 // NewOperator creates an active Operator after validating required fields.
-func NewOperator(id OperatorID, username string, passwordHash string) (Operator, error) {
-	return buildOperator(id, username, passwordHash, true)
+func NewOperator(id OperatorID, username string, role OperatorRole, passwordHash string) (Operator, error) {
+	return buildOperator(id, username, role, passwordHash, true)
 }
 
 // ReconstituteOperator rebuilds an Operator from persisted state.
-func ReconstituteOperator(id OperatorID, username string, passwordHash string, active bool) (Operator, error) {
-	return buildOperator(id, username, passwordHash, active)
+func ReconstituteOperator(
+	id OperatorID,
+	username string,
+	role OperatorRole,
+	passwordHash string,
+	active bool,
+) (Operator, error) {
+	return buildOperator(id, username, role, passwordHash, active)
 }
 
-func buildOperator(id OperatorID, username string, passwordHash string, active bool) (Operator, error) {
+func buildOperator(
+	id OperatorID,
+	username string,
+	role OperatorRole,
+	passwordHash string,
+	active bool,
+) (Operator, error) {
 	if strings.TrimSpace(string(id)) == "" {
 		return Operator{}, ErrEmptyOperatorID
 	}
@@ -40,6 +53,11 @@ func buildOperator(id OperatorID, username string, passwordHash string, active b
 		return Operator{}, ErrInvalidOperatorUsername
 	}
 
+	validRole, err := NewOperatorRole(role.String())
+	if err != nil {
+		return Operator{}, err
+	}
+
 	passwordHash = strings.TrimSpace(passwordHash)
 	if passwordHash == "" {
 		return Operator{}, ErrEmptyOperatorPasswordHash
@@ -48,6 +66,7 @@ func buildOperator(id OperatorID, username string, passwordHash string, active b
 	return Operator{
 		id:           id,
 		username:     username,
+		role:         validRole,
 		passwordHash: passwordHash,
 		active:       active,
 	}, nil
@@ -87,6 +106,11 @@ func (o Operator) ID() OperatorID {
 // Username returns the operator username.
 func (o Operator) Username() string {
 	return o.username
+}
+
+// Role returns the operator role.
+func (o Operator) Role() OperatorRole {
+	return o.role
 }
 
 // PasswordHash returns the operator password hash.

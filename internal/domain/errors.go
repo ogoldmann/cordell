@@ -51,6 +51,8 @@ var (
 	ErrEmptyOperatorPassword = errors.New("empty operator password")
 	// ErrWeakOperatorPassword is returned when an operator password does not satisfy password policy.
 	ErrWeakOperatorPassword = errors.New("weak operator password")
+	ErrEmptyOperatorRole    = errors.New("empty operator role")
+	ErrInvalidOperatorRole  = errors.New("invalid operator role")
 
 	// ErrEmptyOperatorSessionID is returned when an operator session identifier is required but empty.
 	ErrEmptyOperatorSessionID = errors.New("empty operator session id")

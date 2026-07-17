@@ -9,7 +9,7 @@ import (
 )
 
 func TestCurrentOperatorFromContext(t *testing.T) {
-	operator, err := domain.NewOperator("operator-1", "admin", "$argon2id$hash")
+	operator, err := domain.NewOperator("operator-1", "admin", domain.OperatorRoleAdmin, "$argon2id$hash")
 	if err != nil {
 		t.Fatalf("expected valid operator, got %v", err)
 	}

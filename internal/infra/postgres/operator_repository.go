@@ -28,6 +28,7 @@ func (r *OperatorRepository) Save(ctx context.Context, operator domain.Operator)
 	err := r.queries.CreateOperator(ctx, db.CreateOperatorParams{
 		ID:           string(operator.ID()),
 		Username:     operator.Username(),
+		Role:         operator.Role().String(),
 		PasswordHash: operator.PasswordHash(),
 	})
 	if err != nil {
@@ -55,6 +56,7 @@ func (r *OperatorRepository) FindByID(ctx context.Context, id domain.OperatorID)
 	return domain.ReconstituteOperator(
 		domain.OperatorID(row.ID),
 		row.Username,
+		domain.OperatorRole(row.Role),
 		row.PasswordHash,
 		row.Active,
 	)
@@ -74,6 +76,7 @@ func (r *OperatorRepository) FindByUsername(ctx context.Context, username string
 	return domain.ReconstituteOperator(
 		domain.OperatorID(row.ID),
 		row.Username,
+		domain.OperatorRole(row.Role),
 		row.PasswordHash,
 		row.Active,
 	)

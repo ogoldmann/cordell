@@ -425,21 +425,22 @@ Server-side persistence may be added later when authentication and user sessions
 
 Operators represent authenticated users of the system.
 
-The current authentication foundation includes:
+Each operator has a role.
 
-- operator domain model
-- operators database table
-- operator PostgreSQL repository
-- Argon2id password hashing
-- operator creation use case
+Current roles:
 
-Login, logout, sessions, CSRF protection, and authorization are intentionally implemented in later milestones.
+- `admin`: administrative operator
+- `operator`: regular custody workflow operator
 
-Password hashes are stored using an encoded Argon2id format:
+The current RBAC foundation includes:
 
-```bash
-$argon2id$v=19$m=<memory>,t=<iterations>,p=<parallelism>$<salt>$<hash>
-```
+- operator role value object
+- role validation in the domain
+- role persistence in PostgreSQL
+- role support in the admin CLI
+- current operator role display in the layout
+
+Route-level authorization is implemented in a later milestone.
 
 ## Sessions
 
@@ -472,16 +473,16 @@ Expired sessions are deleted during login and when expired sessions are encounte
 
 Cordell includes a local administrative CLI for bootstrap tasks.
 
-Create an operator:
+Create an admin operator:
 
 ```bash
-go run ./cmd/cordell-admin create-operator -username admin
+go run ./cmd/cordell-admin create-operator -username admin -role admin
 ```
 
-Or through Make:
+Create a regular operator:
 
 ```bash
-make admin-create-operator USERNAME=admin
+go run ./cmd/cordell-admin create-operator -username clerk -role operator
 ```
 
 The command prompts for the password interactively and does not echo it in the terminal.

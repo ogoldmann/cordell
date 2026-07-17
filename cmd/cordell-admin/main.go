@@ -52,6 +52,7 @@ func runCreateOperator(ctx context.Context, args []string) error {
 	flags.SetOutput(os.Stderr)
 
 	username := flags.String("username", "", "operator username")
+	role := flags.String("role", domain.OperatorRoleAdmin.String(), "operator role: admin or operator")
 
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -92,13 +93,19 @@ func runCreateOperator(ctx context.Context, args []string) error {
 
 	operator, err := service.Execute(ctx, app.CreateOperatorCommand{
 		Username: normalizedUsername,
+		Role:     *role,
 		Password: password,
 	})
 	if err != nil {
 		return humanizeCreateOperatorError(err)
 	}
 
-	fmt.Fprintf(os.Stdout, "Operator created successfully: %s\n", operator.Username())
+	fmt.Fprintf(
+		os.Stdout,
+		"Operator created successfully: %s (%s)\n",
+		operator.Username(),
+		operator.Role().Label(),
+	)
 
 	return nil
 }
@@ -146,6 +153,10 @@ func humanizeCreateOperatorError(err error) error {
 		return errors.New("username must be 3-64 characters and contain only lowercase letters, numbers, dots, underscores, or hyphens")
 	case errors.Is(err, domain.ErrDuplicateOperatorUsername):
 		return errors.New("username is already registered")
+	case errors.Is(err, domain.ErrEmptyOperatorRole):
+		return errors.New("role is required")
+	case errors.Is(err, domain.ErrInvalidOperatorRole):
+		return errors.New("role must be either admin or operator")
 	default:
 		return err
 	}
@@ -154,9 +165,9 @@ func humanizeCreateOperatorError(err error) error {
 func printUsage() {
 	fmt.Fprintln(os.Stderr, "Cordell admin commands:")
 	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, "  create-operator -username <username>")
+	fmt.Fprintln(os.Stderr, "  create-operator -username <username> [-role admin|operator]")
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Examples:")
-	fmt.Fprintln(os.Stderr, "  cordell-admin create-operator -username admin")
-	fmt.Fprintln(os.Stderr, "  go run ./cmd/cordell-admin create-operator -username admin")
+	fmt.Fprintln(os.Stderr, "  cordell-admin create-operator -username admin -role admin")
+	fmt.Fprintln(os.Stderr, "  go run ./cmd/cordell-admin create-operator -username clerk -role operator")
 }

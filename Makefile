@@ -62,6 +62,8 @@ css-build:
 css-watch:
 	npm run css:watch
 
+ROLE ?= admin
+
 .PHONY: admin-create-operator
 admin-create-operator:
-	go run ./cmd/cordell-admin create-operator -username $(USERNAME)
+	go run ./cmd/cordell-admin create-operator -username $(USERNAME) -role $(ROLE)
