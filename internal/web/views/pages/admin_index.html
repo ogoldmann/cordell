@@ -1,0 +1,29 @@
+{{define "admin_index.html"}}
+{{template "layout_start" .}}
+
+<section class="mb-8">
+  <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+    Administration
+  </p>
+
+  <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
+    Admin
+  </h1>
+
+  <p class="mt-3 max-w-2xl text-cordell-muted dark:text-cordell-dark-muted">
+    Administrative tools for Cordell operators and system configuration.
+  </p>
+</section>
+
+<section class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+  <h2 class="m-0 text-xl font-extrabold">
+    Operator management
+  </h2>
+
+  <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+    Operator management will be implemented in a later milestone. This page currently validates the RBAC foundation.
+  </p>
+</section>
+
+{{template "layout_end" .}}
+{{end}}

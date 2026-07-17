@@ -64,6 +64,12 @@ func (s *Server) Routes() http.Handler {
 		private.Get("/", s.handleDashboard)
 		private.Get("/search", s.handleGlobalSearch)
 
+		private.Group(func(admin chi.Router) {
+			admin.Use(s.requireAdmin)
+
+			admin.Get("/admin", s.handleAdminIndex)
+		})
+
 		private.Get("/personnel", s.handleListPersonnel)
 		private.Get("/personnel/new", s.handleNewPersonnelForm)
 		private.Post("/personnel", s.handleCreatePersonnel)

@@ -43,6 +43,11 @@
           <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/checkouts/new">Checkout</a>
           <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/returns/new">Return</a>
           <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/search">Search</a>
+          {{if .CurrentOperator.CanManageOperators}}
+            <a class="rounded-full px-3 py-1.5 text-sm font-bold text-cordell-muted no-underline transition hover:bg-cordell-primary/10 hover:text-cordell-primary dark:text-cordell-dark-muted dark:hover:bg-cordell-dark-primary/10 dark:hover:text-cordell-dark-primary" href="/admin">
+              Admin
+            </a>
+          {{end}}
         </nav>
 
         <button

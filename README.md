@@ -563,3 +563,23 @@ Cordell includes basic authentication hardening:
 The login rate limiter is currently in-memory and intended for the current single-node application architecture.
 
 If Cordell is deployed across multiple instances later, login throttling should move to shared storage such as PostgreSQL or Redis.
+
+## Authorization
+
+Cordell includes a role-based authorization foundation.
+
+Current roles:
+
+- `admin`
+- `operator`
+
+Current authorization behavior:
+
+- authenticated operators can access regular private routes
+- only admins can access `/admin`
+- regular operators receive `403 Forbidden` when accessing admin-only routes
+- unauthenticated users are redirected to login for private `GET` routes
+
+Authorization is implemented through web middleware using the authenticated operator stored in the request context.
+
+Operator management pages and finer-grained permissions are implemented in later milestones.
