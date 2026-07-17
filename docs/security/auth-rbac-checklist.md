@@ -1,0 +1,81 @@
+# Auth and RBAC Manual Checklist
+
+Use this checklist after changes to authentication, sessions, CSRF, operators, or admin routes.
+
+## Bootstrap
+
+- [ ] Start database.
+- [ ] Run migrations.
+- [ ] Create an admin operator through `cordell-admin`.
+- [ ] Confirm admin can log in.
+- [ ] Confirm regular operator can be created.
+
+## Authentication
+
+- [ ] Valid username and password logs in successfully.
+- [ ] Invalid username returns a generic invalid credentials message.
+- [ ] Invalid password returns a generic invalid credentials message.
+- [ ] Inactive operator cannot log in.
+- [ ] Already authenticated operator visiting `/login` is redirected to `/`.
+- [ ] Requested private URL is preserved through `return_to`.
+- [ ] External `return_to` URLs are rejected.
+
+## Sessions
+
+- [ ] Login creates a `cordell_session` cookie.
+- [ ] Cookie is `HttpOnly`.
+- [ ] Cookie uses `SameSite=Lax`.
+- [ ] Cookie `Secure` flag follows environment config.
+- [ ] Logout deletes the session.
+- [ ] Expired sessions are removed.
+- [ ] Deactivated operators lose access.
+- [ ] Password reset invalidates target operator sessions.
+- [ ] Role change invalidates target operator sessions.
+- [ ] Reactivation removes stale target operator sessions.
+
+## CSRF
+
+- [ ] Authenticated POST without CSRF token returns `403 Forbidden`.
+- [ ] Authenticated POST with invalid CSRF token returns `403 Forbidden`.
+- [ ] Authenticated POST with valid CSRF token works.
+- [ ] GET routes do not require CSRF token.
+- [ ] Login route remains public.
+
+## Authorization
+
+- [ ] Admin can access `/admin`.
+- [ ] Regular operator receives `403 Forbidden` on `/admin`.
+- [ ] Anonymous user is redirected to `/login` for private GET routes.
+- [ ] Admin link is visible only to admins.
+- [ ] Regular private routes remain available to regular operators.
+
+## Operator Administration
+
+- [ ] Admin can list operators.
+- [ ] Admin can view operator detail.
+- [ ] Admin can create operator.
+- [ ] Admin can deactivate another active operator.
+- [ ] Admin cannot deactivate self.
+- [ ] Admin cannot deactivate the last active admin.
+- [ ] Admin can reactivate inactive operator.
+- [ ] Admin can change another operator role.
+- [ ] Admin cannot change own role.
+- [ ] Admin cannot demote the last active admin.
+- [ ] Admin can reset another active operator password.
+- [ ] Admin cannot reset own password through admin action.
+- [ ] Password hashes never appear in UI.
+
+## Headers and Cache
+
+- [ ] Private authenticated routes return `Cache-Control: no-store`.
+- [ ] Security headers are present.
+- [ ] HSTS is disabled in local HTTP development.
+- [ ] HSTS is enabled only behind HTTPS.
+
+## Data Exposure
+
+- [ ] Operator list does not expose `password_hash`.
+- [ ] Operator detail does not expose `password_hash`.
+- [ ] Logs do not print plaintext passwords.
+- [ ] Logs do not print session tokens.
+- [ ] Logs do not print CSRF tokens.

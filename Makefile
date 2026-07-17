@@ -66,4 +66,13 @@ ROLE ?= admin
 
 .PHONY: admin-create-operator
 admin-create-operator:
-	go run ./cmd/cordell-admin create-operator -username $(USERNAME) -role $(ROLE)
+	@if [ -z "$(USERNAME)" ]; then \
+		echo "USERNAME is required. Usage: make admin-create-operator USERNAME=admin ROLE=admin"; \
+		exit 1; \
+	fi
+	@if [ -f .env ]; then \
+		set -a; . ./.env; set +a; \
+		go run ./cmd/cordell-admin create-operator -username $(USERNAME) -role $(ROLE); \
+	else \
+		go run ./cmd/cordell-admin create-operator -username $(USERNAME) -role $(ROLE); \
+	fi

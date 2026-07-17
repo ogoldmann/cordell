@@ -474,45 +474,39 @@ Expired sessions are deleted during login and when expired sessions are encounte
 
 Cordell includes a local administrative CLI for bootstrap tasks.
 
+The admin CLI reads the same environment configuration as the main server.
+
+When running it manually, export `.env` variables first:
+
+```bash
+set -a
+source .env
+set +a
+```
+
 Create an admin operator:
 
 ```bash
 go run ./cmd/cordell-admin create-operator -username admin -role admin
 ```
 
+Or through Make:
+
+```bash
+make admin-create-operator USERNAME=admin ROLE=admin
+```
+
+The Make target automatically loads .env when the file exists.
+
 Create a regular operator:
 
 ```bash
-go run ./cmd/cordell-admin create-operator -username clerk -role operator
+make admin-create-operator USERNAME=clerk ROLE=operator
 ```
 
 The command prompts for the password interactively and does not echo it in the terminal.
 
-Operator creation is intentionally not exposed as a public web registration flow.
-
-## Route Protection
-
-Cordell protects private application routes through server-side session authentication.
-
-Public routes:
-
-- `GET /login`
-- `POST /login`
-- `/static/*`
-
-Private routes include:
-
-- dashboard
-- search
-- personnel
-- assets
-- checkout
-- return
-- logout
-
-The current operator is loaded from the session cookie and stored in the request context.
-
-Authorization/RBAC is intentionally implemented in a later milestone.
+Operator creation is intentionally not exposed as a public registration flow.
 
 ## CSRF Protection
 
