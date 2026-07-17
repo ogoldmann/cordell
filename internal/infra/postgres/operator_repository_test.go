@@ -140,3 +140,139 @@ func TestPostgresOperatorRepositoryList(t *testing.T) {
 		}
 	}
 }
+
+func TestPostgresOperatorRepositoryDeactivate(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	operatorRepository := postgres.NewOperatorRepository(queries)
+
+	adminOperator, err := domain.NewOperator(
+		"operator-1",
+		"admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid admin operator, got %v", err)
+	}
+
+	regularOperator, err := domain.NewOperator(
+		"operator-2",
+		"clerk",
+		domain.OperatorRoleOperator,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid regular operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), adminOperator); err != nil {
+		t.Fatalf("expected no error saving admin operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), regularOperator); err != nil {
+		t.Fatalf("expected no error saving regular operator, got %v", err)
+	}
+
+	deactivated, err := operatorRepository.Deactivate(context.Background(), regularOperator.ID())
+	if err != nil {
+		t.Fatalf("expected no error deactivating operator, got %v", err)
+	}
+
+	if !deactivated {
+		t.Fatal("expected operator to be deactivated")
+	}
+
+	found, err := operatorRepository.FindByID(context.Background(), regularOperator.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding operator, got %v", err)
+	}
+
+	if found.Active() {
+		t.Fatal("expected operator to be inactive")
+	}
+}
+
+func TestPostgresOperatorRepositoryDoesNotDeactivateLastAdmin(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	operatorRepository := postgres.NewOperatorRepository(queries)
+
+	adminOperator, err := domain.NewOperator(
+		"operator-1",
+		"admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid admin operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), adminOperator); err != nil {
+		t.Fatalf("expected no error saving admin operator, got %v", err)
+	}
+
+	deactivated, err := operatorRepository.Deactivate(context.Background(), adminOperator.ID())
+	if err != nil {
+		t.Fatalf("expected no error deactivating operator, got %v", err)
+	}
+
+	if deactivated {
+		t.Fatal("expected last admin not to be deactivated")
+	}
+
+	found, err := operatorRepository.FindByID(context.Background(), adminOperator.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding operator, got %v", err)
+	}
+
+	if !found.Active() {
+		t.Fatal("expected last admin to remain active")
+	}
+}
+
+func TestPostgresOperatorRepositoryCountActiveAdmins(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	operatorRepository := postgres.NewOperatorRepository(queries)
+
+	adminOperator, err := domain.NewOperator(
+		"operator-1",
+		"admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid admin operator, got %v", err)
+	}
+
+	regularOperator, err := domain.NewOperator(
+		"operator-2",
+		"clerk",
+		domain.OperatorRoleOperator,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid regular operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), adminOperator); err != nil {
+		t.Fatalf("expected no error saving admin operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), regularOperator); err != nil {
+		t.Fatalf("expected no error saving regular operator, got %v", err)
+	}
+
+	count, err := operatorRepository.CountActiveAdmins(context.Background())
+	if err != nil {
+		t.Fatalf("expected no error counting active admins, got %v", err)
+	}
+
+	if count != 1 {
+		t.Fatalf("expected 1 active admin, got %d", count)
+	}
+}

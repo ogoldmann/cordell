@@ -76,6 +76,8 @@ type OperatorRepository interface {
 	FindByID(ctx context.Context, id domain.OperatorID) (domain.Operator, error)
 	FindByUsername(ctx context.Context, username string) (domain.Operator, error)
 	List(ctx context.Context, limit int) ([]OperatorSummary, error)
+	Deactivate(ctx context.Context, id domain.OperatorID) (bool, error)
+	CountActiveAdmins(ctx context.Context) (int, error)
 }
 
 // OperatorSessionRepository persists operator sessions.
@@ -83,6 +85,7 @@ type OperatorSessionRepository interface {
 	Save(ctx context.Context, session domain.OperatorSession) error
 	FindByTokenHash(ctx context.Context, tokenHash string) (domain.OperatorSession, error)
 	DeleteByTokenHash(ctx context.Context, tokenHash string) error
+	DeleteByOperatorID(ctx context.Context, operatorID domain.OperatorID) error
 	DeleteExpired(ctx context.Context, now time.Time) error
 }
 

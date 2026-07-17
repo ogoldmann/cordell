@@ -70,6 +70,16 @@ func (q *Queries) DeleteOperatorSessionByTokenHash(ctx context.Context, tokenHas
 	return err
 }
 
+const deleteOperatorSessionsByOperatorID = `-- name: DeleteOperatorSessionsByOperatorID :exec
+DELETE FROM operator_sessions
+WHERE operator_id = $1
+`
+
+func (q *Queries) DeleteOperatorSessionsByOperatorID(ctx context.Context, operatorID string) error {
+	_, err := q.db.Exec(ctx, deleteOperatorSessionsByOperatorID, operatorID)
+	return err
+}
+
 const getOperatorSessionByTokenHash = `-- name: GetOperatorSessionByTokenHash :one
 SELECT
     id,

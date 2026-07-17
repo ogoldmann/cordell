@@ -6,6 +6,9 @@ import (
 
 	"cordell/internal/app"
 	"cordell/internal/domain"
+	"cordell/internal/ports"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type adminIndexPageData struct {
@@ -16,6 +19,7 @@ type adminIndexPageData struct {
 type adminOperatorsIndexPageData struct {
 	privateLayoutData
 	Title     string
+	Error     string
 	Operators []operatorSummaryView
 }
 
@@ -46,6 +50,15 @@ func (s *Server) handleAdminIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleAdminOperatorsIndex(w http.ResponseWriter, r *http.Request) {
+	s.renderAdminOperatorsIndex(w, r, http.StatusOK, "")
+}
+
+func (s *Server) renderAdminOperatorsIndex(
+	w http.ResponseWriter,
+	r *http.Request,
+	status int,
+	message string,
+) {
 	operators, err := s.services.ListOperators.Execute(r.Context(), app.ListOperatorsCommand{
 		Limit: 100,
 	})
@@ -55,17 +68,27 @@ func (s *Server) handleAdminOperatorsIndex(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	currentOperator, ok := currentOperatorFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	data := adminOperatorsIndexPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Operators",
+		Error:             message,
 		Operators:         make([]operatorSummaryView, 0, len(operators)),
 	}
 
 	for _, operator := range operators {
-		data.Operators = append(data.Operators, newOperatorSummaryView(operator))
+		data.Operators = append(data.Operators, newOperatorSummaryView(
+			operator,
+			currentOperator.ID(),
+		))
 	}
 
-	if err := s.renderer.Render(w, http.StatusOK, "admin_operators_index.html", data); err != nil {
+	if err := s.renderer.Render(w, status, "admin_operators_index.html", data); err != nil {
 		s.handleRenderError(w, err)
 	}
 }
@@ -144,6 +167,32 @@ func (s *Server) renderAdminOperatorFormWithError(
 	}
 }
 
+func (s *Server) handleDeactivateAdminOperator(w http.ResponseWriter, r *http.Request) {
+	currentOperator, ok := currentOperatorFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	operatorID := domain.OperatorID(chi.URLParam(r, "id"))
+
+	err := s.services.DeactivateOperator.Execute(r.Context(), app.DeactivateOperatorCommand{
+		CurrentOperatorID: currentOperator.ID(),
+		OperatorID:        operatorID,
+	})
+	if err != nil {
+		s.renderAdminOperatorsIndex(
+			w,
+			r,
+			http.StatusBadRequest,
+			humanizeDeactivateOperatorWebError(err),
+		)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/operators", http.StatusSeeOther)
+}
+
 func newAdminOperatorNewPageData(
 	r *http.Request,
 	data adminOperatorNewPageData,
@@ -185,5 +234,18 @@ func humanizeCreateOperatorWebError(err error) string {
 		return "Password must have at least 15 characters."
 	default:
 		return "Could not create operator."
+	}
+}
+
+func humanizeDeactivateOperatorWebError(err error) string {
+	switch {
+	case errors.Is(err, domain.ErrCannotDeactivateCurrentOperator):
+		return "You cannot deactivate your own operator account."
+	case errors.Is(err, domain.ErrCannotDeactivateLastAdmin):
+		return "You cannot deactivate the last active admin."
+	case errors.Is(err, ports.ErrNotFound):
+		return "Operator not found."
+	default:
+		return "Could not deactivate operator."
 	}
 }

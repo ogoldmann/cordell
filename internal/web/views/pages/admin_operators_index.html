@@ -46,6 +46,7 @@
             <th class="px-4 py-3 font-extrabold">Status</th>
             <th class="px-4 py-3 font-extrabold">Created</th>
             <th class="px-4 py-3 font-extrabold">ID</th>
+            <th class="px-4 py-3 font-extrabold">Actions</th>
           </tr>
         </thead>
 
@@ -81,6 +82,25 @@
               <td class="px-4 py-3 font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">
                 {{.ID}}
               </td>
+
+              <td class="px-4 py-3">
+                {{if .CanDeactivate}}
+                  <form method="post" action="/admin/operators/{{.ID}}/deactivate">
+                    <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+
+                    <button
+                      class="inline-flex w-fit cursor-pointer items-center justify-center rounded-xl border border-cordell-danger-border bg-cordell-danger-surface px-3 py-2 text-xs font-bold text-cordell-danger-text transition hover:brightness-95"
+                      type="submit"
+                    >
+                      Deactivate
+                    </button>
+                  </form>
+                {{else}}
+                  <span class="text-xs font-bold text-cordell-muted dark:text-cordell-dark-muted">
+                    —
+                  </span>
+                {{end}}
+              </td>
             </tr>
           {{end}}
         </tbody>
@@ -91,6 +111,12 @@
   <section class="rounded-3xl border border-dashed border-cordell-border bg-cordell-surface p-8 text-center text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-muted">
     No operators found.
   </section>
+{{end}}
+
+{{if .Error}}
+  <div class="mb-4 rounded-2xl border border-cordell-danger-border bg-cordell-danger-surface px-4 py-3 font-medium text-cordell-danger-text">
+    {{.Error}}
+  </div>
 {{end}}
 
 {{template "layout_end" .}}

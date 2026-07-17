@@ -67,4 +67,7 @@ var (
 	ErrEmptyOperatorSessionCSRFToken = errors.New("empty operator session csrf token")
 	// ErrInvalidCSRFToken is returned when a CSRF token is invalid.
 	ErrInvalidCSRFToken = errors.New("invalid csrf token")
+
+	ErrCannotDeactivateCurrentOperator = errors.New("cannot deactivate current operator")
+	ErrCannotDeactivateLastAdmin       = errors.New("cannot deactivate last admin")
 )

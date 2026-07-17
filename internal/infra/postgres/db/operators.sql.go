@@ -11,6 +11,20 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countActiveAdminOperators = `-- name: CountActiveAdminOperators :one
+SELECT count(*)::int
+FROM operators
+WHERE role = 'admin'
+  AND active = true
+`
+
+func (q *Queries) CountActiveAdminOperators(ctx context.Context) (int32, error) {
+	row := q.db.QueryRow(ctx, countActiveAdminOperators)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createOperator = `-- name: CreateOperator :exec
 INSERT INTO operators (
     id,
@@ -40,6 +54,42 @@ func (q *Queries) CreateOperator(ctx context.Context, arg CreateOperatorParams) 
 		arg.PasswordHash,
 	)
 	return err
+}
+
+const deactivateOperator = `-- name: DeactivateOperator :one
+WITH locked_active_admins AS (
+    SELECT id
+    FROM operators
+    WHERE role = 'admin'
+      AND active = true
+    FOR UPDATE
+),
+active_admin_count AS (
+    SELECT count(*) AS value
+    FROM locked_active_admins
+),
+updated AS (
+    UPDATE operators
+    SET
+        active = false,
+        updated_at = now()
+    WHERE operators.id = $1
+      AND operators.active = true
+      AND NOT (
+          operators.role = 'admin'
+          AND (SELECT value FROM active_admin_count) <= 1
+      )
+    RETURNING operators.id
+)
+SELECT count(*)::int
+FROM updated
+`
+
+func (q *Queries) DeactivateOperator(ctx context.Context, id string) (int32, error) {
+	row := q.db.QueryRow(ctx, deactivateOperator, id)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const getOperatorByID = `-- name: GetOperatorByID :one

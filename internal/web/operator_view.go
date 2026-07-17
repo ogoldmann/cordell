@@ -3,26 +3,32 @@ package web
 import (
 	"time"
 
+	"cordell/internal/domain"
 	"cordell/internal/ports"
 )
 
 type operatorSummaryView struct {
-	ID        string
-	Username  string
-	Role      string
-	RoleLabel string
-	Active    bool
-	CreatedAt string
+	ID            string
+	Username      string
+	Role          string
+	RoleLabel     string
+	Active        bool
+	CreatedAt     string
+	CanDeactivate bool
 }
 
-func newOperatorSummaryView(operator ports.OperatorSummary) operatorSummaryView {
+func newOperatorSummaryView(
+	operator ports.OperatorSummary,
+	currentOperatorID domain.OperatorID,
+) operatorSummaryView {
 	return operatorSummaryView{
-		ID:        string(operator.ID),
-		Username:  operator.Username,
-		Role:      operator.Role.String(),
-		RoleLabel: operator.Role.Label(),
-		Active:    operator.Active,
-		CreatedAt: formatTimestamp(operator.CreatedAt),
+		ID:            string(operator.ID),
+		Username:      operator.Username,
+		Role:          operator.Role.String(),
+		RoleLabel:     operator.Role.Label(),
+		Active:        operator.Active,
+		CreatedAt:     formatTimestamp(operator.CreatedAt),
+		CanDeactivate: operator.Active && operator.ID != currentOperatorID,
 	}
 }
 

@@ -427,6 +427,63 @@ func (r *fakeOperatorSessionRepository) DeleteExpired(_ context.Context, now tim
 	return nil
 }
 
+func (r *fakeOperatorRepository) List(_ context.Context, limit int) ([]ports.OperatorSummary, error) {
+	if limit > len(r.summaries) {
+		limit = len(r.summaries)
+	}
+
+	return r.summaries[:limit], nil
+}
+
+func (r *fakeOperatorRepository) Deactivate(_ context.Context, id domain.OperatorID) (bool, error) {
+	operator, ok := r.byID[id]
+	if !ok {
+		return false, nil
+	}
+
+	if !operator.Active() {
+		return false, nil
+	}
+
+	deactivatedOperator, err := domain.ReconstituteOperator(
+		operator.ID(),
+		operator.Username(),
+		operator.Role(),
+		operator.PasswordHash(),
+		false,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	r.byID[id] = deactivatedOperator
+	r.byUsername[deactivatedOperator.Username()] = deactivatedOperator
+
+	return true, nil
+}
+
+func (r *fakeOperatorRepository) CountActiveAdmins(_ context.Context) (int, error) {
+	count := 0
+
+	for _, operator := range r.byID {
+		if operator.Active() && operator.Role() == domain.OperatorRoleAdmin {
+			count++
+		}
+	}
+
+	return count, nil
+}
+
+func (r *fakeOperatorSessionRepository) DeleteByOperatorID(_ context.Context, operatorID domain.OperatorID) error {
+	for tokenHash, session := range r.byTokenHash {
+		if session.OperatorID() == operatorID {
+			delete(r.byTokenHash, tokenHash)
+		}
+	}
+
+	return nil
+}
+
 type fixedSessionTokenGenerator struct {
 	token string
 	err   error
@@ -444,12 +501,4 @@ type plainSessionTokenHasher struct{}
 
 func (h plainSessionTokenHasher) Hash(token string) string {
 	return "hash:" + token
-}
-
-func (r *fakeOperatorRepository) List(_ context.Context, limit int) ([]ports.OperatorSummary, error) {
-	if limit > len(r.summaries) {
-		limit = len(r.summaries)
-	}
-
-	return r.summaries[:limit], nil
 }

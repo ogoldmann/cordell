@@ -71,6 +71,7 @@ func (s *Server) Routes() http.Handler {
 			admin.Get("/admin/operators", s.handleAdminOperatorsIndex)
 			admin.Get("/admin/operators/new", s.handleNewAdminOperatorForm)
 			admin.Post("/admin/operators", s.handleCreateAdminOperator)
+			admin.Post("/admin/operators/{id}/deactivate", s.handleDeactivateAdminOperator)
 
 		})
 

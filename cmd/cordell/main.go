@@ -62,6 +62,10 @@ func main() {
 			operatorRepository,
 			passwordHasher,
 		),
+		DeactivateOperator: app.NewDeactivateOperatorService(
+			operatorRepository,
+			sessionRepository,
+		),
 		CreateOperatorSession: app.NewCreateOperatorSessionService(
 			sessionRepository,
 			idGenerator,

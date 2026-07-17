@@ -63,6 +63,11 @@ func (r *OperatorSessionRepository) DeleteByTokenHash(ctx context.Context, token
 	return r.queries.DeleteOperatorSessionByTokenHash(ctx, tokenHash)
 }
 
+// DeleteByOperatorID deletes all sessions for an operator.
+func (r *OperatorSessionRepository) DeleteByOperatorID(ctx context.Context, operatorID domain.OperatorID) error {
+	return r.queries.DeleteOperatorSessionsByOperatorID(ctx, string(operatorID))
+}
+
 // DeleteExpired deletes expired operator sessions.
 func (r *OperatorSessionRepository) DeleteExpired(ctx context.Context, now time.Time) error {
 	return r.queries.DeleteExpiredOperatorSessions(ctx, timeToTimestamptz(now))

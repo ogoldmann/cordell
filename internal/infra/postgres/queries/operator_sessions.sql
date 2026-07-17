@@ -33,3 +33,7 @@ WHERE token_hash = @token_hash;
 -- name: DeleteExpiredOperatorSessions :exec
 DELETE FROM operator_sessions
 WHERE expires_at <= @now;
+
+-- name: DeleteOperatorSessionsByOperatorID :exec
+DELETE FROM operator_sessions
+WHERE operator_id = @operator_id;

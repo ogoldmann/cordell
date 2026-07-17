@@ -110,3 +110,23 @@ func (r *OperatorRepository) List(ctx context.Context, limit int) ([]ports.Opera
 
 	return operators, nil
 }
+
+// Deactivate marks an operator as inactive.
+func (r *OperatorRepository) Deactivate(ctx context.Context, id domain.OperatorID) (bool, error) {
+	updatedCount, err := r.queries.DeactivateOperator(ctx, string(id))
+	if err != nil {
+		return false, err
+	}
+
+	return updatedCount > 0, nil
+}
+
+// CountActiveAdmins counts active admin operators.
+func (r *OperatorRepository) CountActiveAdmins(ctx context.Context) (int, error) {
+	count, err := r.queries.CountActiveAdminOperators(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
+}
