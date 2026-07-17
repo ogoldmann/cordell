@@ -416,7 +416,13 @@ func (r *fakeOperatorSessionRepository) DeleteByTokenHash(_ context.Context, tok
 	return nil
 }
 
-func (r *fakeOperatorSessionRepository) DeleteExpired(_ context.Context, _ time.Time) error {
+func (r *fakeOperatorSessionRepository) DeleteExpired(_ context.Context, now time.Time) error {
+	for tokenHash, session := range r.byTokenHash {
+		if session.Expired(now) {
+			delete(r.byTokenHash, tokenHash)
+		}
+	}
+
 	return nil
 }
 

@@ -41,6 +41,8 @@
     method="post"
     action="/login"
   >
+    <input type="hidden" name="return_to" value="{{.ReturnTo}}">
+    
     <div class="grid gap-4">
       <div class="grid gap-2">
         <label class="text-sm font-bold" for="username">Username</label>

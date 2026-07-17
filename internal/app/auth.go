@@ -247,3 +247,32 @@ type CurrentOperatorSession struct {
 	Operator domain.Operator
 	Session  domain.OperatorSession
 }
+
+// DeleteExpiredOperatorSessionsCommand contains input required to delete expired sessions.
+type DeleteExpiredOperatorSessionsCommand struct {
+	Now time.Time
+}
+
+// DeleteExpiredOperatorSessionsService deletes expired operator sessions.
+type DeleteExpiredOperatorSessionsService struct {
+	sessionRepository ports.OperatorSessionRepository
+}
+
+// NewDeleteExpiredOperatorSessionsService creates a DeleteExpiredOperatorSessionsService.
+func NewDeleteExpiredOperatorSessionsService(
+	sessionRepository ports.OperatorSessionRepository,
+) *DeleteExpiredOperatorSessionsService {
+	return &DeleteExpiredOperatorSessionsService{
+		sessionRepository: sessionRepository,
+	}
+}
+
+// Execute deletes expired operator sessions.
+func (s *DeleteExpiredOperatorSessionsService) Execute(ctx context.Context, cmd DeleteExpiredOperatorSessionsCommand) error {
+	now := cmd.Now.UTC()
+	if now.IsZero() {
+		now = time.Now().UTC()
+	}
+
+	return s.sessionRepository.DeleteExpired(ctx, now)
+}

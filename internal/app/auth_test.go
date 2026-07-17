@@ -159,3 +159,54 @@ func TestDeleteOperatorSessionServiceExecute(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 }
+
+func TestDeleteExpiredOperatorSessionsServiceExecute(t *testing.T) {
+	now := time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)
+
+	activeSession, err := domain.NewOperatorSession(
+		"session-1",
+		"operator-1",
+		"hash:active-token",
+		"csrf-token-1",
+		now.Add(time.Hour),
+		now,
+	)
+	if err != nil {
+		t.Fatalf("expected valid active session, got %v", err)
+	}
+
+	expiredSession, err := domain.NewOperatorSession(
+		"session-2",
+		"operator-1",
+		"hash:expired-token",
+		"csrf-token-2",
+		now.Add(-time.Hour),
+		now.Add(-2*time.Hour),
+	)
+	if err != nil {
+		t.Fatalf("expected valid expired session, got %v", err)
+	}
+
+	repository := &fakeOperatorSessionRepository{
+		byTokenHash: map[string]domain.OperatorSession{
+			activeSession.TokenHash():  activeSession,
+			expiredSession.TokenHash(): expiredSession,
+		},
+	}
+
+	service := NewDeleteExpiredOperatorSessionsService(repository)
+
+	if err := service.Execute(context.Background(), DeleteExpiredOperatorSessionsCommand{
+		Now: now,
+	}); err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if _, ok := repository.byTokenHash[activeSession.TokenHash()]; !ok {
+		t.Fatal("expected active session to remain")
+	}
+
+	if _, ok := repository.byTokenHash[expiredSession.TokenHash()]; ok {
+		t.Fatal("expected expired session to be deleted")
+	}
+}

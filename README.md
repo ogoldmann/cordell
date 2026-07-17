@@ -466,6 +466,8 @@ CORDELL_SESSION_COOKIE_SECURE=true
 Login, logout, and session creation are implemented.
 Route protection and CSRF protection are implemented.
 
+Expired sessions are deleted during login and when expired sessions are encountered while loading the current operator.
+
 ## Admin CLI
 
 Cordell includes a local administrative CLI for bootstrap tasks.
@@ -547,3 +549,16 @@ CORDELL_ENABLE_HSTS=true
 HSTS should only be enabled in HTTPS environments.
 
 The current CSP allows inline scripts and inline styles because the UI still uses an inline theme bootstrap script and server-rendered Tailwind output. This may be tightened later.
+
+## Authentication Hardening
+
+Cordell includes basic authentication hardening:
+
+- failed login rate limiting
+- expired session cleanup during login
+- redirect back to the originally requested private URL after login
+- local-path validation for post-login redirects to prevent open redirects
+
+The login rate limiter is currently in-memory and intended for the current single-node application architecture.
+
+If Cordell is deployed across multiple instances later, login throttling should move to shared storage such as PostgreSQL or Redis.

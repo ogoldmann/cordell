@@ -77,6 +77,9 @@ func main() {
 			sessionRepository,
 			sessionTokenHasher,
 		),
+		DeleteExpiredOperatorSessions: app.NewDeleteExpiredOperatorSessionsService(
+			sessionRepository,
+		),
 		CreatePersonnel: app.NewCreatePersonnelService(
 			personnelRepository,
 			idGenerator,

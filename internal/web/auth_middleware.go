@@ -49,7 +49,7 @@ func (s *Server) requireAuthentication(next http.Handler) http.Handler {
 		}
 
 		if r.Method == http.MethodGet {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			http.Redirect(w, r, "/login?return_to="+queryEscape(currentRequestPath(r)), http.StatusSeeOther)
 			return
 		}
 

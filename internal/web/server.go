@@ -16,6 +16,7 @@ type Server struct {
 	renderer              *Renderer
 	sessionCookieConfig   sessionCookieConfig
 	securityHeadersConfig securityHeadersConfig
+	loginRateLimiter      *loginRateLimiter
 }
 
 // NewServer creates a Server with its required dependencies.
@@ -36,6 +37,7 @@ func NewServer(
 		renderer:              renderer,
 		sessionCookieConfig:   sessionCookieConfig,
 		securityHeadersConfig: securityHeadersConfig,
+		loginRateLimiter:      newLoginRateLimiter(),
 	}, nil
 }
 
