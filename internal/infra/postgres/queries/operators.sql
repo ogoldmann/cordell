@@ -79,3 +79,32 @@ updated AS (
 )
 SELECT count(*)::int
 FROM updated;
+
+-- name: ChangeOperatorRole :one
+WITH locked_active_admins AS (
+    SELECT id
+    FROM operators
+    WHERE role = 'admin'
+      AND active = true
+    FOR UPDATE
+),
+active_admin_count AS (
+    SELECT count(*) AS value
+    FROM locked_active_admins
+),
+updated AS (
+    UPDATE operators
+    SET
+        role = sqlc.arg(role)::text,
+        updated_at = now()
+    WHERE operators.id = sqlc.arg(id)
+      AND NOT (
+          operators.role = 'admin'
+          AND operators.active = true
+          AND sqlc.arg(role)::text <> 'admin'
+          AND (SELECT value FROM active_admin_count) <= 1
+      )
+    RETURNING operators.id
+)
+SELECT count(*)::int
+FROM updated;

@@ -5,6 +5,7 @@ type Services struct {
 	CreateOperator     *CreateOperatorService
 	ListOperators      *ListOperatorsService
 	DeactivateOperator *DeactivateOperatorService
+	ChangeOperatorRole *ChangeOperatorRoleService
 
 	AuthenticateOperator          *AuthenticateOperatorService
 	CreateOperatorSession         *CreateOperatorSessionService

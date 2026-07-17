@@ -635,3 +635,16 @@ Operator deactivation:
 - is protected by CSRF
 
 Inactive operators cannot authenticate.
+
+Admins can change operator roles from the web admin area.
+
+Operator role changes:
+
+- require an authenticated admin
+- are protected by CSRF
+- cannot target the currently authenticated operator
+- cannot demote the last active admin
+- invalidate active sessions for the changed operator
+- support the `admin` and `operator` roles
+
+This keeps role changes effective immediately and avoids stale privileged sessions.

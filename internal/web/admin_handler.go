@@ -34,12 +34,6 @@ type adminOperatorNewPageData struct {
 	ConfirmPassword string
 }
 
-type operatorRoleOptionView struct {
-	Value    string
-	Label    string
-	Selected bool
-}
-
 func (s *Server) handleAdminIndex(w http.ResponseWriter, r *http.Request) {
 	if err := s.renderer.Render(w, http.StatusOK, "admin_index.html", adminIndexPageData{
 		privateLayoutData: newPrivateLayoutData(r),
@@ -193,6 +187,34 @@ func (s *Server) handleDeactivateAdminOperator(w http.ResponseWriter, r *http.Re
 	http.Redirect(w, r, "/admin/operators", http.StatusSeeOther)
 }
 
+func (s *Server) handleChangeAdminOperatorRole(w http.ResponseWriter, r *http.Request) {
+	currentOperator, ok := currentOperatorFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	operatorID := domain.OperatorID(chi.URLParam(r, "id"))
+	role := r.FormValue("role")
+
+	err := s.services.ChangeOperatorRole.Execute(r.Context(), app.ChangeOperatorRoleCommand{
+		CurrentOperatorID: currentOperator.ID(),
+		OperatorID:        operatorID,
+		Role:              role,
+	})
+	if err != nil {
+		s.renderAdminOperatorsIndex(
+			w,
+			r,
+			http.StatusBadRequest,
+			humanizeChangeOperatorRoleWebError(err),
+		)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/operators", http.StatusSeeOther)
+}
+
 func newAdminOperatorNewPageData(
 	r *http.Request,
 	data adminOperatorNewPageData,
@@ -205,13 +227,7 @@ func newAdminOperatorNewPageData(
 
 	data.RoleOptions = make([]operatorRoleOptionView, 0, len(domain.OperatorRoleOptions()))
 
-	for _, role := range domain.OperatorRoleOptions() {
-		data.RoleOptions = append(data.RoleOptions, operatorRoleOptionView{
-			Value:    role.String(),
-			Label:    role.Label(),
-			Selected: role.String() == data.SelectedRole,
-		})
-	}
+	data.RoleOptions = newOperatorRoleOptionViews(data.SelectedRole)
 
 	return data
 }
@@ -247,5 +263,22 @@ func humanizeDeactivateOperatorWebError(err error) string {
 		return "Operator not found."
 	default:
 		return "Could not deactivate operator."
+	}
+}
+
+func humanizeChangeOperatorRoleWebError(err error) string {
+	switch {
+	case errors.Is(err, domain.ErrCannotChangeCurrentOperatorRole):
+		return "You cannot change your own operator role."
+	case errors.Is(err, domain.ErrCannotDemoteLastAdmin):
+		return "You cannot demote the last active admin."
+	case errors.Is(err, domain.ErrEmptyOperatorRole):
+		return "Role is required."
+	case errors.Is(err, domain.ErrInvalidOperatorRole):
+		return "Role must be either admin or operator."
+	case errors.Is(err, ports.ErrNotFound):
+		return "Operator not found."
+	default:
+		return "Could not change operator role."
 	}
 }

@@ -225,3 +225,219 @@ func TestDeactivateOperatorServiceRejectsLastAdmin(t *testing.T) {
 		t.Fatalf("expected ErrCannotDeactivateLastAdmin, got %v", err)
 	}
 }
+
+func TestChangeOperatorRoleServiceExecute(t *testing.T) {
+	now := time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)
+
+	admin, err := domain.NewOperator(
+		"operator-1",
+		"admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid admin, got %v", err)
+	}
+
+	clerk, err := domain.NewOperator(
+		"operator-2",
+		"clerk",
+		domain.OperatorRoleOperator,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid clerk, got %v", err)
+	}
+
+	session, err := domain.NewOperatorSession(
+		"session-1",
+		clerk.ID(),
+		"hash:token",
+		"csrf-token",
+		now.Add(time.Hour),
+		now,
+	)
+	if err != nil {
+		t.Fatalf("expected valid session, got %v", err)
+	}
+
+	operatorRepository := &fakeOperatorRepository{
+		byID: map[domain.OperatorID]domain.Operator{
+			admin.ID(): admin,
+			clerk.ID(): clerk,
+		},
+		byUsername: map[string]domain.Operator{
+			admin.Username(): admin,
+			clerk.Username(): clerk,
+		},
+	}
+
+	sessionRepository := &fakeOperatorSessionRepository{
+		byTokenHash: map[string]domain.OperatorSession{
+			session.TokenHash(): session,
+		},
+	}
+
+	service := NewChangeOperatorRoleService(operatorRepository, sessionRepository)
+
+	err = service.Execute(context.Background(), ChangeOperatorRoleCommand{
+		CurrentOperatorID: admin.ID(),
+		OperatorID:        clerk.ID(),
+		Role:              domain.OperatorRoleAdmin.String(),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	changedClerk := operatorRepository.byID[clerk.ID()]
+	if changedClerk.Role() != domain.OperatorRoleAdmin {
+		t.Fatalf("expected clerk to become admin, got %s", changedClerk.Role())
+	}
+
+	if _, ok := sessionRepository.byTokenHash[session.TokenHash()]; ok {
+		t.Fatal("expected clerk sessions to be deleted")
+	}
+}
+
+func TestChangeOperatorRoleServiceRejectsCurrentOperator(t *testing.T) {
+	admin, err := domain.NewOperator(
+		"operator-1",
+		"admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid admin, got %v", err)
+	}
+
+	operatorRepository := &fakeOperatorRepository{
+		byID: map[domain.OperatorID]domain.Operator{
+			admin.ID(): admin,
+		},
+		byUsername: map[string]domain.Operator{
+			admin.Username(): admin,
+		},
+	}
+
+	sessionRepository := &fakeOperatorSessionRepository{
+		byTokenHash: map[string]domain.OperatorSession{},
+	}
+
+	service := NewChangeOperatorRoleService(operatorRepository, sessionRepository)
+
+	err = service.Execute(context.Background(), ChangeOperatorRoleCommand{
+		CurrentOperatorID: admin.ID(),
+		OperatorID:        admin.ID(),
+		Role:              domain.OperatorRoleOperator.String(),
+	})
+	if err != domain.ErrCannotChangeCurrentOperatorRole {
+		t.Fatalf("expected ErrCannotChangeCurrentOperatorRole, got %v", err)
+	}
+}
+
+func TestChangeOperatorRoleServiceRejectsDemotingLastAdmin(t *testing.T) {
+	currentAdmin, err := domain.NewOperator(
+		"operator-1",
+		"current-admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid current admin, got %v", err)
+	}
+
+	targetAdmin, err := domain.NewOperator(
+		"operator-2",
+		"target-admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid target admin, got %v", err)
+	}
+
+	inactiveCurrentAdmin, err := domain.ReconstituteOperator(
+		currentAdmin.ID(),
+		currentAdmin.Username(),
+		currentAdmin.Role(),
+		currentAdmin.PasswordHash(),
+		false,
+	)
+	if err != nil {
+		t.Fatalf("expected valid inactive current admin, got %v", err)
+	}
+
+	operatorRepository := &fakeOperatorRepository{
+		byID: map[domain.OperatorID]domain.Operator{
+			inactiveCurrentAdmin.ID(): inactiveCurrentAdmin,
+			targetAdmin.ID():          targetAdmin,
+		},
+		byUsername: map[string]domain.Operator{
+			inactiveCurrentAdmin.Username(): inactiveCurrentAdmin,
+			targetAdmin.Username():          targetAdmin,
+		},
+	}
+
+	sessionRepository := &fakeOperatorSessionRepository{
+		byTokenHash: map[string]domain.OperatorSession{},
+	}
+
+	service := NewChangeOperatorRoleService(operatorRepository, sessionRepository)
+
+	err = service.Execute(context.Background(), ChangeOperatorRoleCommand{
+		CurrentOperatorID: inactiveCurrentAdmin.ID(),
+		OperatorID:        targetAdmin.ID(),
+		Role:              domain.OperatorRoleOperator.String(),
+	})
+	if err != domain.ErrCannotDemoteLastAdmin {
+		t.Fatalf("expected ErrCannotDemoteLastAdmin, got %v", err)
+	}
+}
+
+func TestChangeOperatorRoleServiceRejectsInvalidRole(t *testing.T) {
+	admin, err := domain.NewOperator(
+		"operator-1",
+		"admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid admin, got %v", err)
+	}
+
+	clerk, err := domain.NewOperator(
+		"operator-2",
+		"clerk",
+		domain.OperatorRoleOperator,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid clerk, got %v", err)
+	}
+
+	operatorRepository := &fakeOperatorRepository{
+		byID: map[domain.OperatorID]domain.Operator{
+			admin.ID(): admin,
+			clerk.ID(): clerk,
+		},
+		byUsername: map[string]domain.Operator{
+			admin.Username(): admin,
+			clerk.Username(): clerk,
+		},
+	}
+
+	sessionRepository := &fakeOperatorSessionRepository{
+		byTokenHash: map[string]domain.OperatorSession{},
+	}
+
+	service := NewChangeOperatorRoleService(operatorRepository, sessionRepository)
+
+	err = service.Execute(context.Background(), ChangeOperatorRoleCommand{
+		CurrentOperatorID: admin.ID(),
+		OperatorID:        clerk.ID(),
+		Role:              "root",
+	})
+	if err != domain.ErrInvalidOperatorRole {
+		t.Fatalf("expected ErrInvalidOperatorRole, got %v", err)
+	}
+}

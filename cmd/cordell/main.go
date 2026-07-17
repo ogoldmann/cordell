@@ -66,6 +66,10 @@ func main() {
 			operatorRepository,
 			sessionRepository,
 		),
+		ChangeOperatorRole: app.NewChangeOperatorRoleService(
+			operatorRepository,
+			sessionRepository,
+		),
 		CreateOperatorSession: app.NewCreateOperatorSessionService(
 			sessionRepository,
 			idGenerator,

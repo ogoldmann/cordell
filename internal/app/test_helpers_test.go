@@ -462,6 +462,33 @@ func (r *fakeOperatorRepository) Deactivate(_ context.Context, id domain.Operato
 	return true, nil
 }
 
+func (r *fakeOperatorRepository) ChangeRole(
+	_ context.Context,
+	id domain.OperatorID,
+	role domain.OperatorRole,
+) (bool, error) {
+	operator, ok := r.byID[id]
+	if !ok {
+		return false, nil
+	}
+
+	changedOperator, err := domain.ReconstituteOperator(
+		operator.ID(),
+		operator.Username(),
+		role,
+		operator.PasswordHash(),
+		operator.Active(),
+	)
+	if err != nil {
+		return false, err
+	}
+
+	r.byID[id] = changedOperator
+	r.byUsername[changedOperator.Username()] = changedOperator
+
+	return true, nil
+}
+
 func (r *fakeOperatorRepository) CountActiveAdmins(_ context.Context) (int, error) {
 	count := 0
 

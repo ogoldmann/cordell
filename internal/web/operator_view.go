@@ -15,6 +15,14 @@ type operatorSummaryView struct {
 	Active        bool
 	CreatedAt     string
 	CanDeactivate bool
+	CanChangeRole bool
+	RoleOptions   []operatorRoleOptionView
+}
+
+type operatorRoleOptionView struct {
+	Value    string
+	Label    string
+	Selected bool
 }
 
 func newOperatorSummaryView(
@@ -29,7 +37,23 @@ func newOperatorSummaryView(
 		Active:        operator.Active,
 		CreatedAt:     formatTimestamp(operator.CreatedAt),
 		CanDeactivate: operator.Active && operator.ID != currentOperatorID,
+		CanChangeRole: operator.ID != currentOperatorID,
+		RoleOptions:   newOperatorRoleOptionViews(operator.Role.String()),
 	}
+}
+
+func newOperatorRoleOptionViews(selectedRole string) []operatorRoleOptionView {
+	options := make([]operatorRoleOptionView, 0, len(domain.OperatorRoleOptions()))
+
+	for _, role := range domain.OperatorRoleOptions() {
+		options = append(options, operatorRoleOptionView{
+			Value:    role.String(),
+			Label:    role.Label(),
+			Selected: role.String() == selectedRole,
+		})
+	}
+
+	return options
 }
 
 func formatTimestamp(value time.Time) string {

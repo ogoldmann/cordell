@@ -121,6 +121,23 @@ func (r *OperatorRepository) Deactivate(ctx context.Context, id domain.OperatorI
 	return updatedCount > 0, nil
 }
 
+// ChangeRole changes an operator role.
+func (r *OperatorRepository) ChangeRole(
+	ctx context.Context,
+	id domain.OperatorID,
+	role domain.OperatorRole,
+) (bool, error) {
+	updatedCount, err := r.queries.ChangeOperatorRole(ctx, db.ChangeOperatorRoleParams{
+		ID:   string(id),
+		Role: role.String(),
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return updatedCount > 0, nil
+}
+
 // CountActiveAdmins counts active admin operators.
 func (r *OperatorRepository) CountActiveAdmins(ctx context.Context) (int, error) {
 	count, err := r.queries.CountActiveAdminOperators(ctx)

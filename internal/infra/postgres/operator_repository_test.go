@@ -276,3 +276,103 @@ func TestPostgresOperatorRepositoryCountActiveAdmins(t *testing.T) {
 		t.Fatalf("expected 1 active admin, got %d", count)
 	}
 }
+
+func TestPostgresOperatorRepositoryChangeRole(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	operatorRepository := postgres.NewOperatorRepository(queries)
+
+	adminOperator, err := domain.NewOperator(
+		"operator-1",
+		"admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid admin operator, got %v", err)
+	}
+
+	regularOperator, err := domain.NewOperator(
+		"operator-2",
+		"clerk",
+		domain.OperatorRoleOperator,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid regular operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), adminOperator); err != nil {
+		t.Fatalf("expected no error saving admin operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), regularOperator); err != nil {
+		t.Fatalf("expected no error saving regular operator, got %v", err)
+	}
+
+	changed, err := operatorRepository.ChangeRole(
+		context.Background(),
+		regularOperator.ID(),
+		domain.OperatorRoleAdmin,
+	)
+	if err != nil {
+		t.Fatalf("expected no error changing role, got %v", err)
+	}
+
+	if !changed {
+		t.Fatal("expected operator role to be changed")
+	}
+
+	found, err := operatorRepository.FindByID(context.Background(), regularOperator.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding operator, got %v", err)
+	}
+
+	if found.Role() != domain.OperatorRoleAdmin {
+		t.Fatalf("expected admin role, got %s", found.Role())
+	}
+}
+
+func TestPostgresOperatorRepositoryDoesNotDemoteLastAdmin(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	operatorRepository := postgres.NewOperatorRepository(queries)
+
+	adminOperator, err := domain.NewOperator(
+		"operator-1",
+		"admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid admin operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), adminOperator); err != nil {
+		t.Fatalf("expected no error saving admin operator, got %v", err)
+	}
+
+	changed, err := operatorRepository.ChangeRole(
+		context.Background(),
+		adminOperator.ID(),
+		domain.OperatorRoleOperator,
+	)
+	if err != nil {
+		t.Fatalf("expected no error changing role, got %v", err)
+	}
+
+	if changed {
+		t.Fatal("expected last admin not to be demoted")
+	}
+
+	found, err := operatorRepository.FindByID(context.Background(), adminOperator.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding operator, got %v", err)
+	}
+
+	if found.Role() != domain.OperatorRoleAdmin {
+		t.Fatalf("expected admin role, got %s", found.Role())
+	}
+}

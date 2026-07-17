@@ -70,4 +70,7 @@ var (
 
 	ErrCannotDeactivateCurrentOperator = errors.New("cannot deactivate current operator")
 	ErrCannotDeactivateLastAdmin       = errors.New("cannot deactivate last admin")
+
+	ErrCannotChangeCurrentOperatorRole = errors.New("cannot change current operator role")
+	ErrCannotDemoteLastAdmin           = errors.New("cannot demote last admin")
 )

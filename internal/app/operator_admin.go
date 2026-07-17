@@ -110,3 +110,78 @@ func (s *DeactivateOperatorService) Execute(ctx context.Context, cmd DeactivateO
 
 	return s.sessionRepository.DeleteByOperatorID(ctx, operator.ID())
 }
+
+// ChangeOperatorRoleCommand contains input required to change an operator role.
+type ChangeOperatorRoleCommand struct {
+	CurrentOperatorID domain.OperatorID
+	OperatorID        domain.OperatorID
+	Role              string
+}
+
+// ChangeOperatorRoleService changes operator roles from administration workflows.
+type ChangeOperatorRoleService struct {
+	operatorRepository ports.OperatorRepository
+	sessionRepository  ports.OperatorSessionRepository
+}
+
+// NewChangeOperatorRoleService creates a ChangeOperatorRoleService.
+func NewChangeOperatorRoleService(
+	operatorRepository ports.OperatorRepository,
+	sessionRepository ports.OperatorSessionRepository,
+) *ChangeOperatorRoleService {
+	return &ChangeOperatorRoleService{
+		operatorRepository: operatorRepository,
+		sessionRepository:  sessionRepository,
+	}
+}
+
+// Execute changes an operator role and invalidates its sessions.
+func (s *ChangeOperatorRoleService) Execute(ctx context.Context, cmd ChangeOperatorRoleCommand) error {
+	if cmd.CurrentOperatorID == cmd.OperatorID {
+		return domain.ErrCannotChangeCurrentOperatorRole
+	}
+
+	role, err := domain.NewOperatorRole(cmd.Role)
+	if err != nil {
+		return err
+	}
+
+	operator, err := s.operatorRepository.FindByID(ctx, cmd.OperatorID)
+	if err != nil {
+		return err
+	}
+
+	if operator.Role() == role {
+		return nil
+	}
+
+	if operator.Active() &&
+		operator.Role() == domain.OperatorRoleAdmin &&
+		role != domain.OperatorRoleAdmin {
+		activeAdminCount, err := s.operatorRepository.CountActiveAdmins(ctx)
+		if err != nil {
+			return err
+		}
+
+		if activeAdminCount <= 1 {
+			return domain.ErrCannotDemoteLastAdmin
+		}
+	}
+
+	changed, err := s.operatorRepository.ChangeRole(ctx, operator.ID(), role)
+	if err != nil {
+		return err
+	}
+
+	if !changed {
+		if operator.Active() &&
+			operator.Role() == domain.OperatorRoleAdmin &&
+			role != domain.OperatorRoleAdmin {
+			return domain.ErrCannotDemoteLastAdmin
+		}
+
+		return ports.ErrNotFound
+	}
+
+	return s.sessionRepository.DeleteByOperatorID(ctx, operator.ID())
+}

@@ -77,6 +77,7 @@ type OperatorRepository interface {
 	FindByUsername(ctx context.Context, username string) (domain.Operator, error)
 	List(ctx context.Context, limit int) ([]OperatorSummary, error)
 	Deactivate(ctx context.Context, id domain.OperatorID) (bool, error)
+	ChangeRole(ctx context.Context, id domain.OperatorID, role domain.OperatorRole) (bool, error)
 	CountActiveAdmins(ctx context.Context) (int, error)
 }
 

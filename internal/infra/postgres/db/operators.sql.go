@@ -11,6 +11,48 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const changeOperatorRole = `-- name: ChangeOperatorRole :one
+WITH locked_active_admins AS (
+    SELECT id
+    FROM operators
+    WHERE role = 'admin'
+      AND active = true
+    FOR UPDATE
+),
+active_admin_count AS (
+    SELECT count(*) AS value
+    FROM locked_active_admins
+),
+updated AS (
+    UPDATE operators
+    SET
+        role = $1::text,
+        updated_at = now()
+    WHERE operators.id = $2
+      AND NOT (
+          operators.role = 'admin'
+          AND operators.active = true
+          AND $1::text <> 'admin'
+          AND (SELECT value FROM active_admin_count) <= 1
+      )
+    RETURNING operators.id
+)
+SELECT count(*)::int
+FROM updated
+`
+
+type ChangeOperatorRoleParams struct {
+	Role string `json:"role"`
+	ID   string `json:"id"`
+}
+
+func (q *Queries) ChangeOperatorRole(ctx context.Context, arg ChangeOperatorRoleParams) (int32, error) {
+	row := q.db.QueryRow(ctx, changeOperatorRole, arg.Role, arg.ID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const countActiveAdminOperators = `-- name: CountActiveAdminOperators :one
 SELECT count(*)::int
 FROM operators
