@@ -73,6 +73,7 @@ func (s *Server) Routes() http.Handler {
 			admin.Post("/admin/operators", s.handleCreateAdminOperator)
 			admin.Post("/admin/operators/{id}/deactivate", s.handleDeactivateAdminOperator)
 			admin.Post("/admin/operators/{id}/role", s.handleChangeAdminOperatorRole)
+			admin.Post("/admin/operators/{id}/password", s.handleResetAdminOperatorPassword)
 		})
 
 		private.Get("/personnel", s.handleListPersonnel)

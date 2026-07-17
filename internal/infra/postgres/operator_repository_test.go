@@ -376,3 +376,46 @@ func TestPostgresOperatorRepositoryDoesNotDemoteLastAdmin(t *testing.T) {
 		t.Fatalf("expected admin role, got %s", found.Role())
 	}
 }
+
+func TestPostgresOperatorRepositoryUpdatePasswordHash(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	operatorRepository := postgres.NewOperatorRepository(queries)
+
+	operator, err := domain.NewOperator(
+		"operator-1",
+		"admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$old-hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	updated, err := operatorRepository.UpdatePasswordHash(
+		context.Background(),
+		operator.ID(),
+		"$argon2id$new-hash",
+	)
+	if err != nil {
+		t.Fatalf("expected no error updating password hash, got %v", err)
+	}
+
+	if !updated {
+		t.Fatal("expected password hash to be updated")
+	}
+
+	found, err := operatorRepository.FindByID(context.Background(), operator.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding operator, got %v", err)
+	}
+
+	if found.PasswordHash() != "$argon2id$new-hash" {
+		t.Fatalf("expected updated password hash, got %s", found.PasswordHash())
+	}
+}

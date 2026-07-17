@@ -58,10 +58,6 @@ func main() {
 			passwordHasher,
 		),
 		ListOperators: app.NewListOperatorsService(operatorRepository),
-		AuthenticateOperator: app.NewAuthenticateOperatorService(
-			operatorRepository,
-			passwordHasher,
-		),
 		DeactivateOperator: app.NewDeactivateOperatorService(
 			operatorRepository,
 			sessionRepository,
@@ -69,6 +65,15 @@ func main() {
 		ChangeOperatorRole: app.NewChangeOperatorRoleService(
 			operatorRepository,
 			sessionRepository,
+		),
+		ResetOperatorPassword: app.NewResetOperatorPasswordService(
+			operatorRepository,
+			sessionRepository,
+			passwordHasher,
+		),
+		AuthenticateOperator: app.NewAuthenticateOperatorService(
+			operatorRepository,
+			passwordHasher,
 		),
 		CreateOperatorSession: app.NewCreateOperatorSessionService(
 			sessionRepository,

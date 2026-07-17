@@ -441,3 +441,172 @@ func TestChangeOperatorRoleServiceRejectsInvalidRole(t *testing.T) {
 		t.Fatalf("expected ErrInvalidOperatorRole, got %v", err)
 	}
 }
+
+func TestResetOperatorPasswordServiceExecute(t *testing.T) {
+	now := time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)
+
+	admin, err := domain.NewOperator(
+		"operator-1",
+		"admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$old-admin-hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid admin, got %v", err)
+	}
+
+	clerk, err := domain.NewOperator(
+		"operator-2",
+		"clerk",
+		domain.OperatorRoleOperator,
+		"$argon2id$old-clerk-hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid clerk, got %v", err)
+	}
+
+	session, err := domain.NewOperatorSession(
+		"session-1",
+		clerk.ID(),
+		"hash:token",
+		"csrf-token",
+		now.Add(time.Hour),
+		now,
+	)
+	if err != nil {
+		t.Fatalf("expected valid session, got %v", err)
+	}
+
+	operatorRepository := &fakeOperatorRepository{
+		byID: map[domain.OperatorID]domain.Operator{
+			admin.ID(): admin,
+			clerk.ID(): clerk,
+		},
+		byUsername: map[string]domain.Operator{
+			admin.Username(): admin,
+			clerk.Username(): clerk,
+		},
+	}
+
+	sessionRepository := &fakeOperatorSessionRepository{
+		byTokenHash: map[string]domain.OperatorSession{
+			session.TokenHash(): session,
+		},
+	}
+
+	service := NewResetOperatorPasswordService(
+		operatorRepository,
+		sessionRepository,
+		fakePasswordHasher{hash: "$argon2id$new-hash"},
+	)
+
+	err = service.Execute(context.Background(), ResetOperatorPasswordCommand{
+		CurrentOperatorID: admin.ID(),
+		OperatorID:        clerk.ID(),
+		Password:          "correct horse battery staple",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	updatedClerk := operatorRepository.byID[clerk.ID()]
+	if updatedClerk.PasswordHash() != "$argon2id$new-hash" {
+		t.Fatalf("expected new hash, got %s", updatedClerk.PasswordHash())
+	}
+
+	if _, ok := sessionRepository.byTokenHash[session.TokenHash()]; ok {
+		t.Fatal("expected clerk sessions to be deleted")
+	}
+}
+
+func TestResetOperatorPasswordServiceRejectsCurrentOperator(t *testing.T) {
+	admin, err := domain.NewOperator(
+		"operator-1",
+		"admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid admin, got %v", err)
+	}
+
+	operatorRepository := &fakeOperatorRepository{
+		byID: map[domain.OperatorID]domain.Operator{
+			admin.ID(): admin,
+		},
+		byUsername: map[string]domain.Operator{
+			admin.Username(): admin,
+		},
+	}
+
+	sessionRepository := &fakeOperatorSessionRepository{
+		byTokenHash: map[string]domain.OperatorSession{},
+	}
+
+	service := NewResetOperatorPasswordService(
+		operatorRepository,
+		sessionRepository,
+		fakePasswordHasher{hash: "$argon2id$new-hash"},
+	)
+
+	err = service.Execute(context.Background(), ResetOperatorPasswordCommand{
+		CurrentOperatorID: admin.ID(),
+		OperatorID:        admin.ID(),
+		Password:          "correct horse battery staple",
+	})
+	if err != domain.ErrCannotResetCurrentOperatorPassword {
+		t.Fatalf("expected ErrCannotResetCurrentOperatorPassword, got %v", err)
+	}
+}
+
+func TestResetOperatorPasswordServiceRejectsWeakPassword(t *testing.T) {
+	admin, err := domain.NewOperator(
+		"operator-1",
+		"admin",
+		domain.OperatorRoleAdmin,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid admin, got %v", err)
+	}
+
+	clerk, err := domain.NewOperator(
+		"operator-2",
+		"clerk",
+		domain.OperatorRoleOperator,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid clerk, got %v", err)
+	}
+
+	operatorRepository := &fakeOperatorRepository{
+		byID: map[domain.OperatorID]domain.Operator{
+			admin.ID(): admin,
+			clerk.ID(): clerk,
+		},
+		byUsername: map[string]domain.Operator{
+			admin.Username(): admin,
+			clerk.Username(): clerk,
+		},
+	}
+
+	sessionRepository := &fakeOperatorSessionRepository{
+		byTokenHash: map[string]domain.OperatorSession{},
+	}
+
+	service := NewResetOperatorPasswordService(
+		operatorRepository,
+		sessionRepository,
+		fakePasswordHasher{hash: "$argon2id$new-hash"},
+	)
+
+	err = service.Execute(context.Background(), ResetOperatorPasswordCommand{
+		CurrentOperatorID: admin.ID(),
+		OperatorID:        clerk.ID(),
+		Password:          "short",
+	})
+	if err != domain.ErrWeakOperatorPassword {
+		t.Fatalf("expected ErrWeakOperatorPassword, got %v", err)
+	}
+}

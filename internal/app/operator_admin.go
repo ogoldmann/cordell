@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"strings"
+	"unicode/utf8"
 
 	"cordell/internal/domain"
 	"cordell/internal/ports"
@@ -180,6 +182,73 @@ func (s *ChangeOperatorRoleService) Execute(ctx context.Context, cmd ChangeOpera
 			return domain.ErrCannotDemoteLastAdmin
 		}
 
+		return ports.ErrNotFound
+	}
+
+	return s.sessionRepository.DeleteByOperatorID(ctx, operator.ID())
+}
+
+// ResetOperatorPasswordCommand contains input required to reset an operator password.
+type ResetOperatorPasswordCommand struct {
+	CurrentOperatorID domain.OperatorID
+	OperatorID        domain.OperatorID
+	Password          string
+}
+
+// ResetOperatorPasswordService resets operator passwords from administration workflows.
+type ResetOperatorPasswordService struct {
+	operatorRepository ports.OperatorRepository
+	sessionRepository  ports.OperatorSessionRepository
+	passwordHasher     ports.PasswordHasher
+}
+
+// NewResetOperatorPasswordService creates a ResetOperatorPasswordService.
+func NewResetOperatorPasswordService(
+	operatorRepository ports.OperatorRepository,
+	sessionRepository ports.OperatorSessionRepository,
+	passwordHasher ports.PasswordHasher,
+) *ResetOperatorPasswordService {
+	return &ResetOperatorPasswordService{
+		operatorRepository: operatorRepository,
+		sessionRepository:  sessionRepository,
+		passwordHasher:     passwordHasher,
+	}
+}
+
+// Execute resets an operator password and invalidates its sessions.
+func (s *ResetOperatorPasswordService) Execute(ctx context.Context, cmd ResetOperatorPasswordCommand) error {
+	if cmd.CurrentOperatorID == cmd.OperatorID {
+		return domain.ErrCannotResetCurrentOperatorPassword
+	}
+
+	if strings.TrimSpace(cmd.Password) == "" {
+		return domain.ErrEmptyOperatorPassword
+	}
+
+	if utf8.RuneCountInString(cmd.Password) < minOperatorPasswordLength {
+		return domain.ErrWeakOperatorPassword
+	}
+
+	operator, err := s.operatorRepository.FindByID(ctx, cmd.OperatorID)
+	if err != nil {
+		return err
+	}
+
+	if !operator.Active() {
+		return ports.ErrNotFound
+	}
+
+	passwordHash, err := s.passwordHasher.Hash(cmd.Password)
+	if err != nil {
+		return err
+	}
+
+	updated, err := s.operatorRepository.UpdatePasswordHash(ctx, operator.ID(), passwordHash)
+	if err != nil {
+		return err
+	}
+
+	if !updated {
 		return ports.ErrNotFound
 	}
 

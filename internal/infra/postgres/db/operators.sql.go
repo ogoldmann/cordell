@@ -235,3 +235,29 @@ func (q *Queries) ListOperators(ctx context.Context, limitCount int32) ([]ListOp
 	}
 	return items, nil
 }
+
+const updateOperatorPasswordHash = `-- name: UpdateOperatorPasswordHash :one
+WITH updated AS (
+    UPDATE operators
+    SET
+        password_hash = $1,
+        updated_at = now()
+    WHERE id = $2
+      AND active = true
+    RETURNING id
+)
+SELECT count(*)::int
+FROM updated
+`
+
+type UpdateOperatorPasswordHashParams struct {
+	PasswordHash string `json:"password_hash"`
+	ID           string `json:"id"`
+}
+
+func (q *Queries) UpdateOperatorPasswordHash(ctx context.Context, arg UpdateOperatorPasswordHashParams) (int32, error) {
+	row := q.db.QueryRow(ctx, updateOperatorPasswordHash, arg.PasswordHash, arg.ID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}

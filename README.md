@@ -648,3 +648,18 @@ Operator role changes:
 - support the `admin` and `operator` roles
 
 This keeps role changes effective immediately and avoids stale privileged sessions.
+
+Admins can reset operator passwords from the web admin area.
+
+Password reset:
+
+- requires an authenticated admin
+- is protected by CSRF
+- cannot target the currently authenticated operator
+- requires password confirmation
+- uses the application password hashing service
+- invalidates active sessions for the changed operator
+- never displays password hashes
+- only applies to active operators
+
+This is an administrative reset flow, not a self-service password change flow.

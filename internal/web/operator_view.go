@@ -8,15 +8,16 @@ import (
 )
 
 type operatorSummaryView struct {
-	ID            string
-	Username      string
-	Role          string
-	RoleLabel     string
-	Active        bool
-	CreatedAt     string
-	CanDeactivate bool
-	CanChangeRole bool
-	RoleOptions   []operatorRoleOptionView
+	ID               string
+	Username         string
+	Role             string
+	RoleLabel        string
+	Active           bool
+	CreatedAt        string
+	CanDeactivate    bool
+	CanChangeRole    bool
+	CanResetPassword bool
+	RoleOptions      []operatorRoleOptionView
 }
 
 type operatorRoleOptionView struct {
@@ -30,15 +31,16 @@ func newOperatorSummaryView(
 	currentOperatorID domain.OperatorID,
 ) operatorSummaryView {
 	return operatorSummaryView{
-		ID:            string(operator.ID),
-		Username:      operator.Username,
-		Role:          operator.Role.String(),
-		RoleLabel:     operator.Role.Label(),
-		Active:        operator.Active,
-		CreatedAt:     formatTimestamp(operator.CreatedAt),
-		CanDeactivate: operator.Active && operator.ID != currentOperatorID,
-		CanChangeRole: operator.ID != currentOperatorID,
-		RoleOptions:   newOperatorRoleOptionViews(operator.Role.String()),
+		ID:               string(operator.ID),
+		Username:         operator.Username,
+		Role:             operator.Role.String(),
+		RoleLabel:        operator.Role.Label(),
+		Active:           operator.Active,
+		CreatedAt:        formatTimestamp(operator.CreatedAt),
+		CanDeactivate:    operator.Active && operator.ID != currentOperatorID,
+		CanChangeRole:    operator.ID != currentOperatorID,
+		CanResetPassword: operator.Active && operator.ID != currentOperatorID,
+		RoleOptions:      newOperatorRoleOptionViews(operator.Role.String()),
 	}
 }
 

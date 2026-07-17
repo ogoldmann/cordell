@@ -511,6 +511,37 @@ func (r *fakeOperatorSessionRepository) DeleteByOperatorID(_ context.Context, op
 	return nil
 }
 
+func (r *fakeOperatorRepository) UpdatePasswordHash(
+	_ context.Context,
+	id domain.OperatorID,
+	passwordHash string,
+) (bool, error) {
+	operator, ok := r.byID[id]
+	if !ok {
+		return false, nil
+	}
+
+	if !operator.Active() {
+		return false, nil
+	}
+
+	updatedOperator, err := domain.ReconstituteOperator(
+		operator.ID(),
+		operator.Username(),
+		operator.Role(),
+		passwordHash,
+		operator.Active(),
+	)
+	if err != nil {
+		return false, err
+	}
+
+	r.byID[id] = updatedOperator
+	r.byUsername[updatedOperator.Username()] = updatedOperator
+
+	return true, nil
+}
+
 type fixedSessionTokenGenerator struct {
 	token string
 	err   error

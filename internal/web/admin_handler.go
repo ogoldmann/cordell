@@ -215,6 +215,50 @@ func (s *Server) handleChangeAdminOperatorRole(w http.ResponseWriter, r *http.Re
 	http.Redirect(w, r, "/admin/operators", http.StatusSeeOther)
 }
 
+func (s *Server) handleResetAdminOperatorPassword(w http.ResponseWriter, r *http.Request) {
+	currentOperator, ok := currentOperatorFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	operatorID := domain.OperatorID(chi.URLParam(r, "id"))
+	password := r.FormValue("password")
+	confirmPassword := r.FormValue("confirm_password")
+
+	if password != confirmPassword {
+		s.renderAdminOperatorsIndex(
+			w,
+			r,
+			http.StatusBadRequest,
+			"Passwords do not match.",
+		)
+		return
+	}
+
+	err := s.services.ResetOperatorPassword.Execute(r.Context(), app.ResetOperatorPasswordCommand{
+		CurrentOperatorID: currentOperator.ID(),
+		OperatorID:        operatorID,
+		Password:          password,
+	})
+	if err != nil {
+		s.renderAdminOperatorsIndex(
+			w,
+			r,
+			http.StatusBadRequest,
+			humanizeResetOperatorPasswordWebError(err),
+		)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/operators", http.StatusSeeOther)
+}
+
 func newAdminOperatorNewPageData(
 	r *http.Request,
 	data adminOperatorNewPageData,
@@ -280,5 +324,20 @@ func humanizeChangeOperatorRoleWebError(err error) string {
 		return "Operator not found."
 	default:
 		return "Could not change operator role."
+	}
+}
+
+func humanizeResetOperatorPasswordWebError(err error) string {
+	switch {
+	case errors.Is(err, domain.ErrCannotResetCurrentOperatorPassword):
+		return "You cannot reset your own password from this admin action."
+	case errors.Is(err, domain.ErrEmptyOperatorPassword):
+		return "Password is required."
+	case errors.Is(err, domain.ErrWeakOperatorPassword):
+		return "Password must have at least 15 characters."
+	case errors.Is(err, ports.ErrNotFound):
+		return "Operator not found or inactive."
+	default:
+		return "Could not reset operator password."
 	}
 }

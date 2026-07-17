@@ -138,6 +138,23 @@ func (r *OperatorRepository) ChangeRole(
 	return updatedCount > 0, nil
 }
 
+// UpdatePasswordHash updates an active operator password hash.
+func (r *OperatorRepository) UpdatePasswordHash(
+	ctx context.Context,
+	id domain.OperatorID,
+	passwordHash string,
+) (bool, error) {
+	updatedCount, err := r.queries.UpdateOperatorPasswordHash(ctx, db.UpdateOperatorPasswordHashParams{
+		ID:           string(id),
+		PasswordHash: passwordHash,
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return updatedCount > 0, nil
+}
+
 // CountActiveAdmins counts active admin operators.
 func (r *OperatorRepository) CountActiveAdmins(ctx context.Context) (int, error) {
 	count, err := r.queries.CountActiveAdminOperators(ctx)

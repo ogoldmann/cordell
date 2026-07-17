@@ -78,6 +78,7 @@ type OperatorRepository interface {
 	List(ctx context.Context, limit int) ([]OperatorSummary, error)
 	Deactivate(ctx context.Context, id domain.OperatorID) (bool, error)
 	ChangeRole(ctx context.Context, id domain.OperatorID, role domain.OperatorRole) (bool, error)
+	UpdatePasswordHash(ctx context.Context, id domain.OperatorID, passwordHash string) (bool, error)
 	CountActiveAdmins(ctx context.Context) (int, error)
 }
 

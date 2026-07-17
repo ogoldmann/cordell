@@ -108,3 +108,16 @@ updated AS (
 )
 SELECT count(*)::int
 FROM updated;
+
+-- name: UpdateOperatorPasswordHash :one
+WITH updated AS (
+    UPDATE operators
+    SET
+        password_hash = @password_hash,
+        updated_at = now()
+    WHERE id = @id
+      AND active = true
+    RETURNING id
+)
+SELECT count(*)::int
+FROM updated;

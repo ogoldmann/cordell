@@ -73,4 +73,6 @@ var (
 
 	ErrCannotChangeCurrentOperatorRole = errors.New("cannot change current operator role")
 	ErrCannotDemoteLastAdmin           = errors.New("cannot demote last admin")
+
+	ErrCannotResetCurrentOperatorPassword = errors.New("cannot reset current operator password")
 )
