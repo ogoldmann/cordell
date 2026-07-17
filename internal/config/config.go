@@ -18,6 +18,7 @@ type Config struct {
 	HTTPAddress         string
 	DatabaseURL         string
 	SessionCookieSecure bool
+	EnableHSTS          bool
 }
 
 // Load reads runtime settings from environment variables and applies safe defaults.
@@ -31,6 +32,7 @@ func Load() (Config, error) {
 		HTTPAddress:         getEnv("CORDELL_HTTP_ADDRESS", defaultHTTPAddress),
 		DatabaseURL:         databaseURL,
 		SessionCookieSecure: getEnvBool("CORDELL_SESSION_COOKIE_SECURE", false),
+		EnableHSTS:          getEnvBool("CORDELL_ENABLE_HSTS", false),
 	}, nil
 }
 

@@ -55,16 +55,24 @@
           Theme: Light
         </button>
 
-        <form method="post" action="/logout">
-          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-          
-          <button
-            class="inline-flex w-fit cursor-pointer items-center justify-center rounded-full border border-cordell-border bg-white px-3 py-1.5 text-xs font-bold text-cordell-text transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
-            type="submit"
-          >
-            Logout
-          </button>
-        </form>
+        {{if .HasOperator}}
+          <div class="flex flex-col gap-2 md:flex-row md:items-center">
+            <span class="text-xs font-bold text-cordell-muted dark:text-cordell-dark-muted">
+              Signed in as <span class="text-cordell-text dark:text-cordell-dark-text">{{.CurrentOperator.Username}}</span>
+            </span>
+
+            <form method="post" action="/logout">
+              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+              <button
+                class="inline-flex w-fit cursor-pointer items-center justify-center rounded-full border border-cordell-border bg-white px-3 py-1.5 text-xs font-bold text-cordell-text transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+                type="submit"
+              >
+                Logout
+              </button>
+            </form>
+          </div>
+        {{end}}
       </div>
     </div>
   </header>

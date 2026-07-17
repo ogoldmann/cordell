@@ -133,7 +133,12 @@ func main() {
 		),
 	}
 
-	server, err := web.NewServer(logger, services, web.NewSessionCookieConfig(cfg.SessionCookieSecure))
+	server, err := web.NewServer(
+		logger,
+		services,
+		web.NewSessionCookieConfig(cfg.SessionCookieSecure),
+		web.NewSecurityHeadersConfig(cfg.EnableHSTS),
+	)
 	if err != nil {
 		logger.Error("failed to create web server", "error", err)
 		os.Exit(1)

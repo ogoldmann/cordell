@@ -11,10 +11,11 @@ import (
 
 // Server owns the HTTP dependencies and route definitions for the application.
 type Server struct {
-	logger              *slog.Logger
-	services            app.Services
-	renderer            *Renderer
-	sessionCookieConfig sessionCookieConfig
+	logger                *slog.Logger
+	services              app.Services
+	renderer              *Renderer
+	sessionCookieConfig   sessionCookieConfig
+	securityHeadersConfig securityHeadersConfig
 }
 
 // NewServer creates a Server with its required dependencies.
@@ -22,6 +23,7 @@ func NewServer(
 	logger *slog.Logger,
 	services app.Services,
 	sessionCookieConfig sessionCookieConfig,
+	securityHeadersConfig securityHeadersConfig,
 ) (*Server, error) {
 	renderer, err := NewRenderer()
 	if err != nil {
@@ -29,10 +31,11 @@ func NewServer(
 	}
 
 	return &Server{
-		logger:              logger,
-		services:            services,
-		renderer:            renderer,
-		sessionCookieConfig: sessionCookieConfig,
+		logger:                logger,
+		services:              services,
+		renderer:              renderer,
+		sessionCookieConfig:   sessionCookieConfig,
+		securityHeadersConfig: securityHeadersConfig,
 	}, nil
 }
 
@@ -40,9 +43,16 @@ func NewServer(
 func (s *Server) Routes() http.Handler {
 	router := chi.NewRouter()
 
+	router.Use(s.securityHeaders)
+
 	router.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	router.Get("/login", s.handleLoginForm)
-	router.Post("/login", s.handleLogin)
+
+	router.Group(func(public chi.Router) {
+		public.Use(s.loadCurrentOperator)
+
+		public.Get("/login", s.handleLoginForm)
+		public.Post("/login", s.handleLogin)
+	})
 
 	router.Group(func(private chi.Router) {
 		private.Use(s.loadCurrentOperator)

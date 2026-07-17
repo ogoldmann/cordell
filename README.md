@@ -526,3 +526,24 @@ The current implementation uses a synchronizer token pattern:
 Safe methods such as `GET`, `HEAD`, and `OPTIONS` do not require CSRF tokens.
 
 Public login CSRF protection may be revisited later with a pre-session flow if needed.
+
+## Security Headers
+
+Cordell sends baseline HTTP security headers.
+
+Current headers:
+
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Content-Security-Policy`
+- `Permissions-Policy`
+
+HSTS is configurable through:
+
+```env
+CORDELL_ENABLE_HSTS=true
+```
+
+HSTS should only be enabled in HTTPS environments.
+
+The current CSP allows inline scripts and inline styles because the UI still uses an inline theme bootstrap script and server-rendered Tailwind output. This may be tightened later.

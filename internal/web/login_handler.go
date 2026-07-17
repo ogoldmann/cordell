@@ -16,6 +16,11 @@ type loginPageData struct {
 }
 
 func (s *Server) handleLoginForm(w http.ResponseWriter, r *http.Request) {
+	if _, ok := currentOperatorFromContext(r.Context()); ok {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	if err := s.renderer.Render(w, http.StatusOK, "login.html", loginPageData{
 		Title: "Login",
 	}); err != nil {
@@ -24,6 +29,11 @@ func (s *Server) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
+	if _, ok := currentOperatorFromContext(r.Context()); ok {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
