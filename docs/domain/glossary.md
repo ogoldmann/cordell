@@ -40,6 +40,20 @@ A custody receipt is a read-only view of a checkout or return transaction.
 
 It shows who received or returned assets, which authenticated operator registered the event, which assets were involved, quantities, notes, and timestamp.
 
+## Custody Correction
+
+A custody correction is a future explicit event used to correct a previously registered custody transaction.
+
+Corrections must not edit or delete the original transaction.
+
+A correction should explain what was wrong, who registered the correction, when it happened, and how it affects custody balances.
+
+## Custody Ledger
+
+The custody ledger is the append-only history of checkout, return, and future correction events.
+
+Current custody state should be derived from the ledger rather than manually overwritten.
+
 ## Operator
 
 A system user who performs actions inside Cordell.

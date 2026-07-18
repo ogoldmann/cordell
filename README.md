@@ -272,6 +272,29 @@ Receipts are read-only and generated from persisted custody transaction data.
 A custody receipt is a read-only view of a checkout or return transaction.
 
 It shows who received or returned assets, which authenticated operator registered the event, which assets were involved, quantities, notes, and timestamp.
+
+## Custody Corrections
+
+Cordell treats custody history as a ledger-like record.
+
+Existing custody transactions should not be edited or deleted to correct mistakes.
+
+The correction model is documented in:
+
+```txt
+docs/adr/0006-custody-correction-model.md
+```
+
+The accepted direction is:
+
+- original custody transactions remain immutable
+- corrections are explicit new events
+- corrections must preserve operator attribution
+- corrections must require a reason
+- corrections should generate receipts and audit events
+
+Correction implementation is deferred until the balance rules and workflow are designed.
+
 ## Dashboard
 
 The dashboard is available at:

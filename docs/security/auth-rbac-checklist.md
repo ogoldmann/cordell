@@ -97,6 +97,15 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Receipt shows assets and quantities.
 - [ ] Receipt does not expose password hashes, session tokens, or CSRF tokens.
 
+## Custody Correction Model
+
+- [ ] Existing custody transactions are not edited for correction.
+- [ ] Existing custody transactions are not deleted for correction.
+- [ ] Correction implementation follows ADR 0006.
+- [ ] Future correction events preserve operator attribution.
+- [ ] Future correction events require a reason.
+- [ ] Future correction events produce audit events.
+
 ## Audit Events
 
 - [ ] Creating an operator records `operator.created`.
