@@ -373,6 +373,30 @@ Personnel records include:
 
 The current validation mechanism accepts CPF-like identifiers, but the domain model does not expose a CPF-specific field name.
 
+## Personnel and Asset Lifecycle
+
+Cordell does not hard-delete personnel or asset records through normal application workflows.
+
+Personnel and assets use an active/inactive lifecycle.
+
+The accepted direction is documented in:
+
+```txt
+docs/adr/0007-personnel-asset-lifecycle.md
+```
+
+Lifecycle direction:
+
+- active records appear in normal operational workflows
+- inactive records are hidden from daily operational lists by default
+- inactive records remain available for history, receipts, and auditability
+- checkout requires active personnel and active assets
+- return may still clear existing custody if inactive records are involved
+- future deactivation/reactivation actions should be admin-only
+- future deactivation should require a reason
+- future deactivation should produce audit events
+- initial lifecycle implementation should prevent deactivation while current custody exists
+
 ## Development Database Reset
 
 During pre-release development, early migrations may still be edited to keep the baseline schema clean.

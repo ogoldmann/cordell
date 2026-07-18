@@ -167,3 +167,18 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Audit write failures are logged as server-side errors.
 - [ ] Audit events are still treated as best-effort until a transaction boundary is implemented.
 - [ ] Production deployment review includes revisiting audit transaction boundaries.
+
+## Personnel and Asset Lifecycle
+
+- [ ] Personnel and assets are not hard-deleted through normal workflows.
+- [ ] Active records appear in normal operational workflows.
+- [ ] Inactive records are hidden from checkout workflows.
+- [ ] Inactive records remain visible in historical custody records.
+- [ ] Inactive records remain visible in custody receipts.
+- [ ] Checkout rejects inactive personnel.
+- [ ] Checkout rejects inactive assets.
+- [ ] Return can clear current custody involving inactive records.
+- [ ] Future deactivation actions require admin authorization.
+- [ ] Future deactivation actions require a reason.
+- [ ] Future deactivation actions produce audit events.
+- [ ] Future deactivation is blocked when current custody exists.

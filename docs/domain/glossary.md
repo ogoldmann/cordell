@@ -10,6 +10,34 @@ In the user interface, this may be presented as "militar", but the internal doma
 
 A material or item that can be checked out to personnel.
 
+## Personnel Lifecycle
+
+Personnel lifecycle describes whether a personnel record is available for normal operational workflows.
+
+Active personnel can receive new checkout.
+
+Inactive personnel should not receive new checkout but remain available for historical custody records, receipts, and auditability.
+
+## Asset Lifecycle
+
+Asset lifecycle describes whether an asset record is available for normal operational workflows.
+
+Active assets can be used in new checkout.
+
+Inactive assets should not be used in new checkout but remain available for historical custody records, receipts, and auditability.
+
+## Deactivation
+
+Deactivation removes a record from normal operational workflows without deleting it.
+
+Deactivation is different from deletion.
+
+A deactivated record remains part of historical custody records.
+
+## Reactivation
+
+Reactivation makes a previously inactive record available for normal operational workflows again.
+
 ## Custody
 
 The state of responsibility over one or more assets.
