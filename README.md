@@ -769,3 +769,17 @@ Audit events are append-only application records and are visible to admins at:
 ```
 
 Audit events must not include passwords, password hashes, session tokens, CSRF tokens, or raw form payloads.
+
+Audit events are append-only at the database level.
+
+The `audit_events` table rejects:
+
+- updates
+- deletes
+- truncation
+
+This protects against accidental mutation and reinforces the audit model. It is not yet a cryptographic tamper-evident chain.
+
+Audit recording currently happens after the main application action succeeds. If audit recording fails after the action has already completed, Cordell logs the audit failure as a server error instead of returning a misleading failure to the user.
+
+Future audit hardening should add stronger transaction boundaries and tamper-evident hashing.

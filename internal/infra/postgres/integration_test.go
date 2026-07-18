@@ -43,7 +43,10 @@ func cleanDatabase(t *testing.T, pool *pgxpool.Pool) {
 	_, err := pool.Exec(
 		context.Background(),
 		`
+		ALTER TABLE audit_events DISABLE TRIGGER USER;
+
 		TRUNCATE TABLE
+			audit_events,
 			custody_balances,
 			custody_lines,
 			custody_transactions,
@@ -52,6 +55,9 @@ func cleanDatabase(t *testing.T, pool *pgxpool.Pool) {
 			operator_sessions,
 			operators
 		RESTART IDENTITY CASCADE
+		;
+
+		ALTER TABLE audit_events ENABLE TRIGGER USER;
 		`,
 	)
 	if err != nil {

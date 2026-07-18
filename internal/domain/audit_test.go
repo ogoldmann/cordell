@@ -69,3 +69,24 @@ func TestAuditEventMetadataReturnsCopy(t *testing.T) {
 		t.Fatal("expected audit event metadata to be immutable from caller")
 	}
 }
+
+func TestNewAuditEventSanitizesMetadataValues(t *testing.T) {
+	event, err := NewAuditEvent(
+		"audit-1",
+		"operator-1",
+		AuditEventOperatorCreated,
+		AuditEntityOperator,
+		"operator-2",
+		AuditOutcomeSuccess,
+		map[string]string{
+			"note": "line one\nline two\rline three",
+		},
+	)
+	if err != nil {
+		t.Fatalf("expected valid audit event, got %v", err)
+	}
+
+	if event.Metadata()["note"] != "line one line two line three" {
+		t.Fatalf("expected sanitized metadata, got %q", event.Metadata()["note"])
+	}
+}

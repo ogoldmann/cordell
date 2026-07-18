@@ -77,7 +77,7 @@ func NewAuditEvent(
 			continue
 		}
 
-		copiedMetadata[key] = strings.TrimSpace(value)
+		copiedMetadata[key] = sanitizeAuditMetadataValue(value)
 	}
 
 	return AuditEvent{
@@ -122,4 +122,12 @@ func (e AuditEvent) Metadata() map[string]string {
 	}
 
 	return copiedMetadata
+}
+
+func sanitizeAuditMetadataValue(value string) string {
+	value = strings.TrimSpace(value)
+	value = strings.ReplaceAll(value, "\r", " ")
+	value = strings.ReplaceAll(value, "\n", " ")
+
+	return value
 }

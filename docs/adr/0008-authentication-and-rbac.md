@@ -60,6 +60,10 @@ Operator deletion is intentionally not implemented. Operators are identities and
 
 ## Consequences
 
+Audit events are append-only at the database level through triggers that reject update, delete, and truncate operations.
+
+This is not yet cryptographic tamper evidence. A later milestone should add a canonical event payload and chained hashes.
+
 Benefits:
 
 - password hashes are never exposed in admin read models

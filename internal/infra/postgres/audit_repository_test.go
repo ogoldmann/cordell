@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"cordell/internal/domain"
@@ -93,5 +94,93 @@ func TestPostgresAuditLogRepositorySaveAndList(t *testing.T) {
 
 	if events[0].OccurredAt.IsZero() {
 		t.Fatal("expected occurred_at not to be zero")
+	}
+}
+
+func TestPostgresAuditEventsAreAppendOnly(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	auditRepository := postgres.NewAuditLogRepository(queries)
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"52998224725",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	event, err := domain.NewAuditEvent(
+		"audit-1",
+		operator.ID(),
+		domain.AuditEventOperatorCreated,
+		domain.AuditEntityOperator,
+		string(operator.ID()),
+		domain.AuditOutcomeSuccess,
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("expected valid audit event, got %v", err)
+	}
+
+	if err := auditRepository.Save(context.Background(), event); err != nil {
+		t.Fatalf("expected no error saving audit event, got %v", err)
+	}
+
+	_, err = pool.Exec(context.Background(), `
+		UPDATE audit_events
+		SET outcome = 'failure'
+		WHERE id = 'audit-1'
+	`)
+	if err == nil {
+		t.Fatal("expected update to be rejected")
+	}
+
+	if !strings.Contains(err.Error(), "audit_events is append-only") {
+		t.Fatalf("expected append-only error, got %v", err)
+	}
+
+	_, err = pool.Exec(context.Background(), `
+		DELETE FROM audit_events
+		WHERE id = 'audit-1'
+	`)
+	if err == nil {
+		t.Fatal("expected delete to be rejected")
+	}
+
+	if !strings.Contains(err.Error(), "audit_events is append-only") {
+		t.Fatalf("expected append-only error, got %v", err)
+	}
+}
+
+func TestPostgresAuditEventsRejectNonObjectMetadata(t *testing.T) {
+	pool := openTestPool(t)
+
+	_, err := pool.Exec(context.Background(), `
+		INSERT INTO audit_events (
+			id,
+			event_type,
+			entity_type,
+			entity_id,
+			outcome,
+			metadata
+		) VALUES (
+			'audit-invalid-metadata',
+			'operator.created',
+			'operator',
+			'operator-1',
+			'success',
+			'[]'::jsonb
+		)
+	`)
+	if err == nil {
+		t.Fatal("expected non-object metadata to be rejected")
 	}
 }

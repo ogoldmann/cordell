@@ -2,7 +2,6 @@ package web
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -99,7 +98,7 @@ func (s *Server) handleCreateReturn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.recordAuditEvent(
+	s.recordAuditEventOrLog(
 		r,
 		domain.AuditEventCustodyReturnCreated,
 		domain.AuditEntityCustodyTransaction,
@@ -107,16 +106,12 @@ func (s *Server) handleCreateReturn(w http.ResponseWriter, r *http.Request) {
 		map[string]string{
 			"personnel_id": string(transaction.PersonnelID()),
 		},
-	); err != nil {
-		s.logger.Error("failed to record audit event", "error", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
+	)
 
 	http.Redirect(
 		w,
 		r,
-		fmt.Sprintf("/personnel/%s", personnelID),
+		"/personnel/"+string(transaction.PersonnelID()),
 		http.StatusSeeOther,
 	)
 }

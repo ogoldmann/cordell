@@ -110,3 +110,15 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Audit events do not include password hashes.
 - [ ] Audit events do not include session tokens.
 - [ ] Audit events do not include CSRF tokens.
+
+## Audit Hardening
+
+- [ ] `audit_events` rejects `UPDATE`.
+- [ ] `audit_events` rejects `DELETE`.
+- [ ] `audit_events` rejects `TRUNCATE`.
+- [ ] `audit_events.metadata` only accepts JSON objects.
+- [ ] Audit metadata does not contain passwords.
+- [ ] Audit metadata does not contain password hashes.
+- [ ] Audit metadata does not contain session tokens.
+- [ ] Audit metadata does not contain CSRF tokens.
+- [ ] A failed audit write after a successful action is logged as a server error.
