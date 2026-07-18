@@ -224,6 +224,54 @@ This provides the inverse view of personnel current custody:
 - Personnel page: assets currently assigned to that personnel
 - Asset page: personnel currently holding that asset
 
+## Custody Operator Attribution
+
+Every custody transaction records the operator that registered it.
+
+Custody transactions store:
+
+- transaction type
+- personnel
+- operator
+- notes
+- timestamp
+- custody lines
+
+This means checkout and return history can answer:
+
+- who received or returned the asset
+- which operator registered the event
+- when the event happened
+- which assets and quantities were involved
+
+Operator records are not deleted, so historical custody records keep their administrative attribution.
+
+## Custody Receipts
+
+Each custody transaction has a receipt page:
+
+```txt
+/custody/transactions/{id}
+```
+
+A custody receipt displays:
+
+- transaction ID
+- transaction type
+- timestamp
+- personnel
+- operator that registered the transaction
+- asset lines
+- quantities
+- notes
+
+Receipts are read-only and generated from persisted custody transaction data.
+
+## Custody Receipt
+
+A custody receipt is a read-only view of a checkout or return transaction.
+
+It shows who received or returned assets, which authenticated operator registered the event, which assets were involved, quantities, notes, and timestamp.
 ## Dashboard
 
 The dashboard is available at:
@@ -699,25 +747,3 @@ Operator reactivation:
 - is protected by CSRF
 
 Reactivated operators can authenticate again using their current password.
-
-## Custody Operator Attribution
-
-Every custody transaction records the operator that registered it.
-
-Custody transactions store:
-
-- transaction type
-- personnel
-- operator
-- notes
-- timestamp
-- custody lines
-
-This means checkout and return history can answer:
-
-- who received or returned the asset
-- which operator registered the event
-- when the event happened
-- which assets and quantities were involved
-
-Operator records are not deleted, so historical custody records keep their administrative attribution.

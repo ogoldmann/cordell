@@ -89,6 +89,8 @@ func (s *Server) Routes() http.Handler {
 		private.Post("/assets", s.handleCreateAsset)
 		private.Get("/assets/{id}", s.handleShowAsset)
 
+		private.Get("/custody/transactions/{id}", s.handleShowCustodyReceipt)
+
 		private.Get("/custody/checkouts/new", s.handleNewCheckoutForm)
 		private.Post("/custody/checkouts", s.handleCreateCheckout)
 

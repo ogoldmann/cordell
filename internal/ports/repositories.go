@@ -43,6 +43,33 @@ type CustodyHistoryEntry struct {
 	Lines         []CustodyHistoryLine
 }
 
+// CustodyReceiptLine represents one asset line in a custody transaction receipt.
+type CustodyReceiptLine struct {
+	AssetID   domain.AssetID
+	AssetName string
+	Quantity  int
+}
+
+// CustodyReceipt represents a complete custody transaction receipt read model.
+type CustodyReceipt struct {
+	ID                        domain.CustodyTransactionID
+	Type                      domain.CustodyTransactionType
+	PersonnelID               domain.PersonnelID
+	PersonnelFullName         string
+	PersonnelAlias            string
+	PersonnelRank             domain.Rank
+	PersonnelRegistrationID   domain.RegistrationID
+	PersonnelSection          domain.PersonnelSection
+	PersonnelOrganizationUnit domain.OrganizationUnit
+	OperatorID                domain.OperatorID
+	OperatorRegistrationID    domain.RegistrationID
+	OperatorAlias             string
+	OperatorRank              domain.Rank
+	Notes                     string
+	CreatedAt                 time.Time
+	Lines                     []CustodyReceiptLine
+}
+
 // IDGenerator creates unique identifiers for new domain objects.
 type IDGenerator interface {
 	NewID() (string, error)
@@ -71,6 +98,7 @@ type CustodyRepository interface {
 	ListCurrentByPersonnel(ctx context.Context, personnelID domain.PersonnelID) ([]CurrentCustodyItem, error)
 	ListCurrentByAsset(ctx context.Context, assetID domain.AssetID) ([]CurrentAssetHolder, error)
 	ListHistoryByPersonnel(ctx context.Context, personnelID domain.PersonnelID, limit int) ([]CustodyHistoryEntry, error)
+	FindReceiptByID(ctx context.Context, id domain.CustodyTransactionID) (CustodyReceipt, error)
 }
 
 // OperatorRepository persists operator records.

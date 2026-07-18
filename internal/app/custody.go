@@ -401,6 +401,94 @@ func (s *ListCustodyHistoryService) Execute(
 	return result, nil
 }
 
+// CustodyReceiptLine contains one line in a custody receipt.
+type CustodyReceiptLine struct {
+	AssetID   domain.AssetID
+	AssetName string
+	Quantity  int
+}
+
+// CustodyReceipt contains a complete custody transaction receipt.
+type CustodyReceipt struct {
+	ID                        domain.CustodyTransactionID
+	Type                      domain.CustodyTransactionType
+	PersonnelID               domain.PersonnelID
+	PersonnelFullName         string
+	PersonnelAlias            string
+	PersonnelRank             domain.Rank
+	PersonnelRegistrationID   domain.RegistrationID
+	PersonnelSection          domain.PersonnelSection
+	PersonnelOrganizationUnit domain.OrganizationUnit
+	OperatorID                domain.OperatorID
+	OperatorRegistrationID    domain.RegistrationID
+	OperatorAlias             string
+	OperatorRank              domain.Rank
+	Notes                     string
+	CreatedAt                 time.Time
+	Lines                     []CustodyReceiptLine
+}
+
+// GetCustodyReceiptCommand contains the input data required to retrieve a custody receipt.
+type GetCustodyReceiptCommand struct {
+	ID domain.CustodyTransactionID
+}
+
+// GetCustodyReceiptService handles custody receipt retrieval.
+type GetCustodyReceiptService struct {
+	custodyRepository ports.CustodyRepository
+}
+
+// NewGetCustodyReceiptService creates a GetCustodyReceiptService.
+func NewGetCustodyReceiptService(custodyRepository ports.CustodyRepository) *GetCustodyReceiptService {
+	return &GetCustodyReceiptService{
+		custodyRepository: custodyRepository,
+	}
+}
+
+// Execute retrieves a complete custody receipt.
+func (s *GetCustodyReceiptService) Execute(
+	ctx context.Context,
+	cmd GetCustodyReceiptCommand,
+) (CustodyReceipt, error) {
+	if cmd.ID == "" {
+		return CustodyReceipt{}, domain.ErrEmptyTransactionID
+	}
+
+	receipt, err := s.custodyRepository.FindReceiptByID(ctx, cmd.ID)
+	if err != nil {
+		return CustodyReceipt{}, err
+	}
+
+	result := CustodyReceipt{
+		ID:                        receipt.ID,
+		Type:                      receipt.Type,
+		PersonnelID:               receipt.PersonnelID,
+		PersonnelFullName:         receipt.PersonnelFullName,
+		PersonnelAlias:            receipt.PersonnelAlias,
+		PersonnelRank:             receipt.PersonnelRank,
+		PersonnelRegistrationID:   receipt.PersonnelRegistrationID,
+		PersonnelSection:          receipt.PersonnelSection,
+		PersonnelOrganizationUnit: receipt.PersonnelOrganizationUnit,
+		OperatorID:                receipt.OperatorID,
+		OperatorRegistrationID:    receipt.OperatorRegistrationID,
+		OperatorAlias:             receipt.OperatorAlias,
+		OperatorRank:              receipt.OperatorRank,
+		Notes:                     receipt.Notes,
+		CreatedAt:                 receipt.CreatedAt,
+		Lines:                     make([]CustodyReceiptLine, 0, len(receipt.Lines)),
+	}
+
+	for _, line := range receipt.Lines {
+		result.Lines = append(result.Lines, CustodyReceiptLine{
+			AssetID:   line.AssetID,
+			AssetName: line.AssetName,
+			Quantity:  line.Quantity,
+		})
+	}
+
+	return result, nil
+}
+
 // CurrentAssetHolder contains current holder display data for an asset.
 type CurrentAssetHolder struct {
 	AssetID           domain.AssetID

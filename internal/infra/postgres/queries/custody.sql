@@ -113,3 +113,34 @@ JOIN personnel p ON p.id = cb.personnel_id
 WHERE cb.asset_id = @asset_id
   AND cb.quantity > 0
 ORDER BY p.full_name ASC, cb.personnel_id ASC;
+
+-- name: GetCustodyTransactionReceiptByID :many
+SELECT
+    ct.id AS transaction_id,
+    ct.transaction_type,
+    ct.notes,
+    ct.created_at AS transaction_created_at,
+
+    p.id AS personnel_id,
+    p.full_name AS personnel_full_name,
+    p.alias AS personnel_alias,
+    p.rank AS personnel_rank,
+    p.registration_id AS personnel_registration_id,
+    p.section AS personnel_section,
+    p.organization_unit AS personnel_organization_unit,
+
+    o.id AS operator_id,
+    o.registration_id AS operator_registration_id,
+    o.alias AS operator_alias,
+    o.rank AS operator_rank,
+
+    cl.asset_id,
+    a.name AS asset_name,
+    cl.quantity
+FROM custody_transactions ct
+JOIN personnel p ON p.id = ct.personnel_id
+JOIN operators o ON o.id = ct.operator_id
+JOIN custody_lines cl ON cl.custody_transaction_id = ct.id
+JOIN assets a ON a.id = cl.asset_id
+WHERE ct.id = @id
+ORDER BY cl.id ASC;

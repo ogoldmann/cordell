@@ -27,6 +27,7 @@ type Services struct {
 	GlobalSearch            *GlobalSearchService
 	RegisterCheckout        *RegisterCheckoutService
 	RegisterReturn          *RegisterReturnService
+	GetCustodyReceipt       *GetCustodyReceiptService
 	ListCurrentCustody      *ListCurrentCustodyService
 	ListCurrentAssetHolders *ListCurrentAssetHoldersService
 	ListCustodyHistory      *ListCustodyHistoryService

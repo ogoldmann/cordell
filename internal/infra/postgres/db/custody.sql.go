@@ -131,6 +131,98 @@ func (q *Queries) GetCustodyBalanceQuantity(ctx context.Context, arg GetCustodyB
 	return quantity, err
 }
 
+const getCustodyTransactionReceiptByID = `-- name: GetCustodyTransactionReceiptByID :many
+SELECT
+    ct.id AS transaction_id,
+    ct.transaction_type,
+    ct.notes,
+    ct.created_at AS transaction_created_at,
+
+    p.id AS personnel_id,
+    p.full_name AS personnel_full_name,
+    p.alias AS personnel_alias,
+    p.rank AS personnel_rank,
+    p.registration_id AS personnel_registration_id,
+    p.section AS personnel_section,
+    p.organization_unit AS personnel_organization_unit,
+
+    o.id AS operator_id,
+    o.registration_id AS operator_registration_id,
+    o.alias AS operator_alias,
+    o.rank AS operator_rank,
+
+    cl.asset_id,
+    a.name AS asset_name,
+    cl.quantity
+FROM custody_transactions ct
+JOIN personnel p ON p.id = ct.personnel_id
+JOIN operators o ON o.id = ct.operator_id
+JOIN custody_lines cl ON cl.custody_transaction_id = ct.id
+JOIN assets a ON a.id = cl.asset_id
+WHERE ct.id = $1
+ORDER BY cl.id ASC
+`
+
+type GetCustodyTransactionReceiptByIDRow struct {
+	TransactionID             string             `json:"transaction_id"`
+	TransactionType           string             `json:"transaction_type"`
+	Notes                     string             `json:"notes"`
+	TransactionCreatedAt      pgtype.Timestamptz `json:"transaction_created_at"`
+	PersonnelID               string             `json:"personnel_id"`
+	PersonnelFullName         string             `json:"personnel_full_name"`
+	PersonnelAlias            string             `json:"personnel_alias"`
+	PersonnelRank             string             `json:"personnel_rank"`
+	PersonnelRegistrationID   string             `json:"personnel_registration_id"`
+	PersonnelSection          string             `json:"personnel_section"`
+	PersonnelOrganizationUnit string             `json:"personnel_organization_unit"`
+	OperatorID                string             `json:"operator_id"`
+	OperatorRegistrationID    string             `json:"operator_registration_id"`
+	OperatorAlias             string             `json:"operator_alias"`
+	OperatorRank              string             `json:"operator_rank"`
+	AssetID                   string             `json:"asset_id"`
+	AssetName                 string             `json:"asset_name"`
+	Quantity                  int32              `json:"quantity"`
+}
+
+func (q *Queries) GetCustodyTransactionReceiptByID(ctx context.Context, id string) ([]GetCustodyTransactionReceiptByIDRow, error) {
+	rows, err := q.db.Query(ctx, getCustodyTransactionReceiptByID, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCustodyTransactionReceiptByIDRow{}
+	for rows.Next() {
+		var i GetCustodyTransactionReceiptByIDRow
+		if err := rows.Scan(
+			&i.TransactionID,
+			&i.TransactionType,
+			&i.Notes,
+			&i.TransactionCreatedAt,
+			&i.PersonnelID,
+			&i.PersonnelFullName,
+			&i.PersonnelAlias,
+			&i.PersonnelRank,
+			&i.PersonnelRegistrationID,
+			&i.PersonnelSection,
+			&i.PersonnelOrganizationUnit,
+			&i.OperatorID,
+			&i.OperatorRegistrationID,
+			&i.OperatorAlias,
+			&i.OperatorRank,
+			&i.AssetID,
+			&i.AssetName,
+			&i.Quantity,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const increaseCustodyBalanceForCheckout = `-- name: IncreaseCustodyBalanceForCheckout :exec
 INSERT INTO custody_balances (
     personnel_id,

@@ -125,6 +125,16 @@ func IsValidPersonnelSection(section PersonnelSection) bool {
 	return false
 }
 
+func (s PersonnelSection) Label() string {
+	for _, option := range personnelSectionOptions {
+		if option.Value == s {
+			return option.Label
+		}
+	}
+
+	return string(s)
+}
+
 // OrganizationUnit represents a predefined organization unit.
 type OrganizationUnit string
 
@@ -160,4 +170,14 @@ func IsValidOrganizationUnit(unit OrganizationUnit) bool {
 	}
 
 	return false
+}
+
+func (u OrganizationUnit) Label() string {
+	for _, option := range organizationUnitOptions {
+		if option.Value == u {
+			return option.Label
+		}
+	}
+
+	return string(u)
 }

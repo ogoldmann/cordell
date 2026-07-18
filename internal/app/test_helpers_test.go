@@ -208,6 +208,7 @@ type fakeCustodyRepository struct {
 	currentByPerson map[domain.PersonnelID][]ports.CurrentCustodyItem
 	currentByAsset  map[domain.AssetID][]ports.CurrentAssetHolder
 	historyByPerson map[domain.PersonnelID][]ports.CustodyHistoryEntry
+	receipts        map[domain.CustodyTransactionID]ports.CustodyReceipt
 }
 
 func (r *fakeCustodyRepository) SaveTransaction(_ context.Context, transaction domain.CustodyTransaction) error {
@@ -276,6 +277,22 @@ func (r *fakeCustodyRepository) ListHistoryByPersonnel(
 	}
 
 	return copiedItems, nil
+}
+
+func (r *fakeCustodyRepository) FindReceiptByID(
+	_ context.Context,
+	id domain.CustodyTransactionID,
+) (ports.CustodyReceipt, error) {
+	if r.receipts == nil {
+		return ports.CustodyReceipt{}, ports.ErrNotFound
+	}
+
+	receipt, ok := r.receipts[id]
+	if !ok {
+		return ports.CustodyReceipt{}, ports.ErrNotFound
+	}
+
+	return receipt, nil
 }
 
 func custodyBalanceKey(personnelID domain.PersonnelID, assetID domain.AssetID) string {

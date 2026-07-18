@@ -34,6 +34,12 @@ A line inside a custody transaction representing an asset and a quantity.
 
 The current quantity of a given asset under the custody of a given person.
 
+## Custody Receipt
+
+A custody receipt is a read-only view of a checkout or return transaction.
+
+It shows who received or returned assets, which authenticated operator registered the event, which assets were involved, quantities, notes, and timestamp.
+
 ## Operator
 
 A system user who performs actions inside Cordell.

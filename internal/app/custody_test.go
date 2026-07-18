@@ -377,6 +377,84 @@ func TestListCustodyHistoryServiceExecute(t *testing.T) {
 	}
 }
 
+func TestGetCustodyReceiptServiceExecute(t *testing.T) {
+	createdAt := time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)
+
+	repository := &fakeCustodyRepository{
+		receipts: map[domain.CustodyTransactionID]ports.CustodyReceipt{
+			"transaction-1": {
+				ID:                        "transaction-1",
+				Type:                      domain.CustodyTransactionTypeCheckout,
+				PersonnelID:               "personnel-1",
+				PersonnelFullName:         "João Silva",
+				PersonnelAlias:            "silva",
+				PersonnelRank:             domain.RankSergeant,
+				PersonnelRegistrationID:   domain.RegistrationID("52998224725"),
+				PersonnelSection:          domain.PersonnelSectionLogistics,
+				PersonnelOrganizationUnit: domain.OrganizationUnitDefault,
+				OperatorID:                "operator-1",
+				OperatorRegistrationID:    domain.RegistrationID("93541134780"),
+				OperatorAlias:             "costa",
+				OperatorRank:              domain.RankCorporal,
+				Notes:                     "Issued for field activity.",
+				CreatedAt:                 createdAt,
+				Lines: []ports.CustodyReceiptLine{
+					{
+						AssetID:   "asset-1",
+						AssetName: "Radio",
+						Quantity:  1,
+					},
+				},
+			},
+		},
+	}
+
+	service := NewGetCustodyReceiptService(repository)
+
+	receipt, err := service.Execute(context.Background(), GetCustodyReceiptCommand{
+		ID: "transaction-1",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if receipt.ID != "transaction-1" {
+		t.Fatalf("expected transaction-1, got %s", receipt.ID)
+	}
+
+	if receipt.PersonnelFullName != "João Silva" {
+		t.Fatalf("expected personnel full name João Silva, got %s", receipt.PersonnelFullName)
+	}
+
+	if receipt.OperatorAlias != "costa" {
+		t.Fatalf("expected operator alias costa, got %s", receipt.OperatorAlias)
+	}
+
+	if len(receipt.Lines) != 1 {
+		t.Fatalf("expected 1 line, got %d", len(receipt.Lines))
+	}
+}
+
+func TestGetCustodyReceiptServiceRejectsEmptyID(t *testing.T) {
+	service := NewGetCustodyReceiptService(&fakeCustodyRepository{})
+
+	_, err := service.Execute(context.Background(), GetCustodyReceiptCommand{})
+	if err != domain.ErrEmptyTransactionID {
+		t.Fatalf("expected ErrEmptyTransactionID, got %v", err)
+	}
+}
+
+func TestGetCustodyReceiptServiceReturnsNotFound(t *testing.T) {
+	service := NewGetCustodyReceiptService(&fakeCustodyRepository{})
+
+	_, err := service.Execute(context.Background(), GetCustodyReceiptCommand{
+		ID: "missing",
+	})
+	if err != ports.ErrNotFound {
+		t.Fatalf("expected ErrNotFound, got %v", err)
+	}
+}
+
 func TestListCurrentAssetHoldersServiceExecute(t *testing.T) {
 	asset := mustBuildAsset(t, "asset-1")
 

@@ -1,0 +1,130 @@
+{{define "custody_receipt_show.html"}}
+{{template "layout_start" .}}
+
+<section class="mb-8">
+  <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+    Custody receipt
+  </p>
+
+  <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <div>
+      <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
+        {{.Receipt.TypeLabel}}
+      </h1>
+
+      <p class="mt-3 max-w-2xl text-cordell-muted dark:text-cordell-dark-muted">
+        Official custody transaction record registered in Cordell.
+      </p>
+    </div>
+
+    <a
+      class="inline-flex w-fit items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2.5 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+      href="/personnel/{{.Receipt.PersonnelID}}"
+    >
+      Back to personnel
+    </a>
+  </div>
+</section>
+
+<section class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+  <div class="grid gap-5 md:grid-cols-2">
+    <div>
+      <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
+        Transaction ID
+      </p>
+      <p class="m-0 font-mono text-sm">{{.Receipt.ID}}</p>
+    </div>
+
+    <div>
+      <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
+        Registered at
+      </p>
+      <p class="m-0 font-bold">{{.Receipt.CreatedAt}}</p>
+    </div>
+
+    <div>
+      <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
+        Personnel
+      </p>
+      <p class="m-0 font-bold">{{.Receipt.PersonnelDisplay}}</p>
+      <p class="m-0 text-sm text-cordell-muted dark:text-cordell-dark-muted">{{.Receipt.PersonnelFullName}}</p>
+      <p class="m-0 font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.Receipt.PersonnelRegistrationID}}</p>
+    </div>
+
+    <div>
+      <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
+        Registered by
+      </p>
+      <p class="m-0 font-bold">{{.Receipt.OperatorDisplay}}</p>
+      <p class="m-0 font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.Receipt.OperatorRegistrationID}}</p>
+    </div>
+
+    <div>
+      <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
+        Section
+      </p>
+      <p class="m-0">{{.Receipt.PersonnelSection}}</p>
+    </div>
+
+    <div>
+      <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
+        Organization unit
+      </p>
+      <p class="m-0">{{.Receipt.PersonnelOrganizationUnit}}</p>
+    </div>
+  </div>
+</section>
+
+<section class="mt-6 overflow-hidden rounded-3xl border border-cordell-border bg-cordell-surface shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+  <div class="border-b border-cordell-border px-6 py-4 dark:border-cordell-dark-border">
+    <h2 class="m-0 text-xl font-extrabold">Assets</h2>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full border-collapse text-left text-sm">
+      <thead class="border-b border-cordell-border bg-cordell-background/70 text-xs uppercase tracking-[0.08em] text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-background/70 dark:text-cordell-dark-muted">
+        <tr>
+          <th class="px-4 py-3 font-extrabold">Asset</th>
+          <th class="px-4 py-3 font-extrabold">Asset ID</th>
+          <th class="px-4 py-3 text-right font-extrabold">Quantity</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-cordell-border dark:divide-cordell-dark-border">
+        {{range .Receipt.Lines}}
+          <tr>
+            <td class="px-4 py-3 font-bold">{{.AssetName}}</td>
+            <td class="px-4 py-3 font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.AssetID}}</td>
+            <td class="px-4 py-3 text-right font-bold">{{.Quantity}}</td>
+          </tr>
+        {{end}}
+      </tbody>
+
+      <tfoot class="border-t border-cordell-border dark:border-cordell-dark-border">
+        <tr>
+          <td class="px-4 py-3 font-extrabold" colspan="2">Total quantity</td>
+          <td class="px-4 py-3 text-right font-extrabold">{{.Receipt.TotalQuantity}}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</section>
+
+{{if .Receipt.Notes}}
+  <section class="mt-6 rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+    <h2 class="m-0 text-xl font-extrabold">Notes</h2>
+    <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">{{.Receipt.Notes}}</p>
+  </section>
+{{end}}
+
+<div class="mt-8 flex flex-col gap-3 sm:flex-row">
+  <a
+    class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+    href="/personnel/{{.Receipt.PersonnelID}}"
+  >
+    Back to personnel
+  </a>
+</div>
+
+{{template "layout_end" .}}
+{{end}}

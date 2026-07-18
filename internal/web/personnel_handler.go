@@ -214,7 +214,7 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 			Type:            string(entry.Type),
 			TypeLabel:       custodyTransactionTypeLabel(entry.Type),
 			OperatorID:      string(entry.OperatorID),
-			OperatorDisplay: operatorHistoryDisplayName(entry.OperatorRank, entry.OperatorAlias),
+			OperatorDisplay: militaryDisplayName(entry.OperatorRank, entry.OperatorAlias),
 			Notes:           entry.Notes,
 			CreatedAt:       entry.CreatedAt.Local().Format("2006-01-02 15:04"),
 			Lines:           make([]custodyHistoryLineView, 0, len(entry.Lines)),
@@ -234,15 +234,6 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 	if err := s.renderer.Render(w, http.StatusOK, "personnel_show.html", data); err != nil {
 		s.handleRenderError(w, err)
 	}
-}
-
-func operatorHistoryDisplayName(rank domain.Rank, alias string) string {
-	alias = strings.TrimSpace(alias)
-	if alias == "" {
-		return rank.Label()
-	}
-
-	return rank.Label() + " " + alias
 }
 
 func (s *Server) renderNewPersonnelFormWithError(

@@ -87,3 +87,12 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Checkout cannot be registered without an authenticated operator.
 - [ ] Return cannot be registered without an authenticated operator.
 - [ ] Custody transaction rows include `operator_id`.
+
+## Custody Receipts
+
+- [ ] Checkout history links to a receipt page.
+- [ ] Return history links to a receipt page.
+- [ ] Receipt shows personnel.
+- [ ] Receipt shows registering operator.
+- [ ] Receipt shows assets and quantities.
+- [ ] Receipt does not expose password hashes, session tokens, or CSRF tokens.

@@ -214,6 +214,57 @@ func (r *CustodyRepository) ListHistoryByPersonnel(
 	return entries, nil
 }
 
+// FindReceiptByID retrieves a complete custody transaction receipt.
+func (r *CustodyRepository) FindReceiptByID(
+	ctx context.Context,
+	id domain.CustodyTransactionID,
+) (ports.CustodyReceipt, error) {
+	rows, err := r.queries.GetCustodyTransactionReceiptByID(ctx, string(id))
+	if err != nil {
+		return ports.CustodyReceipt{}, err
+	}
+
+	if len(rows) == 0 {
+		return ports.CustodyReceipt{}, ports.ErrNotFound
+	}
+
+	first := rows[0]
+
+	createdAt, err := timestamptzToTime(first.TransactionCreatedAt)
+	if err != nil {
+		return ports.CustodyReceipt{}, err
+	}
+
+	receipt := ports.CustodyReceipt{
+		ID:                        domain.CustodyTransactionID(first.TransactionID),
+		Type:                      domain.CustodyTransactionType(first.TransactionType),
+		PersonnelID:               domain.PersonnelID(first.PersonnelID),
+		PersonnelFullName:         first.PersonnelFullName,
+		PersonnelAlias:            first.PersonnelAlias,
+		PersonnelRank:             domain.Rank(first.PersonnelRank),
+		PersonnelRegistrationID:   domain.RegistrationID(first.PersonnelRegistrationID),
+		PersonnelSection:          domain.PersonnelSection(first.PersonnelSection),
+		PersonnelOrganizationUnit: domain.OrganizationUnit(first.PersonnelOrganizationUnit),
+		OperatorID:                domain.OperatorID(first.OperatorID),
+		OperatorRegistrationID:    domain.RegistrationID(first.OperatorRegistrationID),
+		OperatorAlias:             first.OperatorAlias,
+		OperatorRank:              domain.Rank(first.OperatorRank),
+		Notes:                     first.Notes,
+		CreatedAt:                 createdAt,
+		Lines:                     make([]ports.CustodyReceiptLine, 0, len(rows)),
+	}
+
+	for _, row := range rows {
+		receipt.Lines = append(receipt.Lines, ports.CustodyReceiptLine{
+			AssetID:   domain.AssetID(row.AssetID),
+			AssetName: row.AssetName,
+			Quantity:  int(row.Quantity),
+		})
+	}
+
+	return receipt, nil
+}
+
 func timestamptzToTime(value pgtype.Timestamptz) (time.Time, error) {
 	if !value.Valid {
 		return time.Time{}, fmt.Errorf("invalid timestamptz value")

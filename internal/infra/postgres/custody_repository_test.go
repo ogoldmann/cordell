@@ -557,3 +557,90 @@ func TestPostgresCustodyRepositoryListCurrentByAsset(t *testing.T) {
 		t.Fatalf("expected positive holder quantity, got %d", holders[0].Quantity)
 	}
 }
+
+func TestPostgresCustodyRepositoryFindReceiptByID(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "João Silva", "silva", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"93541134780",
+		"costa",
+		domain.RankCorporal,
+		domain.OperatorRoleAdmin,
+	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	line, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid custody line, got %v", err)
+	}
+
+	transaction, err := domain.NewCustodyTransaction(
+		"transaction-1",
+		domain.CustodyTransactionTypeCheckout,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{line},
+		"Issued for field activity.",
+	)
+	if err != nil {
+		t.Fatalf("expected valid transaction, got %v", err)
+	}
+
+	if err := custodyRepository.SaveTransaction(context.Background(), transaction); err != nil {
+		t.Fatalf("expected no error saving transaction, got %v", err)
+	}
+
+	receipt, err := custodyRepository.FindReceiptByID(context.Background(), transaction.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding receipt, got %v", err)
+	}
+
+	if receipt.ID != transaction.ID() {
+		t.Fatalf("expected receipt id %s, got %s", transaction.ID(), receipt.ID)
+	}
+
+	if receipt.PersonnelID != personnel.ID() {
+		t.Fatalf("expected personnel id %s, got %s", personnel.ID(), receipt.PersonnelID)
+	}
+
+	if receipt.OperatorID != operator.ID() {
+		t.Fatalf("expected operator id %s, got %s", operator.ID(), receipt.OperatorID)
+	}
+
+	if receipt.OperatorAlias != operator.Alias() {
+		t.Fatalf("expected operator alias %s, got %s", operator.Alias(), receipt.OperatorAlias)
+	}
+
+	if len(receipt.Lines) != 1 {
+		t.Fatalf("expected 1 receipt line, got %d", len(receipt.Lines))
+	}
+
+	if receipt.Lines[0].AssetName != asset.Name() {
+		t.Fatalf("expected asset name %s, got %s", asset.Name(), receipt.Lines[0].AssetName)
+	}
+}

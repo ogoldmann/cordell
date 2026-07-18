@@ -155,7 +155,16 @@
                 </span>
               </div>
 
-              <code class="font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.ID}}</code>
+              <div class="flex flex-col items-start gap-2 sm:items-end">
+                <code class="font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.ID}}</code>
+
+                <a
+                  class="inline-flex w-fit items-center justify-center rounded-xl border border-cordell-border bg-white px-3 py-2 text-xs font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+                  href="/custody/transactions/{{.ID}}"
+                >
+                  View receipt
+                </a>
+              </div>
             </div>
 
             <div class="grid gap-2">
