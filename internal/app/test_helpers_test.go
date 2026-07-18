@@ -183,9 +183,14 @@ type fakeAssetRepository struct {
 	saved            []domain.Asset
 	byID             map[domain.AssetID]domain.Asset
 	lastStatusFilter ports.RecordStatusFilter
+	saveErr          error
 }
 
 func (r *fakeAssetRepository) Save(_ context.Context, asset domain.Asset) error {
+	if r.saveErr != nil {
+		return r.saveErr
+	}
+
 	r.saved = append(r.saved, asset)
 
 	if r.byID == nil {

@@ -52,6 +52,20 @@ func TestCreateAssetServiceRejectsInvalidAsset(t *testing.T) {
 	}
 }
 
+func TestCreateAssetServiceReturnsDuplicateAssetName(t *testing.T) {
+	repository := &fakeAssetRepository{
+		saveErr: domain.ErrDuplicateAssetName,
+	}
+	service := NewCreateAssetService(repository, fixedIDGenerator{id: "asset-1"})
+
+	_, err := service.Execute(context.Background(), CreateAssetCommand{
+		Name: "Radio",
+	})
+	if err != domain.ErrDuplicateAssetName {
+		t.Fatalf("expected ErrDuplicateAssetName, got %v", err)
+	}
+}
+
 func TestGetAssetServiceExecute(t *testing.T) {
 	asset := mustBuildAsset(t, "asset-1")
 

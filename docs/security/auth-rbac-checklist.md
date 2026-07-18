@@ -207,3 +207,13 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Checkout backend rejects inactive assets.
 - [ ] Return backend can clear custody involving inactive records.
 - [ ] UI visibility rules do not replace backend validation.
+
+## Asset Name Uniqueness
+
+- [ ] Asset name is required.
+- [ ] Asset name is normalized before saving.
+- [ ] Duplicate asset names are rejected.
+- [ ] Duplicate asset names are rejected case-insensitively.
+- [ ] Duplicate normalized asset names are rejected.
+- [ ] Duplicate asset names are rejected across active and inactive assets.
+- [ ] Asset creation shows a human-readable duplicate-name error.

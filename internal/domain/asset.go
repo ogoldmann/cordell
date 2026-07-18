@@ -14,29 +14,20 @@ type Asset struct {
 
 // NewAsset creates an active Asset with validated required fields.
 func NewAsset(id AssetID, name string) (Asset, error) {
-	if id == "" {
-		return Asset{}, ErrEmptyAssetID
-	}
-
-	name = strings.TrimSpace(name)
-	if name == "" {
-		return Asset{}, ErrEmptyAssetName
-	}
-
-	return Asset{
-		id:     id,
-		name:   name,
-		active: true,
-	}, nil
+	return buildAsset(id, name, true)
 }
 
 // ReconstituteAsset rebuilds an Asset from persisted state.
 func ReconstituteAsset(id AssetID, name string, active bool) (Asset, error) {
-	if id == "" {
+	return buildAsset(id, name, active)
+}
+
+func buildAsset(id AssetID, name string, active bool) (Asset, error) {
+	if strings.TrimSpace(string(id)) == "" {
 		return Asset{}, ErrEmptyAssetID
 	}
 
-	name = strings.TrimSpace(name)
+	name = NormalizeAssetName(name)
 	if name == "" {
 		return Asset{}, ErrEmptyAssetName
 	}
@@ -46,6 +37,11 @@ func ReconstituteAsset(id AssetID, name string, active bool) (Asset, error) {
 		name:   name,
 		active: active,
 	}, nil
+}
+
+// NormalizeAssetName normalizes asset names for consistent identity.
+func NormalizeAssetName(value string) string {
+	return strings.Join(strings.Fields(value), " ")
 }
 
 // ID returns the asset identifier.

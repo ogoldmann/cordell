@@ -30,7 +30,15 @@ func (r *AssetRepository) Save(ctx context.Context, asset domain.Asset) error {
 		Name:   asset.Name(),
 		Active: asset.Active(),
 	})
-	return err
+	if err != nil {
+		if isUniqueViolation(err, "assets_name_unique_idx") {
+			return domain.ErrDuplicateAssetName
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 // FindByID retrieves an asset record by identifier.

@@ -183,6 +183,23 @@ http://localhost:8080/assets/new
 
 After creation, Cordell redirects to the created asset detail page.
 
+## Asset Name Uniqueness
+
+Asset currently has a minimal profile.
+
+At this stage, the asset name is the primary user-facing identifier.
+
+Cordell enforces globally unique asset names across active and inactive assets.
+
+Examples:
+
+- `Radio` and `radio` are considered duplicates
+- `Radio VHF` and `Radio   VHF` are normalized to the same name
+
+This avoids ambiguity in checkout, return, custody history, and receipts.
+
+A future richer asset profile may introduce stronger identifiers such as serial number, patrimony number, category, or inventory identity.
+
 ## Checkout Flow
 
 Register checkout:

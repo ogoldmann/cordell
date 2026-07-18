@@ -166,6 +166,36 @@ Return behavior remains different from checkout.
 
 If an inactive asset has current custody due to legacy data or exceptional future workflow, return should still be allowed to clear the responsibility.
 
+## Asset Identity Direction
+
+At the current stage, Asset has a minimal profile.
+
+The primary user-facing asset identifier is:
+
+```txt
+name
+```
+
+Because there is no inventory module, serial number, patrimony number, stock quantity, or category yet, asset names must be unique.
+
+Cordell should not allow two asset records with the same normalized name.
+
+Reason:
+
+* duplicate names create ambiguity in checkout
+* duplicate names create ambiguity in return
+* duplicate names make custody history harder to understand
+* duplicate names make receipts less reliable
+* inactive records should not allow reusing the same name for a different asset
+
+The current rule is:
+
+```txt
+asset.name is globally unique across active and inactive assets
+```
+
+A future richer Asset profile may revisit this if assets gain stronger identifiers such as serial number, patrimony number, or inventory identity.
+
 ## Default Visibility Rules
 
 To avoid operational pollution, normal screens should prefer active records by default.

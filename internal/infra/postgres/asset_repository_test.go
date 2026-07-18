@@ -142,6 +142,56 @@ func TestPostgresAssetRepositoryListFiltersByStatus(t *testing.T) {
 	}
 }
 
+func TestPostgresAssetRepositoryRejectsDuplicateName(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+	repository := postgres.NewAssetRepository(queries)
+
+	first, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	second, err := domain.NewAsset("asset-2", "radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := repository.Save(context.Background(), first); err != nil {
+		t.Fatalf("expected no error saving first asset, got %v", err)
+	}
+
+	err = repository.Save(context.Background(), second)
+	if err != domain.ErrDuplicateAssetName {
+		t.Fatalf("expected ErrDuplicateAssetName, got %v", err)
+	}
+}
+
+func TestPostgresAssetRepositoryRejectsDuplicateNormalizedName(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+	repository := postgres.NewAssetRepository(queries)
+
+	first, err := domain.NewAsset("asset-1", "Radio VHF")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	second, err := domain.NewAsset("asset-2", "  Radio   VHF  ")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := repository.Save(context.Background(), first); err != nil {
+		t.Fatalf("expected no error saving first asset, got %v", err)
+	}
+
+	err = repository.Save(context.Background(), second)
+	if err != domain.ErrDuplicateAssetName {
+		t.Fatalf("expected ErrDuplicateAssetName, got %v", err)
+	}
+}
+
 func TestPostgresAssetRepositorySearch(t *testing.T) {
 	pool := openTestPool(t)
 	queries := newTestQueries(pool)

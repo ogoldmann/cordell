@@ -10,6 +10,9 @@ CREATE TABLE assets (
     CONSTRAINT assets_name_not_empty CHECK (length(trim(name)) > 0)
 );
 
+CREATE UNIQUE INDEX assets_name_unique_idx
+    ON assets (lower(name));
+
 CREATE INDEX idx_assets_name ON assets (name);
 
 -- +goose Down

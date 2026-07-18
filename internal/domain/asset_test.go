@@ -34,3 +34,14 @@ func TestNewAssetRejectsEmptyName(t *testing.T) {
 		t.Fatalf("expected ErrEmptyAssetName, got %v", err)
 	}
 }
+
+func TestNewAssetNormalizesName(t *testing.T) {
+	asset, err := NewAsset("asset-1", "  Radio   VHF  ")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if asset.Name() != "Radio VHF" {
+		t.Fatalf("expected normalized name Radio VHF, got %q", asset.Name())
+	}
+}

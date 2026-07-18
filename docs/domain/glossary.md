@@ -10,6 +10,14 @@ In the user interface, this may be presented as "militar", but the internal doma
 
 A material or item that can be checked out to personnel.
 
+## Asset Name
+
+Asset name is the current primary user-facing identifier for an asset record.
+
+Because Cordell does not yet model serial numbers, patrimony numbers, stock, or inventory identity, asset names must be unique.
+
+Asset names are normalized by trimming surrounding whitespace and collapsing repeated internal whitespace.
+
 ## Personnel Lifecycle
 
 Personnel lifecycle describes whether a personnel record is available for normal operational workflows.

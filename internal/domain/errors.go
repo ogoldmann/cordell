@@ -9,6 +9,8 @@ var (
 	ErrEmptyPersonnelName = errors.New("personnel name cannot be empty")
 	// ErrEmptyAssetName is returned when an asset name is required but empty.
 	ErrEmptyAssetName = errors.New("asset name cannot be empty")
+	// ErrDuplicateAssetName is returned when an asset name already exists.
+	ErrDuplicateAssetName = errors.New("duplicate asset name")
 	// ErrEmptyAssetID is returned when an asset identifier is required but empty.
 	ErrEmptyAssetID = errors.New("asset id cannot be empty")
 	// ErrEmptyTransactionID is returned when a custody transaction identifier is required but empty.

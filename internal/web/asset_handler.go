@@ -214,6 +214,8 @@ func humanizeAssetError(err error) string {
 	switch {
 	case errors.Is(err, domain.ErrEmptyAssetName):
 		return "Asset name is required."
+	case errors.Is(err, domain.ErrDuplicateAssetName):
+		return "Asset name is already registered."
 	case errors.Is(err, domain.ErrEmptyAssetID):
 		return "Asset ID is required."
 	default:
