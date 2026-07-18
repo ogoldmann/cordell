@@ -673,3 +673,174 @@ func TestListCurrentAssetHoldersServiceExecute(t *testing.T) {
 		t.Fatalf("expected quantity 2, got %d", holders[0].Quantity)
 	}
 }
+
+func TestRegisterCheckoutServiceRejectsInactivePersonnel(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+	inactivePersonnel, err := domain.ReconstitutePersonnel(
+		personnel.ID(),
+		personnel.FullName(),
+		personnel.Alias(),
+		personnel.Rank(),
+		personnel.RegistrationID(),
+		personnel.Section(),
+		personnel.OrganizationUnit(),
+		false,
+	)
+	if err != nil {
+		t.Fatalf("expected valid inactive personnel, got %v", err)
+	}
+
+	asset := mustBuildAsset(t, "asset-1")
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			inactivePersonnel.ID(): inactivePersonnel,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
+	custodyRepository := &fakeCustodyRepository{}
+	idGenerator := fixedIDGenerator{id: "transaction-1"}
+
+	service := NewRegisterCheckoutService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+		idGenerator,
+	)
+
+	_, err = service.Execute(context.Background(), RegisterCheckoutCommand{
+		PersonnelID: inactivePersonnel.ID(),
+		OperatorID:  operator.ID(),
+		Lines: []CustodyLineCommand{
+			{AssetID: asset.ID(), Quantity: 1},
+		},
+	})
+	if err != domain.ErrInactivePersonnel {
+		t.Fatalf("expected ErrInactivePersonnel, got %v", err)
+	}
+
+	if len(custodyRepository.saved) != 0 {
+		t.Fatalf("expected no saved transactions, got %d", len(custodyRepository.saved))
+	}
+}
+
+func TestRegisterReturnServiceAllowsInactiveAssetWhenCurrentlyCustodied(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+
+	asset := mustBuildAsset(t, "asset-1")
+	inactiveAsset, err := domain.ReconstituteAsset(asset.ID(), asset.Name(), false)
+	if err != nil {
+		t.Fatalf("expected valid inactive asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			inactiveAsset.ID(): inactiveAsset,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
+	custodyRepository := &fakeCustodyRepository{
+		currentQuantity: map[string]int{
+			custodyBalanceKey(personnel.ID(), inactiveAsset.ID()): 1,
+		},
+	}
+	idGenerator := fixedIDGenerator{id: "transaction-1"}
+
+	service := NewRegisterReturnService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+		idGenerator,
+	)
+
+	transaction, err := service.Execute(context.Background(), RegisterReturnCommand{
+		PersonnelID: personnel.ID(),
+		OperatorID:  operator.ID(),
+		Lines: []CustodyLineCommand{
+			{AssetID: inactiveAsset.ID(), Quantity: 1},
+		},
+	})
+	if err != nil {
+		t.Fatalf("expected inactive asset return to be allowed, got %v", err)
+	}
+
+	if transaction.ID() != "transaction-1" {
+		t.Fatalf("expected transaction-1, got %s", transaction.ID())
+	}
+}
+
+func TestRegisterReturnServiceAllowsInactivePersonnelWhenReturningCurrentCustody(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+	inactivePersonnel, err := domain.ReconstitutePersonnel(
+		personnel.ID(),
+		personnel.FullName(),
+		personnel.Alias(),
+		personnel.Rank(),
+		personnel.RegistrationID(),
+		personnel.Section(),
+		personnel.OrganizationUnit(),
+		false,
+	)
+	if err != nil {
+		t.Fatalf("expected valid inactive personnel, got %v", err)
+	}
+
+	asset := mustBuildAsset(t, "asset-1")
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			inactivePersonnel.ID(): inactivePersonnel,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
+	custodyRepository := &fakeCustodyRepository{
+		currentQuantity: map[string]int{
+			custodyBalanceKey(inactivePersonnel.ID(), asset.ID()): 1,
+		},
+	}
+	idGenerator := fixedIDGenerator{id: "transaction-1"}
+
+	service := NewRegisterReturnService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+		idGenerator,
+	)
+
+	transaction, err := service.Execute(context.Background(), RegisterReturnCommand{
+		PersonnelID: inactivePersonnel.ID(),
+		OperatorID:  operator.ID(),
+		Lines: []CustodyLineCommand{
+			{AssetID: asset.ID(), Quantity: 1},
+		},
+	})
+	if err != nil {
+		t.Fatalf("expected inactive personnel return to be allowed, got %v", err)
+	}
+
+	if transaction.ID() != "transaction-1" {
+		t.Fatalf("expected transaction-1, got %s", transaction.ID())
+	}
+}

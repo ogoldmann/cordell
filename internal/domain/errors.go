@@ -21,6 +21,10 @@ var (
 	ErrInvalidQuantity = errors.New("quantity must be greater than zero")
 	// ErrInsufficientCustodyBalance is returned when a return exceeds the current custody quantity.
 	ErrInsufficientCustodyBalance = errors.New("insufficient custody balance")
+	// ErrInactivePersonnel is returned when an operation requires an active personnel record.
+	ErrInactivePersonnel = errors.New("inactive personnel")
+	// ErrInactiveAsset is returned when an operation requires an active asset record.
+	ErrInactiveAsset = errors.New("inactive asset")
 
 	// ErrEmptyPersonnelAlias is returned when a personnel alias is required but empty.
 	ErrEmptyPersonnelAlias = errors.New("empty personnel alias")

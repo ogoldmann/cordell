@@ -42,6 +42,7 @@ func buildCustodyLines(
 	ctx context.Context,
 	assetRepository ports.AssetRepository,
 	commands []CustodyLineCommand,
+	requireActiveAssets bool,
 ) ([]domain.CustodyLine, error) {
 	normalizedCommands := normalizeCustodyLineCommands(commands)
 
@@ -58,8 +59,13 @@ func buildCustodyLines(
 			return nil, err
 		}
 
-		if _, err := assetRepository.FindByID(ctx, lineCommand.AssetID); err != nil {
+		asset, err := assetRepository.FindByID(ctx, lineCommand.AssetID)
+		if err != nil {
 			return nil, err
+		}
+
+		if requireActiveAssets && !asset.Active() {
+			return nil, domain.ErrInactiveAsset
 		}
 
 		lines = append(lines, line)
@@ -111,8 +117,13 @@ func (s *RegisterCheckoutService) Execute(
 		return domain.CustodyTransaction{}, domain.ErrEmptyPersonnelID
 	}
 
-	if _, err := s.personnelRepository.FindByID(ctx, cmd.PersonnelID); err != nil {
+	personnel, err := s.personnelRepository.FindByID(ctx, cmd.PersonnelID)
+	if err != nil {
 		return domain.CustodyTransaction{}, err
+	}
+
+	if !personnel.Active() {
+		return domain.CustodyTransaction{}, domain.ErrInactivePersonnel
 	}
 
 	if cmd.OperatorID == "" {
@@ -128,7 +139,7 @@ func (s *RegisterCheckoutService) Execute(
 		return domain.CustodyTransaction{}, ports.ErrNotFound
 	}
 
-	lines, err := buildCustodyLines(ctx, s.assetRepository, cmd.Lines)
+	lines, err := buildCustodyLines(ctx, s.assetRepository, cmd.Lines, true)
 	if err != nil {
 		return domain.CustodyTransaction{}, err
 	}
@@ -219,7 +230,7 @@ func (s *RegisterReturnService) Execute(
 		return domain.CustodyTransaction{}, ports.ErrNotFound
 	}
 
-	lines, err := buildCustodyLines(ctx, s.assetRepository, cmd.Lines)
+	lines, err := buildCustodyLines(ctx, s.assetRepository, cmd.Lines, false)
 	if err != nil {
 		return domain.CustodyTransaction{}, err
 	}

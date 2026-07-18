@@ -125,6 +125,15 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Personnel with no current custody shows an empty state.
 - [ ] Backend still rejects return quantity greater than current balance.
 
+## Checkout Active Record Guardrails
+
+- [ ] Checkout form lists only active personnel.
+- [ ] Checkout form lists only active assets.
+- [ ] Backend rejects checkout for inactive personnel.
+- [ ] Backend rejects checkout for inactive assets.
+- [ ] Return still works for inactive personnel when current custody exists.
+- [ ] Return still works for inactive assets when current custody exists.
+
 ## Audit Events
 
 - [ ] Creating an operator records `operator.created`.

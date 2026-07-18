@@ -78,6 +78,14 @@ For example, Cordell only shows assets currently under a selected personnel reco
 
 Guardrails improve usability but do not replace backend validation.
 
+## Active Record Guardrail
+
+An active record guardrail prevents new operational responsibility from being created with inactive records.
+
+In Cordell, checkout requires active personnel and active assets.
+
+Return may still be allowed for inactive personnel or inactive assets when current custody exists, because return reduces or clears an existing responsibility.
+
 ## Operator
 
 A system user who performs actions inside Cordell.

@@ -159,18 +159,25 @@ func (s *Server) buildCheckoutNewPageData(
 
 	data.Personnel = make([]personnelView, 0, len(personnel))
 	for _, item := range personnel {
+		if !item.Active() {
+			continue
+		}
+
 		data.Personnel = append(data.Personnel, newPersonnelView(item))
 	}
 
 	data.Assets = make([]assetView, 0, len(assets))
 	for _, item := range assets {
+		if !item.Active() {
+			continue
+		}
+
 		data.Assets = append(data.Assets, assetView{
 			ID:     string(item.ID()),
 			Name:   item.Name(),
 			Active: item.Active(),
 		})
 	}
-
 	if data.Quantity == "" {
 		data.Quantity = "1"
 	}
@@ -182,6 +189,10 @@ func humanizeCheckoutError(err error) string {
 	switch {
 	case errors.Is(err, domain.ErrEmptyPersonnelID):
 		return "Personnel is required."
+	case errors.Is(err, domain.ErrInactivePersonnel):
+		return "Selected personnel is inactive and cannot receive a new checkout."
+	case errors.Is(err, domain.ErrInactiveAsset):
+		return "Selected asset is inactive and cannot be checked out."
 	case errors.Is(err, domain.ErrEmptyAssetID):
 		return "Asset is required."
 	case errors.Is(err, domain.ErrInvalidQuantity):

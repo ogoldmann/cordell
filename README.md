@@ -324,6 +324,22 @@ Return workflow:
 
 The UI reduces operational mistakes, but the application service and repository remain the source of truth.
 
+## Checkout Active Record Guardrails
+
+Checkout creates a new custody responsibility.
+
+Because of that, Cordell only allows checkout when:
+
+- the personnel record is active
+- the asset record is active
+- the operator is authenticated and active
+
+The checkout form lists only active personnel and active assets.
+
+Return behaves differently. Return can still be registered for inactive personnel or inactive assets when there is current custody to clear.
+
+This allows the system to close existing custody responsibilities even when a personnel or asset record becomes inactive later.
+
 ## Dashboard
 
 The dashboard is available at:
