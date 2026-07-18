@@ -349,6 +349,24 @@ This prevents concurrent returns from overdrawing the same custody balance.
 
 Application services may still perform early validation for user-friendly errors, but the repository/database update is the source of truth.
 
+## Custody Form Idempotency
+
+Custody checkout and return forms include a generated transaction ID.
+
+The submitted transaction ID is used as the custody transaction primary key.
+
+This provides lightweight form idempotency:
+
+- the first POST creates the transaction
+- a repeated POST with the same transaction ID is treated as a duplicate submit
+- duplicate submits do not create new custody lines
+- duplicate submits do not update custody balances again
+- duplicate submits do not create duplicate audit events
+
+This protects against accidental double-clicks, browser retries, and simple duplicate form submissions.
+
+The backend remains the source of truth. JavaScript submit guards may improve UX, but database uniqueness provides the real protection.
+
 ## Return UI Guardrails
 
 The return form is guided by current custody state.

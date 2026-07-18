@@ -39,6 +39,7 @@
   action="/custody/checkouts"
 >
   <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+  <input type="hidden" name="transaction_id" value="{{.TransactionID}}">
 
   <div class="grid gap-4 lg:grid-cols-[1fr_1fr_10rem]">
     <div class="grid gap-2">

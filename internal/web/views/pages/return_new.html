@@ -77,6 +77,7 @@
             action="/custody/returns"
           >
             <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+            <input type="hidden" name="transaction_id" value="{{.TransactionID}}">
             <input type="hidden" name="personnel_id" value="{{$.SelectedPersonnel.ID}}">
             <input type="hidden" name="asset_id" value="{{.AssetID}}">
 

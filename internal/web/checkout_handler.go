@@ -20,6 +20,7 @@ type checkoutNewPageData struct {
 	SelectedAssetID     string
 	Quantity            string
 	Notes               string
+	TransactionID       string
 }
 
 func (s *Server) handleNewCheckoutForm(w http.ResponseWriter, r *http.Request) {
@@ -55,6 +56,16 @@ func (s *Server) handleCreateCheckout(w http.ResponseWriter, r *http.Request) {
 	assetID := r.FormValue("asset_id")
 	quantityText := r.FormValue("quantity")
 	notes := r.FormValue("notes")
+	transactionID := domain.CustodyTransactionID(r.FormValue("transaction_id"))
+	if transactionID == "" {
+		s.renderCheckoutFormWithError(
+			w,
+			r,
+			http.StatusBadRequest,
+			"Form transaction ID is missing. Please reload the page and try again.",
+		)
+		return
+	}
 
 	quantity, err := strconv.Atoi(quantityText)
 	if err != nil {
@@ -73,9 +84,10 @@ func (s *Server) handleCreateCheckout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	transaction, err := s.services.RegisterCheckout.Execute(r.Context(), app.RegisterCheckoutCommand{
-		PersonnelID: domain.PersonnelID(personnelID),
-		OperatorID:  currentOperator.ID(),
+	result, err := s.services.RegisterCheckout.Execute(r.Context(), app.RegisterCheckoutCommand{
+		TransactionID: transactionID,
+		PersonnelID:   domain.PersonnelID(personnelID),
+		OperatorID:    currentOperator.ID(),
 		Lines: []app.CustodyLineCommand{
 			{
 				AssetID:  domain.AssetID(assetID),
@@ -94,20 +106,22 @@ func (s *Server) handleCreateCheckout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.recordAuditEventOrLog(
-		r,
-		domain.AuditEventCustodyCheckoutCreated,
-		domain.AuditEntityCustodyTransaction,
-		string(transaction.ID()),
-		map[string]string{
-			"personnel_id": string(transaction.PersonnelID()),
-		},
-	)
+	if result.Created {
+		s.recordAuditEventOrLog(
+			r,
+			domain.AuditEventCustodyCheckoutCreated,
+			domain.AuditEntityCustodyTransaction,
+			string(result.Transaction.ID()),
+			map[string]string{
+				"personnel_id": string(result.Transaction.PersonnelID()),
+			},
+		)
+	}
 
 	http.Redirect(
 		w,
 		r,
-		"/personnel/"+string(transaction.PersonnelID()),
+		"/custody/transactions/"+string(result.Transaction.ID()),
 		http.StatusSeeOther,
 	)
 }
@@ -125,6 +139,7 @@ func (s *Server) renderCheckoutFormWithError(
 		SelectedAssetID:     r.FormValue("asset_id"),
 		Quantity:            r.FormValue("quantity"),
 		Notes:               r.FormValue("notes"),
+		TransactionID:       r.FormValue("transaction_id"),
 	})
 	if err != nil {
 		s.logger.Error("failed to rebuild checkout form data", "error", err)
@@ -142,6 +157,14 @@ func (s *Server) buildCheckoutNewPageData(
 	data checkoutNewPageData,
 ) (checkoutNewPageData, error) {
 	data.privateLayoutData = newPrivateLayoutData(r)
+	if data.TransactionID == "" {
+		transactionID, err := newFormTransactionID()
+		if err != nil {
+			return checkoutNewPageData{}, err
+		}
+
+		data.TransactionID = string(transactionID)
+	}
 
 	personnel, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
 		Limit:        100,

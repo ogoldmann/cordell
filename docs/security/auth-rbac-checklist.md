@@ -126,6 +126,18 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Concurrent checkouts accumulate balance correctly.
 - [ ] Repository/database remains the source of truth for custody balance.
 
+## Custody Form Idempotency
+
+- [ ] Checkout form includes generated transaction ID.
+- [ ] Return form includes generated transaction ID.
+- [ ] Register checkout service uses command transaction ID.
+- [ ] Register return service uses command transaction ID.
+- [ ] Duplicate custody transaction ID is treated as duplicate submit.
+- [ ] Duplicate submit does not update custody balance twice.
+- [ ] Duplicate submit does not create duplicate custody lines.
+- [ ] Duplicate submit does not create duplicate audit events.
+- [ ] Backend/database uniqueness is the source of truth.
+
 ## Return UI Guardrails
 
 - [ ] Return form requires personnel selection first.

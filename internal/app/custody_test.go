@@ -36,7 +36,7 @@ func TestRegisterCheckoutServiceExecute(t *testing.T) {
 		idGenerator,
 	)
 
-	transaction, err := service.Execute(context.Background(), RegisterCheckoutCommand{
+	result, err := service.Execute(context.Background(), RegisterCheckoutCommand{
 		PersonnelID: "personnel-1",
 		OperatorID:  operator.ID(),
 		Lines: []CustodyLineCommand{
@@ -50,6 +50,8 @@ func TestRegisterCheckoutServiceExecute(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
+
+	transaction := result.Transaction
 
 	if transaction.ID() != "transaction-1" {
 		t.Fatalf("expected transaction id transaction-1, got %s", transaction.ID())
@@ -77,6 +79,54 @@ func TestRegisterCheckoutServiceExecute(t *testing.T) {
 
 	if len(custodyRepository.saved) != 1 {
 		t.Fatalf("expected 1 saved transaction, got %d", len(custodyRepository.saved))
+	}
+}
+
+func TestRegisterCheckoutServiceUsesCommandTransactionID(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+	asset := mustBuildAsset(t, "asset-1")
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
+	custodyRepository := &fakeCustodyRepository{}
+	idGenerator := fixedIDGenerator{id: "generated-transaction-id"}
+
+	service := NewRegisterCheckoutService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+		idGenerator,
+	)
+
+	result, err := service.Execute(context.Background(), RegisterCheckoutCommand{
+		TransactionID: "form-transaction-id",
+		PersonnelID:   personnel.ID(),
+		OperatorID:    operator.ID(),
+		Lines: []CustodyLineCommand{
+			{AssetID: asset.ID(), Quantity: 1},
+		},
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if result.Transaction.ID() != "form-transaction-id" {
+		t.Fatalf("expected form transaction id, got %s", result.Transaction.ID())
+	}
+
+	if !result.Created {
+		t.Fatal("expected transaction to be created")
 	}
 }
 
@@ -192,7 +242,7 @@ func TestRegisterCheckoutServiceCombinesDuplicateAssetLines(t *testing.T) {
 		idGenerator,
 	)
 
-	transaction, err := service.Execute(context.Background(), RegisterCheckoutCommand{
+	result, err := service.Execute(context.Background(), RegisterCheckoutCommand{
 		PersonnelID: personnel.ID(),
 		OperatorID:  operator.ID(),
 		Lines: []CustodyLineCommand{
@@ -203,6 +253,8 @@ func TestRegisterCheckoutServiceCombinesDuplicateAssetLines(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
+
+	transaction := result.Transaction
 
 	if len(transaction.Lines()) != 1 {
 		t.Fatalf("expected duplicate asset lines to be combined into 1 line, got %d", len(transaction.Lines()))
@@ -244,7 +296,7 @@ func TestRegisterReturnServiceExecute(t *testing.T) {
 		idGenerator,
 	)
 
-	transaction, err := service.Execute(context.Background(), RegisterReturnCommand{
+	result, err := service.Execute(context.Background(), RegisterReturnCommand{
 		PersonnelID: "personnel-1",
 		OperatorID:  operator.ID(),
 		Lines: []CustodyLineCommand{
@@ -259,6 +311,8 @@ func TestRegisterReturnServiceExecute(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
+	transaction := result.Transaction
+
 	if transaction.Type() != domain.CustodyTransactionTypeReturn {
 		t.Fatalf("expected return transaction, got %s", transaction.Type())
 	}
@@ -269,6 +323,54 @@ func TestRegisterReturnServiceExecute(t *testing.T) {
 
 	if len(custodyRepository.saved) != 1 {
 		t.Fatalf("expected 1 saved transaction, got %d", len(custodyRepository.saved))
+	}
+}
+
+func TestRegisterReturnServiceUsesCommandTransactionID(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+	asset := mustBuildAsset(t, "asset-1")
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
+	custodyRepository := &fakeCustodyRepository{
+		currentQuantity: map[string]int{
+			custodyBalanceKey(personnel.ID(), asset.ID()): 1,
+		},
+	}
+	idGenerator := fixedIDGenerator{id: "generated-transaction-id"}
+
+	service := NewRegisterReturnService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+		idGenerator,
+	)
+
+	result, err := service.Execute(context.Background(), RegisterReturnCommand{
+		TransactionID: "form-transaction-id",
+		PersonnelID:   personnel.ID(),
+		OperatorID:    operator.ID(),
+		Lines: []CustodyLineCommand{
+			{AssetID: asset.ID(), Quantity: 1},
+		},
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if result.Transaction.ID() != "form-transaction-id" {
+		t.Fatalf("expected form transaction id, got %s", result.Transaction.ID())
 	}
 }
 
@@ -353,7 +455,7 @@ func TestRegisterReturnServiceCombinesDuplicateAssetLines(t *testing.T) {
 		idGenerator,
 	)
 
-	transaction, err := service.Execute(context.Background(), RegisterReturnCommand{
+	result, err := service.Execute(context.Background(), RegisterReturnCommand{
 		PersonnelID: personnel.ID(),
 		OperatorID:  operator.ID(),
 		Lines: []CustodyLineCommand{
@@ -364,6 +466,8 @@ func TestRegisterReturnServiceCombinesDuplicateAssetLines(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
+
+	transaction := result.Transaction
 
 	if len(transaction.Lines()) != 1 {
 		t.Fatalf("expected duplicate asset lines to be combined into 1 line, got %d", len(transaction.Lines()))
@@ -905,7 +1009,7 @@ func TestRegisterReturnServiceAllowsInactiveAssetWhenCurrentlyCustodied(t *testi
 		idGenerator,
 	)
 
-	transaction, err := service.Execute(context.Background(), RegisterReturnCommand{
+	result, err := service.Execute(context.Background(), RegisterReturnCommand{
 		PersonnelID: personnel.ID(),
 		OperatorID:  operator.ID(),
 		Lines: []CustodyLineCommand{
@@ -915,6 +1019,8 @@ func TestRegisterReturnServiceAllowsInactiveAssetWhenCurrentlyCustodied(t *testi
 	if err != nil {
 		t.Fatalf("expected inactive asset return to be allowed, got %v", err)
 	}
+
+	transaction := result.Transaction
 
 	if transaction.ID() != "transaction-1" {
 		t.Fatalf("expected transaction-1, got %s", transaction.ID())
@@ -966,7 +1072,7 @@ func TestRegisterReturnServiceAllowsInactivePersonnelWhenReturningCurrentCustody
 		idGenerator,
 	)
 
-	transaction, err := service.Execute(context.Background(), RegisterReturnCommand{
+	result, err := service.Execute(context.Background(), RegisterReturnCommand{
 		PersonnelID: inactivePersonnel.ID(),
 		OperatorID:  operator.ID(),
 		Lines: []CustodyLineCommand{
@@ -976,6 +1082,8 @@ func TestRegisterReturnServiceAllowsInactivePersonnelWhenReturningCurrentCustody
 	if err != nil {
 		t.Fatalf("expected inactive personnel return to be allowed, got %v", err)
 	}
+
+	transaction := result.Transaction
 
 	if transaction.ID() != "transaction-1" {
 		t.Fatalf("expected transaction-1, got %s", transaction.ID())

@@ -14,6 +14,12 @@ type CustodyLineCommand struct {
 	Quantity int
 }
 
+// RegisterCustodyTransactionResult is returned after registering a checkout or return.
+type RegisterCustodyTransactionResult struct {
+	Transaction domain.CustodyTransaction
+	Created     bool
+}
+
 func normalizeCustodyLineCommands(commands []CustodyLineCommand) []CustodyLineCommand {
 	totalsByAssetID := make(map[domain.AssetID]int)
 	orderedAssetIDs := make([]domain.AssetID, 0, len(commands))
@@ -74,12 +80,29 @@ func buildCustodyLines(
 	return lines, nil
 }
 
+func custodyTransactionIDFromCommand(
+	commandTransactionID domain.CustodyTransactionID,
+	idGenerator ports.IDGenerator,
+) (domain.CustodyTransactionID, error) {
+	if commandTransactionID != "" {
+		return commandTransactionID, nil
+	}
+
+	id, err := idGenerator.NewID()
+	if err != nil {
+		return "", err
+	}
+
+	return domain.CustodyTransactionID(id), nil
+}
+
 // RegisterCheckoutCommand contains the input data required to register an asset checkout.
 type RegisterCheckoutCommand struct {
-	PersonnelID domain.PersonnelID
-	OperatorID  domain.OperatorID
-	Lines       []CustodyLineCommand
-	Notes       string
+	TransactionID domain.CustodyTransactionID
+	PersonnelID   domain.PersonnelID
+	OperatorID    domain.OperatorID
+	Lines         []CustodyLineCommand
+	Notes         string
 }
 
 // RegisterCheckoutService handles the asset checkout use case.
@@ -112,44 +135,42 @@ func NewRegisterCheckoutService(
 func (s *RegisterCheckoutService) Execute(
 	ctx context.Context,
 	cmd RegisterCheckoutCommand,
-) (domain.CustodyTransaction, error) {
+) (RegisterCustodyTransactionResult, error) {
 	if cmd.PersonnelID == "" {
-		return domain.CustodyTransaction{}, domain.ErrEmptyPersonnelID
+		return RegisterCustodyTransactionResult{}, domain.ErrEmptyPersonnelID
 	}
 
 	personnel, err := s.personnelRepository.FindByID(ctx, cmd.PersonnelID)
 	if err != nil {
-		return domain.CustodyTransaction{}, err
+		return RegisterCustodyTransactionResult{}, err
 	}
 
 	if !personnel.Active() {
-		return domain.CustodyTransaction{}, domain.ErrInactivePersonnel
+		return RegisterCustodyTransactionResult{}, domain.ErrInactivePersonnel
 	}
 
 	if cmd.OperatorID == "" {
-		return domain.CustodyTransaction{}, domain.ErrEmptyOperatorID
+		return RegisterCustodyTransactionResult{}, domain.ErrEmptyOperatorID
 	}
 
 	operator, err := s.operatorRepository.FindByID(ctx, cmd.OperatorID)
 	if err != nil {
-		return domain.CustodyTransaction{}, err
+		return RegisterCustodyTransactionResult{}, err
 	}
 
 	if !operator.Active() {
-		return domain.CustodyTransaction{}, ports.ErrNotFound
+		return RegisterCustodyTransactionResult{}, ports.ErrNotFound
 	}
 
 	lines, err := buildCustodyLines(ctx, s.assetRepository, cmd.Lines, true)
 	if err != nil {
-		return domain.CustodyTransaction{}, err
+		return RegisterCustodyTransactionResult{}, err
 	}
 
-	id, err := s.idGenerator.NewID()
+	transactionID, err := custodyTransactionIDFromCommand(cmd.TransactionID, s.idGenerator)
 	if err != nil {
-		return domain.CustodyTransaction{}, err
+		return RegisterCustodyTransactionResult{}, err
 	}
-
-	transactionID := domain.CustodyTransactionID(id)
 
 	transaction, err := domain.NewCustodyTransaction(
 		transactionID,
@@ -160,22 +181,27 @@ func (s *RegisterCheckoutService) Execute(
 		cmd.Notes,
 	)
 	if err != nil {
-		return domain.CustodyTransaction{}, err
+		return RegisterCustodyTransactionResult{}, err
 	}
 
-	if err := s.custodyRepository.SaveTransaction(ctx, transaction); err != nil {
-		return domain.CustodyTransaction{}, err
+	created, err := s.custodyRepository.SaveTransaction(ctx, transaction)
+	if err != nil {
+		return RegisterCustodyTransactionResult{}, err
 	}
 
-	return transaction, nil
+	return RegisterCustodyTransactionResult{
+		Transaction: transaction,
+		Created:     created,
+	}, nil
 }
 
 // RegisterReturnCommand contains the input data required to register an asset return.
 type RegisterReturnCommand struct {
-	PersonnelID domain.PersonnelID
-	OperatorID  domain.OperatorID
-	Lines       []CustodyLineCommand
-	Notes       string
+	TransactionID domain.CustodyTransactionID
+	PersonnelID   domain.PersonnelID
+	OperatorID    domain.OperatorID
+	Lines         []CustodyLineCommand
+	Notes         string
 }
 
 // RegisterReturnService handles the asset return use case.
@@ -208,50 +234,50 @@ func NewRegisterReturnService(
 func (s *RegisterReturnService) Execute(
 	ctx context.Context,
 	cmd RegisterReturnCommand,
-) (domain.CustodyTransaction, error) {
+) (RegisterCustodyTransactionResult, error) {
 	if cmd.PersonnelID == "" {
-		return domain.CustodyTransaction{}, domain.ErrEmptyPersonnelID
+		return RegisterCustodyTransactionResult{}, domain.ErrEmptyPersonnelID
 	}
 
 	if _, err := s.personnelRepository.FindByID(ctx, cmd.PersonnelID); err != nil {
-		return domain.CustodyTransaction{}, err
+		return RegisterCustodyTransactionResult{}, err
 	}
 
 	if cmd.OperatorID == "" {
-		return domain.CustodyTransaction{}, domain.ErrEmptyOperatorID
+		return RegisterCustodyTransactionResult{}, domain.ErrEmptyOperatorID
 	}
 
 	operator, err := s.operatorRepository.FindByID(ctx, cmd.OperatorID)
 	if err != nil {
-		return domain.CustodyTransaction{}, err
+		return RegisterCustodyTransactionResult{}, err
 	}
 
 	if !operator.Active() {
-		return domain.CustodyTransaction{}, ports.ErrNotFound
+		return RegisterCustodyTransactionResult{}, ports.ErrNotFound
 	}
 
 	lines, err := buildCustodyLines(ctx, s.assetRepository, cmd.Lines, false)
 	if err != nil {
-		return domain.CustodyTransaction{}, err
+		return RegisterCustodyTransactionResult{}, err
 	}
 
-	for _, line := range lines {
-		currentQuantity, err := s.custodyRepository.CurrentQuantity(ctx, cmd.PersonnelID, line.AssetID())
-		if err != nil {
-			return domain.CustodyTransaction{}, err
-		}
+	if cmd.TransactionID == "" {
+		for _, line := range lines {
+			currentQuantity, err := s.custodyRepository.CurrentQuantity(ctx, cmd.PersonnelID, line.AssetID())
+			if err != nil {
+				return RegisterCustodyTransactionResult{}, err
+			}
 
-		if currentQuantity < line.Quantity().Int() {
-			return domain.CustodyTransaction{}, domain.ErrInsufficientCustodyBalance
+			if currentQuantity < line.Quantity().Int() {
+				return RegisterCustodyTransactionResult{}, domain.ErrInsufficientCustodyBalance
+			}
 		}
 	}
 
-	id, err := s.idGenerator.NewID()
+	transactionID, err := custodyTransactionIDFromCommand(cmd.TransactionID, s.idGenerator)
 	if err != nil {
-		return domain.CustodyTransaction{}, err
+		return RegisterCustodyTransactionResult{}, err
 	}
-
-	transactionID := domain.CustodyTransactionID(id)
 
 	transaction, err := domain.NewCustodyTransaction(
 		transactionID,
@@ -262,14 +288,18 @@ func (s *RegisterReturnService) Execute(
 		cmd.Notes,
 	)
 	if err != nil {
-		return domain.CustodyTransaction{}, err
+		return RegisterCustodyTransactionResult{}, err
 	}
 
-	if err := s.custodyRepository.SaveTransaction(ctx, transaction); err != nil {
-		return domain.CustodyTransaction{}, err
+	created, err := s.custodyRepository.SaveTransaction(ctx, transaction)
+	if err != nil {
+		return RegisterCustodyTransactionResult{}, err
 	}
 
-	return transaction, nil
+	return RegisterCustodyTransactionResult{
+		Transaction: transaction,
+		Created:     created,
+	}, nil
 }
 
 // CurrentCustodyItem contains current custody display data for application use cases.

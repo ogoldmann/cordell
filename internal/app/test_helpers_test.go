@@ -350,6 +350,7 @@ func recordMatchesStatusFilter(active bool, statusFilter ports.RecordStatusFilte
 
 type fakeCustodyRepository struct {
 	saved           []domain.CustodyTransaction
+	saveErr         error
 	currentQuantity map[string]int
 	currentByPerson map[domain.PersonnelID][]ports.CurrentCustodyItem
 	currentByAsset  map[domain.AssetID][]ports.CurrentAssetHolder
@@ -357,10 +358,20 @@ type fakeCustodyRepository struct {
 	receipts        map[domain.CustodyTransactionID]ports.CustodyReceipt
 }
 
-func (r *fakeCustodyRepository) SaveTransaction(_ context.Context, transaction domain.CustodyTransaction) error {
+func (r *fakeCustodyRepository) SaveTransaction(_ context.Context, transaction domain.CustodyTransaction) (bool, error) {
+	if r.saveErr != nil {
+		return false, r.saveErr
+	}
+
+	for _, saved := range r.saved {
+		if saved.ID() == transaction.ID() {
+			return false, nil
+		}
+	}
+
 	r.saved = append(r.saved, transaction)
 
-	return nil
+	return true, nil
 }
 
 func (r *fakeCustodyRepository) CurrentQuantity(

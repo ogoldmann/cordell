@@ -121,7 +121,7 @@ type AssetRepository interface {
 
 // CustodyRepository persists custody transactions and reads current custody state.
 type CustodyRepository interface {
-	SaveTransaction(ctx context.Context, transaction domain.CustodyTransaction) error
+	SaveTransaction(ctx context.Context, transaction domain.CustodyTransaction) (bool, error)
 	CurrentQuantity(ctx context.Context, personnelID domain.PersonnelID, assetID domain.AssetID) (int, error)
 	ListCurrentByPersonnel(ctx context.Context, personnelID domain.PersonnelID) ([]CurrentCustodyItem, error)
 	ListCurrentByAsset(ctx context.Context, assetID domain.AssetID) ([]CurrentAssetHolder, error)

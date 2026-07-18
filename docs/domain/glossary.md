@@ -92,6 +92,14 @@ For returns, Cordell decreases balance only when the current quantity is still s
 
 This prevents concurrent returns from consuming the same balance twice.
 
+## Custody Form Idempotency
+
+Custody form idempotency prevents the same checkout or return form submission from being applied more than once.
+
+Cordell uses the custody transaction ID submitted with the form as the idempotency key.
+
+The database primary key prevents duplicate transaction creation.
+
 ## Custody Receipt
 
 A custody receipt is a read-only view of a checkout or return transaction.

@@ -30,10 +30,10 @@ func NewCustodyRepository(pool *pgxpool.Pool, queries *db.Queries) *CustodyRepos
 }
 
 // SaveTransaction persists a custody transaction and updates balances atomically.
-func (r *CustodyRepository) SaveTransaction(ctx context.Context, transaction domain.CustodyTransaction) error {
+func (r *CustodyRepository) SaveTransaction(ctx context.Context, transaction domain.CustodyTransaction) (bool, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer tx.Rollback(ctx)
 
@@ -47,7 +47,11 @@ func (r *CustodyRepository) SaveTransaction(ctx context.Context, transaction dom
 		Notes:           transaction.Notes(),
 	})
 	if err != nil {
-		return err
+		if isUniqueViolation(err, "custody_transactions_pkey") {
+			return false, nil
+		}
+
+		return false, err
 	}
 
 	for _, line := range transaction.Lines() {
@@ -57,15 +61,19 @@ func (r *CustodyRepository) SaveTransaction(ctx context.Context, transaction dom
 			Quantity:             int32(line.Quantity().Int()),
 		})
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		if err := applyCustodyBalanceChange(ctx, qtx, transaction, line); err != nil {
-			return err
+			return false, err
 		}
 	}
 
-	return tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func applyCustodyBalanceChange(

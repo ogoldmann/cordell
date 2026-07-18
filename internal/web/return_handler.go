@@ -29,9 +29,10 @@ type personnelReturnView struct {
 }
 
 type returnCurrentCustodyItemView struct {
-	AssetID   string
-	AssetName string
-	Quantity  int
+	TransactionID string
+	AssetID       string
+	AssetName     string
+	Quantity      int
 }
 
 func (s *Server) handleNewReturnForm(w http.ResponseWriter, r *http.Request) {
@@ -63,6 +64,18 @@ func (s *Server) handleCreateReturn(w http.ResponseWriter, r *http.Request) {
 
 	personnelID := domain.PersonnelID(r.FormValue("personnel_id"))
 	assetID := domain.AssetID(r.FormValue("asset_id"))
+	transactionID := domain.CustodyTransactionID(r.FormValue("transaction_id"))
+	if transactionID == "" {
+		s.renderReturnFormError(
+			w,
+			r,
+			http.StatusBadRequest,
+			personnelID,
+			"Form transaction ID is missing. Please reload the page and try again.",
+		)
+		return
+	}
+
 	quantity, err := parsePositiveInt(r.FormValue("quantity"))
 	if err != nil {
 		s.renderReturnFormError(
@@ -77,9 +90,10 @@ func (s *Server) handleCreateReturn(w http.ResponseWriter, r *http.Request) {
 
 	notes := r.FormValue("notes")
 
-	transaction, err := s.services.RegisterReturn.Execute(r.Context(), app.RegisterReturnCommand{
-		PersonnelID: personnelID,
-		OperatorID:  currentOperator.ID(),
+	result, err := s.services.RegisterReturn.Execute(r.Context(), app.RegisterReturnCommand{
+		TransactionID: transactionID,
+		PersonnelID:   personnelID,
+		OperatorID:    currentOperator.ID(),
 		Lines: []app.CustodyLineCommand{
 			{
 				AssetID:  assetID,
@@ -99,17 +113,19 @@ func (s *Server) handleCreateReturn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.recordAuditEventOrLog(
-		r,
-		domain.AuditEventCustodyReturnCreated,
-		domain.AuditEntityCustodyTransaction,
-		string(transaction.ID()),
-		map[string]string{
-			"personnel_id": string(transaction.PersonnelID()),
-		},
-	)
+	if result.Created {
+		s.recordAuditEventOrLog(
+			r,
+			domain.AuditEventCustodyReturnCreated,
+			domain.AuditEntityCustodyTransaction,
+			string(result.Transaction.ID()),
+			map[string]string{
+				"personnel_id": string(result.Transaction.PersonnelID()),
+			},
+		)
+	}
 
-	http.Redirect(w, r, "/personnel/"+string(transaction.PersonnelID()), http.StatusSeeOther)
+	http.Redirect(w, r, "/custody/transactions/"+string(result.Transaction.ID()), http.StatusSeeOther)
 }
 
 func (s *Server) renderReturnFormError(
@@ -184,10 +200,16 @@ func (s *Server) buildReturnFormPageData(
 	data.CurrentItems = make([]returnCurrentCustodyItemView, 0, len(currentItems))
 
 	for _, item := range currentItems {
+		transactionID, err := newFormTransactionID()
+		if err != nil {
+			return returnNewPageData{}, err
+		}
+
 		data.CurrentItems = append(data.CurrentItems, returnCurrentCustodyItemView{
-			AssetID:   string(item.AssetID),
-			AssetName: item.AssetName,
-			Quantity:  item.Quantity,
+			TransactionID: string(transactionID),
+			AssetID:       string(item.AssetID),
+			AssetName:     item.AssetName,
+			Quantity:      item.Quantity,
 		})
 	}
 

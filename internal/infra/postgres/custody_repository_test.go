@@ -60,7 +60,7 @@ func TestPostgresCustodyRepositoryRegisterCheckout(t *testing.T) {
 		t.Fatalf("expected no error creating asset, got %v", err)
 	}
 
-	transaction, err := registerCheckoutService.Execute(context.Background(), app.RegisterCheckoutCommand{
+	result, err := registerCheckoutService.Execute(context.Background(), app.RegisterCheckoutCommand{
 		PersonnelID: "personnel-1",
 		OperatorID:  operator.ID(),
 		Lines: []app.CustodyLineCommand{
@@ -74,6 +74,8 @@ func TestPostgresCustodyRepositoryRegisterCheckout(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error registering checkout, got %v", err)
 	}
+
+	transaction := result.Transaction
 
 	if transaction.Type() != domain.CustodyTransactionTypeCheckout {
 		t.Fatalf("expected checkout transaction, got %s", transaction.Type())
@@ -185,7 +187,7 @@ func TestPostgresCustodyRepositoryRegisterReturn(t *testing.T) {
 		t.Fatalf("expected no error registering checkout, got %v", err)
 	}
 
-	transaction, err := registerReturnService.Execute(context.Background(), app.RegisterReturnCommand{
+	result, err := registerReturnService.Execute(context.Background(), app.RegisterReturnCommand{
 		PersonnelID: "personnel-1",
 		OperatorID:  operator.ID(),
 		Lines: []app.CustodyLineCommand{
@@ -199,6 +201,8 @@ func TestPostgresCustodyRepositoryRegisterReturn(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error registering return, got %v", err)
 	}
+
+	transaction := result.Transaction
 
 	if transaction.Type() != domain.CustodyTransactionTypeReturn {
 		t.Fatalf("expected return transaction, got %s", transaction.Type())
@@ -612,7 +616,7 @@ func TestPostgresCustodyRepositoryListCurrentByPersonnelIncludesAssetActiveState
 		t.Fatalf("expected valid transaction, got %v", err)
 	}
 
-	if err := custodyRepository.SaveTransaction(context.Background(), transaction); err != nil {
+	if _, err := custodyRepository.SaveTransaction(context.Background(), transaction); err != nil {
 		t.Fatalf("expected no error saving transaction, got %v", err)
 	}
 
@@ -692,7 +696,7 @@ func TestPostgresCustodyRepositoryListCurrentByAssetIncludesPersonnelActiveState
 		t.Fatalf("expected valid transaction, got %v", err)
 	}
 
-	if err := custodyRepository.SaveTransaction(context.Background(), transaction); err != nil {
+	if _, err := custodyRepository.SaveTransaction(context.Background(), transaction); err != nil {
 		t.Fatalf("expected no error saving transaction, got %v", err)
 	}
 
@@ -780,7 +784,7 @@ func TestPostgresCustodyRepositoryFindReceiptByID(t *testing.T) {
 		t.Fatalf("expected valid transaction, got %v", err)
 	}
 
-	if err := custodyRepository.SaveTransaction(context.Background(), transaction); err != nil {
+	if _, err := custodyRepository.SaveTransaction(context.Background(), transaction); err != nil {
 		t.Fatalf("expected no error saving transaction, got %v", err)
 	}
 
@@ -867,7 +871,7 @@ func TestPostgresCustodyRepositoryCurrentStateSequence(t *testing.T) {
 		t.Fatalf("expected valid checkout, got %v", err)
 	}
 
-	if err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
+	if _, err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
 		t.Fatalf("expected no error saving checkout, got %v", err)
 	}
 
@@ -897,7 +901,7 @@ func TestPostgresCustodyRepositoryCurrentStateSequence(t *testing.T) {
 		t.Fatalf("expected valid return, got %v", err)
 	}
 
-	if err := custodyRepository.SaveTransaction(context.Background(), firstReturn); err != nil {
+	if _, err := custodyRepository.SaveTransaction(context.Background(), firstReturn); err != nil {
 		t.Fatalf("expected no error saving first return, got %v", err)
 	}
 
@@ -927,7 +931,7 @@ func TestPostgresCustodyRepositoryCurrentStateSequence(t *testing.T) {
 		t.Fatalf("expected valid final return, got %v", err)
 	}
 
-	if err := custodyRepository.SaveTransaction(context.Background(), finalReturn); err != nil {
+	if _, err := custodyRepository.SaveTransaction(context.Background(), finalReturn); err != nil {
 		t.Fatalf("expected no error saving final return, got %v", err)
 	}
 
@@ -1003,7 +1007,7 @@ func TestPostgresCustodyRepositoryRollsBackInvalidReturn(t *testing.T) {
 		t.Fatalf("expected valid checkout, got %v", err)
 	}
 
-	if err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
+	if _, err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
 		t.Fatalf("expected no error saving checkout, got %v", err)
 	}
 
@@ -1024,7 +1028,7 @@ func TestPostgresCustodyRepositoryRollsBackInvalidReturn(t *testing.T) {
 		t.Fatalf("expected valid return transaction object, got %v", err)
 	}
 
-	err = custodyRepository.SaveTransaction(context.Background(), invalidReturn)
+	_, err = custodyRepository.SaveTransaction(context.Background(), invalidReturn)
 	if err != domain.ErrInsufficientCustodyBalance {
 		t.Fatalf("expected ErrInsufficientCustodyBalance, got %v", err)
 	}
@@ -1119,7 +1123,7 @@ func TestPostgresCustodyRepositoryHandlesMultipleAssetsInOneTransaction(t *testi
 		t.Fatalf("expected valid checkout, got %v", err)
 	}
 
-	if err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
+	if _, err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
 		t.Fatalf("expected no error saving checkout, got %v", err)
 	}
 
@@ -1204,7 +1208,7 @@ func TestPostgresCustodyRepositoryConcurrentReturnsCannotOverdrawBalance(t *test
 		t.Fatalf("expected valid checkout, got %v", err)
 	}
 
-	if err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
+	if _, err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
 		t.Fatalf("expected no error saving checkout, got %v", err)
 	}
 
@@ -1233,7 +1237,8 @@ func TestPostgresCustodyRepositoryConcurrentReturnsCannotOverdrawBalance(t *test
 			return
 		}
 
-		errCh <- custodyRepository.SaveTransaction(context.Background(), returnTransaction)
+		_, err = custodyRepository.SaveTransaction(context.Background(), returnTransaction)
+		errCh <- err
 	}
 
 	go saveReturn("transaction-return-1")
@@ -1338,7 +1343,7 @@ func TestPostgresCustodyRepositoryConcurrentPartialReturnsRemainConsistent(t *te
 		t.Fatalf("expected valid checkout, got %v", err)
 	}
 
-	if err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
+	if _, err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
 		t.Fatalf("expected no error saving checkout, got %v", err)
 	}
 
@@ -1367,7 +1372,8 @@ func TestPostgresCustodyRepositoryConcurrentPartialReturnsRemainConsistent(t *te
 			return
 		}
 
-		errCh <- custodyRepository.SaveTransaction(context.Background(), returnTransaction)
+		_, err = custodyRepository.SaveTransaction(context.Background(), returnTransaction)
+		errCh <- err
 	}
 
 	go saveReturn("transaction-return-1", 2)
@@ -1471,7 +1477,8 @@ func TestPostgresCustodyRepositoryConcurrentCheckoutsAccumulateBalance(t *testin
 			return
 		}
 
-		errCh <- custodyRepository.SaveTransaction(context.Background(), transaction)
+		_, err = custodyRepository.SaveTransaction(context.Background(), transaction)
+		errCh <- err
 	}
 
 	go saveCheckout("transaction-checkout-1")
@@ -1497,5 +1504,95 @@ func TestPostgresCustodyRepositoryConcurrentCheckoutsAccumulateBalance(t *testin
 
 	if quantity != 2 {
 		t.Fatalf("expected current quantity 2, got %d", quantity)
+	}
+}
+
+func TestPostgresCustodyRepositorySaveTransactionIsIdempotentByTransactionID(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"93541134780",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	line, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid line, got %v", err)
+	}
+
+	transaction, err := domain.NewCustodyTransaction(
+		"transaction-1",
+		domain.CustodyTransactionTypeCheckout,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{line},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid transaction, got %v", err)
+	}
+
+	created, err := custodyRepository.SaveTransaction(context.Background(), transaction)
+	if err != nil {
+		t.Fatalf("expected no error saving transaction, got %v", err)
+	}
+
+	if !created {
+		t.Fatal("expected first save to create transaction")
+	}
+
+	created, err = custodyRepository.SaveTransaction(context.Background(), transaction)
+	if err != nil {
+		t.Fatalf("expected duplicate save to be treated as idempotent, got %v", err)
+	}
+
+	if created {
+		t.Fatal("expected second save to be idempotent duplicate")
+	}
+
+	quantity, err := custodyRepository.CurrentQuantity(context.Background(), personnel.ID(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected no error reading current quantity, got %v", err)
+	}
+
+	if quantity != 1 {
+		t.Fatalf("expected quantity to remain 1 after duplicate save, got %d", quantity)
+	}
+
+	history, err := custodyRepository.ListHistoryByPersonnel(context.Background(), personnel.ID(), 10)
+	if err != nil {
+		t.Fatalf("expected no error listing history, got %v", err)
+	}
+
+	if len(history) != 1 {
+		t.Fatalf("expected only one transaction in history, got %d", len(history))
 	}
 }
