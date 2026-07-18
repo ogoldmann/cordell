@@ -255,35 +255,36 @@ func (r *CustodyRepository) FindReceiptByID(
 
 	first := rows[0]
 
-	createdAt, err := timestamptzToTime(first.TransactionCreatedAt)
+	createdAt, err := timestamptzToTime(first.CreatedAt)
 	if err != nil {
 		return ports.CustodyReceipt{}, err
 	}
 
 	receipt := ports.CustodyReceipt{
-		ID:                        domain.CustodyTransactionID(first.TransactionID),
-		Type:                      domain.CustodyTransactionType(first.TransactionType),
-		PersonnelID:               domain.PersonnelID(first.PersonnelID),
-		PersonnelFullName:         first.PersonnelFullName,
-		PersonnelAlias:            first.PersonnelAlias,
-		PersonnelRank:             domain.Rank(first.PersonnelRank),
-		PersonnelRegistrationID:   domain.RegistrationID(first.PersonnelRegistrationID),
-		PersonnelSection:          domain.PersonnelSection(first.PersonnelSection),
-		PersonnelOrganizationUnit: domain.OrganizationUnit(first.PersonnelOrganizationUnit),
-		OperatorID:                domain.OperatorID(first.OperatorID),
-		OperatorRegistrationID:    domain.RegistrationID(first.OperatorRegistrationID),
-		OperatorAlias:             first.OperatorAlias,
-		OperatorRank:              domain.Rank(first.OperatorRank),
-		Notes:                     first.Notes,
-		CreatedAt:                 createdAt,
-		Lines:                     make([]ports.CustodyReceiptLine, 0, len(rows)),
+		ID:                      domain.CustodyTransactionID(first.ID),
+		TransactionType:         domain.CustodyTransactionType(first.TransactionType),
+		PersonnelID:             domain.PersonnelID(first.PersonnelID),
+		PersonnelFullName:       first.PersonnelFullName,
+		PersonnelAlias:          first.PersonnelAlias,
+		PersonnelRank:           domain.Rank(first.PersonnelRank),
+		PersonnelRegistrationID: domain.RegistrationID(first.PersonnelRegistrationID),
+		PersonnelActive:         first.PersonnelActive,
+		OperatorID:              domain.OperatorID(first.OperatorID),
+		OperatorAlias:           first.OperatorAlias,
+		OperatorRank:            domain.Rank(first.OperatorRank),
+		OperatorRole:            domain.OperatorRole(first.OperatorRole),
+		OperatorActive:          first.OperatorActive,
+		Notes:                   first.Notes,
+		CreatedAt:               createdAt,
+		Lines:                   make([]ports.CustodyReceiptLine, 0, len(rows)),
 	}
 
 	for _, row := range rows {
 		receipt.Lines = append(receipt.Lines, ports.CustodyReceiptLine{
-			AssetID:   domain.AssetID(row.AssetID),
-			AssetName: row.AssetName,
-			Quantity:  int(row.Quantity),
+			AssetID:     domain.AssetID(row.AssetID),
+			AssetName:   row.AssetName,
+			AssetActive: row.AssetActive,
+			Quantity:    int(row.Quantity),
 		})
 	}
 

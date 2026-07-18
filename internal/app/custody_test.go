@@ -705,26 +705,27 @@ func TestGetCustodyReceiptServiceExecute(t *testing.T) {
 	repository := &fakeCustodyRepository{
 		receipts: map[domain.CustodyTransactionID]ports.CustodyReceipt{
 			"transaction-1": {
-				ID:                        "transaction-1",
-				Type:                      domain.CustodyTransactionTypeCheckout,
-				PersonnelID:               "personnel-1",
-				PersonnelFullName:         "João Silva",
-				PersonnelAlias:            "silva",
-				PersonnelRank:             domain.RankSergeant,
-				PersonnelRegistrationID:   domain.RegistrationID("52998224725"),
-				PersonnelSection:          domain.PersonnelSectionLogistics,
-				PersonnelOrganizationUnit: domain.OrganizationUnitDefault,
-				OperatorID:                "operator-1",
-				OperatorRegistrationID:    domain.RegistrationID("93541134780"),
-				OperatorAlias:             "costa",
-				OperatorRank:              domain.RankCorporal,
-				Notes:                     "Issued for field activity.",
-				CreatedAt:                 createdAt,
+				ID:                      "transaction-1",
+				TransactionType:         domain.CustodyTransactionTypeCheckout,
+				PersonnelID:             "personnel-1",
+				PersonnelFullName:       "João Silva",
+				PersonnelAlias:          "silva",
+				PersonnelRank:           domain.RankSergeant,
+				PersonnelRegistrationID: domain.RegistrationID("52998224725"),
+				PersonnelActive:         true,
+				OperatorID:              "operator-1",
+				OperatorAlias:           "costa",
+				OperatorRank:            domain.RankCorporal,
+				OperatorRole:            domain.OperatorRoleAdmin,
+				OperatorActive:          true,
+				Notes:                   "Issued for field activity.",
+				CreatedAt:               createdAt,
 				Lines: []ports.CustodyReceiptLine{
 					{
-						AssetID:   "asset-1",
-						AssetName: "Radio",
-						Quantity:  1,
+						AssetID:     "asset-1",
+						AssetName:   "Radio",
+						AssetActive: true,
+						Quantity:    1,
 					},
 				},
 			},
@@ -754,6 +755,57 @@ func TestGetCustodyReceiptServiceExecute(t *testing.T) {
 
 	if len(receipt.Lines) != 1 {
 		t.Fatalf("expected 1 line, got %d", len(receipt.Lines))
+	}
+}
+
+func TestGetCustodyReceiptServicePreservesCurrentStatusFields(t *testing.T) {
+	custodyRepository := &fakeCustodyRepository{
+		receipts: map[domain.CustodyTransactionID]ports.CustodyReceipt{
+			"transaction-1": {
+				ID:                      "transaction-1",
+				TransactionType:         domain.CustodyTransactionTypeCheckout,
+				PersonnelID:             "personnel-1",
+				PersonnelFullName:       "John Doe",
+				PersonnelAlias:          "doe",
+				PersonnelRank:           domain.RankSergeant,
+				PersonnelRegistrationID: "52998224725",
+				PersonnelActive:         false,
+				OperatorID:              "operator-1",
+				OperatorAlias:           "silva",
+				OperatorRank:            domain.RankSergeant,
+				OperatorRole:            domain.OperatorRoleAdmin,
+				OperatorActive:          true,
+				Lines: []ports.CustodyReceiptLine{
+					{
+						AssetID:     "asset-1",
+						AssetName:   "Radio",
+						AssetActive: false,
+						Quantity:    1,
+					},
+				},
+			},
+		},
+	}
+
+	service := NewGetCustodyReceiptService(custodyRepository)
+
+	receipt, err := service.Execute(context.Background(), GetCustodyReceiptCommand{
+		ID: "transaction-1",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if receipt.PersonnelActive {
+		t.Fatal("expected inactive personnel status to be preserved")
+	}
+
+	if len(receipt.Lines) != 1 {
+		t.Fatalf("expected 1 line, got %d", len(receipt.Lines))
+	}
+
+	if receipt.Lines[0].AssetActive {
+		t.Fatal("expected inactive asset status to be preserved")
 	}
 }
 

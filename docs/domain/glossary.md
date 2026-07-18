@@ -102,9 +102,13 @@ The database primary key prevents duplicate transaction creation.
 
 ## Custody Receipt
 
-A custody receipt is a read-only view of a checkout or return transaction.
+A custody receipt is a historical read model for a custody transaction.
 
-It shows who received or returned assets, which authenticated operator registered the event, which assets were involved, quantities, notes, and timestamp.
+It records the transaction identity, type, timestamp, personnel, operator, asset lines, quantities, and notes.
+
+A receipt remains readable even when related personnel or asset records become inactive.
+
+Current Active/Inactive badges describe the current status of related records, not necessarily their status at the time of the transaction.
 
 ## Custody Correction
 

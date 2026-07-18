@@ -1,75 +1,90 @@
 package web
 
 import (
-	"time"
+	"strings"
 
 	"cordell/internal/app"
 )
 
 type custodyReceiptView struct {
-	ID                        string
-	Type                      string
-	TypeLabel                 string
-	PersonnelID               string
-	PersonnelFullName         string
-	PersonnelAlias            string
-	PersonnelRankLabel        string
-	PersonnelDisplay          string
-	PersonnelRegistrationID   string
-	PersonnelSection          string
-	PersonnelOrganizationUnit string
-	OperatorID                string
-	OperatorDisplay           string
-	OperatorRegistrationID    string
-	Notes                     string
-	CreatedAt                 string
-	Lines                     []custodyReceiptLineView
-	TotalQuantity             int
+	ID                       string
+	TypeLabel                string
+	PersonnelID              string
+	PersonnelDisplay         string
+	PersonnelFullName        string
+	PersonnelRegistrationID  string
+	PersonnelActive          bool
+	PersonnelStatusLabel     string
+	OperatorID               string
+	OperatorDisplay          string
+	OperatorRoleLabel        string
+	OperatorActive           bool
+	OperatorStatusLabel      string
+	Notes                    string
+	HasNotes                 bool
+	CreatedAt                string
+	Lines                    []custodyReceiptLineView
+	TotalQuantity            int
+	HasInactiveRelatedRecord bool
 }
 
 type custodyReceiptLineView struct {
-	AssetID   string
-	AssetName string
-	Quantity  int
+	AssetID     string
+	AssetName   string
+	AssetActive bool
+	StatusLabel string
+	Quantity    int
 }
 
 func newCustodyReceiptView(receipt app.CustodyReceipt) custodyReceiptView {
 	view := custodyReceiptView{
-		ID:                        string(receipt.ID),
-		Type:                      string(receipt.Type),
-		TypeLabel:                 custodyTransactionTypeLabel(receipt.Type),
-		PersonnelID:               string(receipt.PersonnelID),
-		PersonnelFullName:         receipt.PersonnelFullName,
-		PersonnelAlias:            receipt.PersonnelAlias,
-		PersonnelRankLabel:        receipt.PersonnelRank.Label(),
-		PersonnelDisplay:          militaryDisplayName(receipt.PersonnelRank, receipt.PersonnelAlias),
-		PersonnelRegistrationID:   receipt.PersonnelRegistrationID.String(),
-		PersonnelSection:          receipt.PersonnelSection.Label(),
-		PersonnelOrganizationUnit: receipt.PersonnelOrganizationUnit.Label(),
-		OperatorID:                string(receipt.OperatorID),
-		OperatorDisplay:           militaryDisplayName(receipt.OperatorRank, receipt.OperatorAlias),
-		OperatorRegistrationID:    receipt.OperatorRegistrationID.String(),
-		Notes:                     receipt.Notes,
-		CreatedAt:                 formatReceiptTimestamp(receipt.CreatedAt),
-		Lines:                     make([]custodyReceiptLineView, 0, len(receipt.Lines)),
+		ID:                      string(receipt.ID),
+		TypeLabel:               custodyTransactionTypeLabel(receipt.TransactionType),
+		PersonnelID:             string(receipt.PersonnelID),
+		PersonnelDisplay:        militaryDisplayName(receipt.PersonnelRank, receipt.PersonnelAlias),
+		PersonnelFullName:       receipt.PersonnelFullName,
+		PersonnelRegistrationID: string(receipt.PersonnelRegistrationID),
+		PersonnelActive:         receipt.PersonnelActive,
+		PersonnelStatusLabel:    activeStatusLabel(receipt.PersonnelActive),
+		OperatorID:              string(receipt.OperatorID),
+		OperatorDisplay:         militaryDisplayName(receipt.OperatorRank, receipt.OperatorAlias),
+		OperatorRoleLabel:       receipt.OperatorRole.Label(),
+		OperatorActive:          receipt.OperatorActive,
+		OperatorStatusLabel:     activeStatusLabel(receipt.OperatorActive),
+		Notes:                   receipt.Notes,
+		HasNotes:                strings.TrimSpace(receipt.Notes) != "",
+		CreatedAt:               formatDateTime(receipt.CreatedAt),
+		Lines:                   make([]custodyReceiptLineView, 0, len(receipt.Lines)),
 	}
 
 	for _, line := range receipt.Lines {
+		statusLabel := activeStatusLabel(line.AssetActive)
+
+		if !line.AssetActive {
+			view.HasInactiveRelatedRecord = true
+		}
+
 		view.TotalQuantity += line.Quantity
 		view.Lines = append(view.Lines, custodyReceiptLineView{
-			AssetID:   string(line.AssetID),
-			AssetName: line.AssetName,
-			Quantity:  line.Quantity,
+			AssetID:     string(line.AssetID),
+			AssetName:   line.AssetName,
+			AssetActive: line.AssetActive,
+			StatusLabel: statusLabel,
+			Quantity:    line.Quantity,
 		})
+	}
+
+	if !receipt.PersonnelActive || !receipt.OperatorActive {
+		view.HasInactiveRelatedRecord = true
 	}
 
 	return view
 }
 
-func formatReceiptTimestamp(value time.Time) string {
-	if value.IsZero() {
-		return ""
+func activeStatusLabel(active bool) string {
+	if active {
+		return "Active"
 	}
 
-	return value.Local().Format("2006-01-02 15:04")
+	return "Inactive"
 }

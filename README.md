@@ -284,6 +284,31 @@ A custody receipt displays:
 
 Receipts are read-only and generated from persisted custody transaction data.
 
+## Custody Receipt Integrity
+
+Custody receipts are historical read models for custody transactions.
+
+A receipt shows:
+
+- transaction ID
+- transaction type
+- creation timestamp
+- personnel identity
+- operator identity
+- asset lines
+- quantities
+- notes
+
+Receipts remain readable even if related personnel or asset records are later deactivated.
+
+Active/Inactive badges on receipts represent the current status of related records.
+
+They do not necessarily represent the status of those records at the time of the transaction.
+
+The current receipt model uses stored transaction IDs and joins current display data for personnel, operators, and assets.
+
+Before implementing rich editing of personnel or asset identity fields, Cordell should revisit whether receipts need immutable display snapshots.
+
 ## Custody Receipt
 
 A custody receipt is a read-only view of a checkout or return transaction.

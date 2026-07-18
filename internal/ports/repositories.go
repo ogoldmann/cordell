@@ -49,29 +49,30 @@ type CustodyHistoryEntry struct {
 
 // CustodyReceiptLine represents one asset line in a custody transaction receipt.
 type CustodyReceiptLine struct {
-	AssetID   domain.AssetID
-	AssetName string
-	Quantity  int
+	AssetID     domain.AssetID
+	AssetName   string
+	AssetActive bool
+	Quantity    int
 }
 
 // CustodyReceipt represents a complete custody transaction receipt read model.
 type CustodyReceipt struct {
-	ID                        domain.CustodyTransactionID
-	Type                      domain.CustodyTransactionType
-	PersonnelID               domain.PersonnelID
-	PersonnelFullName         string
-	PersonnelAlias            string
-	PersonnelRank             domain.Rank
-	PersonnelRegistrationID   domain.RegistrationID
-	PersonnelSection          domain.PersonnelSection
-	PersonnelOrganizationUnit domain.OrganizationUnit
-	OperatorID                domain.OperatorID
-	OperatorRegistrationID    domain.RegistrationID
-	OperatorAlias             string
-	OperatorRank              domain.Rank
-	Notes                     string
-	CreatedAt                 time.Time
-	Lines                     []CustodyReceiptLine
+	ID                      domain.CustodyTransactionID
+	TransactionType         domain.CustodyTransactionType
+	PersonnelID             domain.PersonnelID
+	PersonnelFullName       string
+	PersonnelAlias          string
+	PersonnelRank           domain.Rank
+	PersonnelRegistrationID domain.RegistrationID
+	PersonnelActive         bool
+	OperatorID              domain.OperatorID
+	OperatorAlias           string
+	OperatorRank            domain.Rank
+	OperatorRole            domain.OperatorRole
+	OperatorActive          bool
+	Notes                   string
+	CreatedAt               time.Time
+	Lines                   []CustodyReceiptLine
 }
 
 // RecordStatusFilter controls active/inactive list filtering.

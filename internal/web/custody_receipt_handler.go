@@ -13,8 +13,9 @@ import (
 
 type custodyReceiptPageData struct {
 	privateLayoutData
-	Title   string
-	Receipt custodyReceiptView
+	Title                     string
+	Receipt                   custodyReceiptView
+	IsHistoricalReadModelNote bool
 }
 
 func (s *Server) handleShowCustodyReceipt(w http.ResponseWriter, r *http.Request) {
@@ -34,12 +35,13 @@ func (s *Server) handleShowCustodyReceipt(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	receiptView := newCustodyReceiptView(receipt)
+	view := newCustodyReceiptView(receipt)
 
 	data := custodyReceiptPageData{
-		privateLayoutData: newPrivateLayoutData(r),
-		Title:             receiptView.TypeLabel + " receipt",
-		Receipt:           receiptView,
+		privateLayoutData:         newPrivateLayoutData(r),
+		Title:                     view.TypeLabel + " receipt",
+		Receipt:                   view,
+		IsHistoricalReadModelNote: true,
 	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "custody_receipt_show.html", data); err != nil {

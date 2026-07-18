@@ -818,6 +818,192 @@ func TestPostgresCustodyRepositoryFindReceiptByID(t *testing.T) {
 	}
 }
 
+func TestPostgresCustodyRepositoryFindReceiptIncludesCurrentRecordStatus(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"93541134780",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	line, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid line, got %v", err)
+	}
+
+	transaction, err := domain.NewCustodyTransaction(
+		"transaction-1",
+		domain.CustodyTransactionTypeCheckout,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{line},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid transaction, got %v", err)
+	}
+
+	created, err := custodyRepository.SaveTransaction(context.Background(), transaction)
+	if err != nil {
+		t.Fatalf("expected no error saving transaction, got %v", err)
+	}
+
+	if !created {
+		t.Fatal("expected transaction to be created")
+	}
+
+	receipt, err := custodyRepository.FindReceiptByID(context.Background(), transaction.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding receipt, got %v", err)
+	}
+
+	if !receipt.PersonnelActive {
+		t.Fatal("expected personnel active status to be true")
+	}
+
+	if !receipt.OperatorActive {
+		t.Fatal("expected operator active status to be true")
+	}
+
+	if len(receipt.Lines) != 1 {
+		t.Fatalf("expected 1 receipt line, got %d", len(receipt.Lines))
+	}
+
+	if !receipt.Lines[0].AssetActive {
+		t.Fatal("expected asset active status to be true")
+	}
+}
+
+func TestPostgresCustodyRepositoryFindReceiptAfterPersonnelAndAssetDeactivation(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"93541134780",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	line, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid line, got %v", err)
+	}
+
+	transaction, err := domain.NewCustodyTransaction(
+		"transaction-1",
+		domain.CustodyTransactionTypeCheckout,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{line},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid transaction, got %v", err)
+	}
+
+	created, err := custodyRepository.SaveTransaction(context.Background(), transaction)
+	if err != nil {
+		t.Fatalf("expected no error saving transaction, got %v", err)
+	}
+
+	if !created {
+		t.Fatal("expected transaction to be created")
+	}
+
+	deactivatedPersonnel, err := personnelRepository.Deactivate(context.Background(), personnel.ID())
+	if err != nil {
+		t.Fatalf("expected no error deactivating personnel, got %v", err)
+	}
+
+	if !deactivatedPersonnel {
+		t.Fatal("expected personnel to be deactivated")
+	}
+
+	deactivatedAsset, err := assetRepository.Deactivate(context.Background(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected no error deactivating asset, got %v", err)
+	}
+
+	if !deactivatedAsset {
+		t.Fatal("expected asset to be deactivated")
+	}
+
+	receipt, err := custodyRepository.FindReceiptByID(context.Background(), transaction.ID())
+	if err != nil {
+		t.Fatalf("expected receipt to remain readable after deactivation, got %v", err)
+	}
+
+	if receipt.PersonnelActive {
+		t.Fatal("expected receipt to expose current inactive personnel status")
+	}
+
+	if len(receipt.Lines) != 1 {
+		t.Fatalf("expected 1 receipt line, got %d", len(receipt.Lines))
+	}
+
+	if receipt.Lines[0].AssetActive {
+		t.Fatal("expected receipt to expose current inactive asset status")
+	}
+
+	if receipt.ID != transaction.ID() {
+		t.Fatalf("expected receipt id %s, got %s", transaction.ID(), receipt.ID)
+	}
+}
+
 func TestPostgresCustodyRepositoryCurrentStateSequence(t *testing.T) {
 	pool := openTestPool(t)
 	queries := newTestQueries(pool)

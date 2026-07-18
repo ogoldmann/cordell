@@ -472,29 +472,30 @@ func (s *ListCustodyHistoryService) Execute(
 
 // CustodyReceiptLine contains one line in a custody receipt.
 type CustodyReceiptLine struct {
-	AssetID   domain.AssetID
-	AssetName string
-	Quantity  int
+	AssetID     domain.AssetID
+	AssetName   string
+	AssetActive bool
+	Quantity    int
 }
 
 // CustodyReceipt contains a complete custody transaction receipt.
 type CustodyReceipt struct {
-	ID                        domain.CustodyTransactionID
-	Type                      domain.CustodyTransactionType
-	PersonnelID               domain.PersonnelID
-	PersonnelFullName         string
-	PersonnelAlias            string
-	PersonnelRank             domain.Rank
-	PersonnelRegistrationID   domain.RegistrationID
-	PersonnelSection          domain.PersonnelSection
-	PersonnelOrganizationUnit domain.OrganizationUnit
-	OperatorID                domain.OperatorID
-	OperatorRegistrationID    domain.RegistrationID
-	OperatorAlias             string
-	OperatorRank              domain.Rank
-	Notes                     string
-	CreatedAt                 time.Time
-	Lines                     []CustodyReceiptLine
+	ID                      domain.CustodyTransactionID
+	TransactionType         domain.CustodyTransactionType
+	PersonnelID             domain.PersonnelID
+	PersonnelFullName       string
+	PersonnelAlias          string
+	PersonnelRank           domain.Rank
+	PersonnelRegistrationID domain.RegistrationID
+	PersonnelActive         bool
+	OperatorID              domain.OperatorID
+	OperatorAlias           string
+	OperatorRank            domain.Rank
+	OperatorRole            domain.OperatorRole
+	OperatorActive          bool
+	Notes                   string
+	CreatedAt               time.Time
+	Lines                   []CustodyReceiptLine
 }
 
 // GetCustodyReceiptCommand contains the input data required to retrieve a custody receipt.
@@ -529,29 +530,30 @@ func (s *GetCustodyReceiptService) Execute(
 	}
 
 	result := CustodyReceipt{
-		ID:                        receipt.ID,
-		Type:                      receipt.Type,
-		PersonnelID:               receipt.PersonnelID,
-		PersonnelFullName:         receipt.PersonnelFullName,
-		PersonnelAlias:            receipt.PersonnelAlias,
-		PersonnelRank:             receipt.PersonnelRank,
-		PersonnelRegistrationID:   receipt.PersonnelRegistrationID,
-		PersonnelSection:          receipt.PersonnelSection,
-		PersonnelOrganizationUnit: receipt.PersonnelOrganizationUnit,
-		OperatorID:                receipt.OperatorID,
-		OperatorRegistrationID:    receipt.OperatorRegistrationID,
-		OperatorAlias:             receipt.OperatorAlias,
-		OperatorRank:              receipt.OperatorRank,
-		Notes:                     receipt.Notes,
-		CreatedAt:                 receipt.CreatedAt,
-		Lines:                     make([]CustodyReceiptLine, 0, len(receipt.Lines)),
+		ID:                      receipt.ID,
+		TransactionType:         receipt.TransactionType,
+		PersonnelID:             receipt.PersonnelID,
+		PersonnelFullName:       receipt.PersonnelFullName,
+		PersonnelAlias:          receipt.PersonnelAlias,
+		PersonnelRank:           receipt.PersonnelRank,
+		PersonnelRegistrationID: receipt.PersonnelRegistrationID,
+		PersonnelActive:         receipt.PersonnelActive,
+		OperatorID:              receipt.OperatorID,
+		OperatorAlias:           receipt.OperatorAlias,
+		OperatorRank:            receipt.OperatorRank,
+		OperatorRole:            receipt.OperatorRole,
+		OperatorActive:          receipt.OperatorActive,
+		Notes:                   receipt.Notes,
+		CreatedAt:               receipt.CreatedAt,
+		Lines:                   make([]CustodyReceiptLine, 0, len(receipt.Lines)),
 	}
 
 	for _, line := range receipt.Lines {
 		result.Lines = append(result.Lines, CustodyReceiptLine{
-			AssetID:   line.AssetID,
-			AssetName: line.AssetName,
-			Quantity:  line.Quantity,
+			AssetID:     line.AssetID,
+			AssetName:   line.AssetName,
+			AssetActive: line.AssetActive,
+			Quantity:    line.Quantity,
 		})
 	}
 

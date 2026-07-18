@@ -97,6 +97,20 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Receipt shows assets and quantities.
 - [ ] Receipt does not expose password hashes, session tokens, or CSRF tokens.
 
+## Custody Receipt Integrity
+
+- [ ] Receipt shows transaction ID.
+- [ ] Receipt shows transaction type.
+- [ ] Receipt shows created timestamp.
+- [ ] Receipt shows personnel identity.
+- [ ] Receipt shows operator identity.
+- [ ] Receipt shows asset lines and quantities.
+- [ ] Receipt shows notes or empty notes state.
+- [ ] Receipt remains readable after personnel deactivation.
+- [ ] Receipt remains readable after asset deactivation.
+- [ ] Receipt marks current Active/Inactive status clearly.
+- [ ] Receipt explains that current status badges are not historical snapshots.
+
 ## Custody Correction Model
 
 - [ ] Existing custody transactions are not edited for correction.
