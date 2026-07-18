@@ -165,6 +165,54 @@ func TestRegisterCheckoutServiceRejectsEmptyOperatorID(t *testing.T) {
 	}
 }
 
+func TestRegisterCheckoutServiceCombinesDuplicateAssetLines(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+	asset := mustBuildAsset(t, "asset-1")
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
+	custodyRepository := &fakeCustodyRepository{}
+	idGenerator := fixedIDGenerator{id: "transaction-1"}
+
+	service := NewRegisterCheckoutService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+		idGenerator,
+	)
+
+	transaction, err := service.Execute(context.Background(), RegisterCheckoutCommand{
+		PersonnelID: personnel.ID(),
+		OperatorID:  operator.ID(),
+		Lines: []CustodyLineCommand{
+			{AssetID: asset.ID(), Quantity: 1},
+			{AssetID: asset.ID(), Quantity: 2},
+		},
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(transaction.Lines()) != 1 {
+		t.Fatalf("expected duplicate asset lines to be combined into 1 line, got %d", len(transaction.Lines()))
+	}
+
+	if transaction.Lines()[0].Quantity().Int() != 3 {
+		t.Fatalf("expected combined quantity 3, got %d", transaction.Lines()[0].Quantity().Int())
+	}
+}
+
 func TestRegisterReturnServiceExecute(t *testing.T) {
 	personnel := mustBuildPersonnel(t, "personnel-1")
 	asset := mustBuildAsset(t, "asset-1")
@@ -271,6 +319,134 @@ func TestRegisterReturnServiceRejectsInsufficientCustodyBalance(t *testing.T) {
 
 	if len(custodyRepository.saved) != 0 {
 		t.Fatalf("expected no saved transactions, got %d", len(custodyRepository.saved))
+	}
+}
+
+func TestRegisterReturnServiceCombinesDuplicateAssetLines(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+	asset := mustBuildAsset(t, "asset-1")
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
+	custodyRepository := &fakeCustodyRepository{
+		currentQuantity: map[string]int{
+			custodyBalanceKey(personnel.ID(), asset.ID()): 3,
+		},
+	}
+	idGenerator := fixedIDGenerator{id: "transaction-1"}
+
+	service := NewRegisterReturnService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+		idGenerator,
+	)
+
+	transaction, err := service.Execute(context.Background(), RegisterReturnCommand{
+		PersonnelID: personnel.ID(),
+		OperatorID:  operator.ID(),
+		Lines: []CustodyLineCommand{
+			{AssetID: asset.ID(), Quantity: 1},
+			{AssetID: asset.ID(), Quantity: 2},
+		},
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(transaction.Lines()) != 1 {
+		t.Fatalf("expected duplicate asset lines to be combined into 1 line, got %d", len(transaction.Lines()))
+	}
+
+	if transaction.Lines()[0].Quantity().Int() != 3 {
+		t.Fatalf("expected combined quantity 3, got %d", transaction.Lines()[0].Quantity().Int())
+	}
+}
+
+func TestRegisterReturnServiceRejectsInsufficientCombinedDuplicateAssetLines(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+	asset := mustBuildAsset(t, "asset-1")
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
+	custodyRepository := &fakeCustodyRepository{
+		currentQuantity: map[string]int{
+			custodyBalanceKey(personnel.ID(), asset.ID()): 2,
+		},
+	}
+	idGenerator := fixedIDGenerator{id: "transaction-1"}
+
+	service := NewRegisterReturnService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+		idGenerator,
+	)
+
+	_, err := service.Execute(context.Background(), RegisterReturnCommand{
+		PersonnelID: personnel.ID(),
+		OperatorID:  operator.ID(),
+		Lines: []CustodyLineCommand{
+			{AssetID: asset.ID(), Quantity: 1},
+			{AssetID: asset.ID(), Quantity: 2},
+		},
+	})
+	if err != domain.ErrInsufficientCustodyBalance {
+		t.Fatalf("expected ErrInsufficientCustodyBalance, got %v", err)
+	}
+
+	if len(custodyRepository.saved) != 0 {
+		t.Fatalf("expected no saved transactions, got %d", len(custodyRepository.saved))
+	}
+}
+
+func TestNormalizeCustodyLineCommandsPreservesFirstAssetOrder(t *testing.T) {
+	commands := []CustodyLineCommand{
+		{AssetID: "asset-1", Quantity: 1},
+		{AssetID: "asset-2", Quantity: 5},
+		{AssetID: "asset-1", Quantity: 2},
+		{AssetID: "asset-3", Quantity: 4},
+		{AssetID: "asset-2", Quantity: 1},
+	}
+
+	normalized := normalizeCustodyLineCommands(commands)
+
+	if len(normalized) != 3 {
+		t.Fatalf("expected 3 normalized lines, got %d", len(normalized))
+	}
+
+	expected := []CustodyLineCommand{
+		{AssetID: "asset-1", Quantity: 3},
+		{AssetID: "asset-2", Quantity: 6},
+		{AssetID: "asset-3", Quantity: 4},
+	}
+
+	for index, expectedLine := range expected {
+		if normalized[index] != expectedLine {
+			t.Fatalf("expected normalized line %+v at index %d, got %+v", expectedLine, index, normalized[index])
+		}
 	}
 }
 

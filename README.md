@@ -295,6 +295,21 @@ The accepted direction is:
 
 Correction implementation is deferred until the balance rules and workflow are designed.
 
+## Custody Current State
+
+Cordell maintains current custody balances from custody transactions.
+
+Current balance behavior:
+
+- checkout increases the personnel custody balance for each asset
+- return decreases the personnel custody balance for each asset
+- return cannot reduce a balance below zero
+- a full return leaves the balance at zero
+- zero-balance items are omitted from current custody views
+- duplicate asset lines in a checkout or return command are consolidated before the transaction is created
+
+Custody transaction persistence is atomic inside the PostgreSQL repository. If balance update fails, transaction rows and line rows are rolled back.
+
 ## Dashboard
 
 The dashboard is available at:

@@ -106,6 +106,16 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Future correction events require a reason.
 - [ ] Future correction events produce audit events.
 
+## Custody Current State
+
+- [ ] Checkout increases current custody balance.
+- [ ] Return decreases current custody balance.
+- [ ] Return cannot make current custody balance negative.
+- [ ] Full return leaves current custody balance at zero.
+- [ ] Zero-balance items are not shown in current custody views.
+- [ ] Duplicate asset lines are consolidated before transaction creation.
+- [ ] Invalid return rolls back transaction rows and line rows.
+
 ## Audit Events
 
 - [ ] Creating an operator records `operator.created`.

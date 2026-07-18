@@ -54,6 +54,22 @@ The custody ledger is the append-only history of checkout, return, and future co
 
 Current custody state should be derived from the ledger rather than manually overwritten.
 
+## Current Custody Balance
+
+Current custody balance is the current quantity of a given asset under the responsibility of a given personnel record.
+
+Checkout transactions increase current custody balance.
+
+Return transactions decrease current custody balance.
+
+Current custody views hide zero-balance rows.
+
+## Custody Line Consolidation
+
+Custody line consolidation is the application-level normalization that combines duplicate asset lines in the same checkout or return command before the custody transaction is created.
+
+For example, two lines for the same asset with quantities `1` and `2` become one line with quantity `3`.
+
 ## Operator
 
 A system user who performs actions inside Cordell.

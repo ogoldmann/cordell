@@ -644,3 +644,340 @@ func TestPostgresCustodyRepositoryFindReceiptByID(t *testing.T) {
 		t.Fatalf("expected asset name %s, got %s", asset.Name(), receipt.Lines[0].AssetName)
 	}
 }
+
+func TestPostgresCustodyRepositoryCurrentStateSequence(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"93541134780",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	checkoutLine, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(3))
+	if err != nil {
+		t.Fatalf("expected valid checkout line, got %v", err)
+	}
+
+	checkout, err := domain.NewCustodyTransaction(
+		"transaction-1",
+		domain.CustodyTransactionTypeCheckout,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{checkoutLine},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid checkout, got %v", err)
+	}
+
+	if err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
+		t.Fatalf("expected no error saving checkout, got %v", err)
+	}
+
+	quantity, err := custodyRepository.CurrentQuantity(context.Background(), personnel.ID(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected no error reading current quantity, got %v", err)
+	}
+
+	if quantity != 3 {
+		t.Fatalf("expected current quantity 3 after checkout, got %d", quantity)
+	}
+
+	returnLine, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid return line, got %v", err)
+	}
+
+	firstReturn, err := domain.NewCustodyTransaction(
+		"transaction-2",
+		domain.CustodyTransactionTypeReturn,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{returnLine},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid return, got %v", err)
+	}
+
+	if err := custodyRepository.SaveTransaction(context.Background(), firstReturn); err != nil {
+		t.Fatalf("expected no error saving first return, got %v", err)
+	}
+
+	quantity, err = custodyRepository.CurrentQuantity(context.Background(), personnel.ID(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected no error reading current quantity, got %v", err)
+	}
+
+	if quantity != 2 {
+		t.Fatalf("expected current quantity 2 after first return, got %d", quantity)
+	}
+
+	finalReturnLine, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(2))
+	if err != nil {
+		t.Fatalf("expected valid final return line, got %v", err)
+	}
+
+	finalReturn, err := domain.NewCustodyTransaction(
+		"transaction-3",
+		domain.CustodyTransactionTypeReturn,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{finalReturnLine},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid final return, got %v", err)
+	}
+
+	if err := custodyRepository.SaveTransaction(context.Background(), finalReturn); err != nil {
+		t.Fatalf("expected no error saving final return, got %v", err)
+	}
+
+	quantity, err = custodyRepository.CurrentQuantity(context.Background(), personnel.ID(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected no error reading current quantity, got %v", err)
+	}
+
+	if quantity != 0 {
+		t.Fatalf("expected current quantity 0 after final return, got %d", quantity)
+	}
+
+	currentItems, err := custodyRepository.ListCurrentByPersonnel(context.Background(), personnel.ID())
+	if err != nil {
+		t.Fatalf("expected no error listing current custody, got %v", err)
+	}
+
+	if len(currentItems) != 0 {
+		t.Fatalf("expected no current custody items after full return, got %d", len(currentItems))
+	}
+}
+
+func TestPostgresCustodyRepositoryRollsBackInvalidReturn(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"93541134780",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	checkoutLine, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid checkout line, got %v", err)
+	}
+
+	checkout, err := domain.NewCustodyTransaction(
+		"transaction-1",
+		domain.CustodyTransactionTypeCheckout,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{checkoutLine},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid checkout, got %v", err)
+	}
+
+	if err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
+		t.Fatalf("expected no error saving checkout, got %v", err)
+	}
+
+	invalidReturnLine, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(2))
+	if err != nil {
+		t.Fatalf("expected valid invalid-return line, got %v", err)
+	}
+
+	invalidReturn, err := domain.NewCustodyTransaction(
+		"transaction-2",
+		domain.CustodyTransactionTypeReturn,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{invalidReturnLine},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid return transaction object, got %v", err)
+	}
+
+	err = custodyRepository.SaveTransaction(context.Background(), invalidReturn)
+	if err != domain.ErrInsufficientCustodyBalance {
+		t.Fatalf("expected ErrInsufficientCustodyBalance, got %v", err)
+	}
+
+	quantity, err := custodyRepository.CurrentQuantity(context.Background(), personnel.ID(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected no error reading current quantity, got %v", err)
+	}
+
+	if quantity != 1 {
+		t.Fatalf("expected current quantity to remain 1 after rolled back invalid return, got %d", quantity)
+	}
+
+	history, err := custodyRepository.ListHistoryByPersonnel(context.Background(), personnel.ID(), 10)
+	if err != nil {
+		t.Fatalf("expected no error listing history, got %v", err)
+	}
+
+	if len(history) != 1 {
+		t.Fatalf("expected only original checkout in history after rollback, got %d entries", len(history))
+	}
+
+	if history[0].ID != checkout.ID() {
+		t.Fatalf("expected checkout transaction in history, got %s", history[0].ID)
+	}
+}
+
+func TestPostgresCustodyRepositoryHandlesMultipleAssetsInOneTransaction(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	radio, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid radio, got %v", err)
+	}
+
+	helmet, err := domain.NewAsset("asset-2", "Helmet")
+	if err != nil {
+		t.Fatalf("expected valid helmet, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), radio); err != nil {
+		t.Fatalf("expected no error saving radio, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), helmet); err != nil {
+		t.Fatalf("expected no error saving helmet, got %v", err)
+	}
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"93541134780",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	radioLine, err := domain.NewCustodyLine(radio.ID(), domain.Quantity(2))
+	if err != nil {
+		t.Fatalf("expected valid radio line, got %v", err)
+	}
+
+	helmetLine, err := domain.NewCustodyLine(helmet.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid helmet line, got %v", err)
+	}
+
+	checkout, err := domain.NewCustodyTransaction(
+		"transaction-1",
+		domain.CustodyTransactionTypeCheckout,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{radioLine, helmetLine},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid checkout, got %v", err)
+	}
+
+	if err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
+		t.Fatalf("expected no error saving checkout, got %v", err)
+	}
+
+	radioQuantity, err := custodyRepository.CurrentQuantity(context.Background(), personnel.ID(), radio.ID())
+	if err != nil {
+		t.Fatalf("expected no error reading radio quantity, got %v", err)
+	}
+
+	if radioQuantity != 2 {
+		t.Fatalf("expected radio quantity 2, got %d", radioQuantity)
+	}
+
+	helmetQuantity, err := custodyRepository.CurrentQuantity(context.Background(), personnel.ID(), helmet.ID())
+	if err != nil {
+		t.Fatalf("expected no error reading helmet quantity, got %v", err)
+	}
+
+	if helmetQuantity != 1 {
+		t.Fatalf("expected helmet quantity 1, got %d", helmetQuantity)
+	}
+
+	currentItems, err := custodyRepository.ListCurrentByPersonnel(context.Background(), personnel.ID())
+	if err != nil {
+		t.Fatalf("expected no error listing current custody, got %v", err)
+	}
+
+	if len(currentItems) != 2 {
+		t.Fatalf("expected 2 current custody items, got %d", len(currentItems))
+	}
+}

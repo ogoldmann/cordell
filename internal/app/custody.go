@@ -14,6 +14,60 @@ type CustodyLineCommand struct {
 	Quantity int
 }
 
+func normalizeCustodyLineCommands(commands []CustodyLineCommand) []CustodyLineCommand {
+	totalsByAssetID := make(map[domain.AssetID]int)
+	orderedAssetIDs := make([]domain.AssetID, 0, len(commands))
+
+	for _, command := range commands {
+		if _, ok := totalsByAssetID[command.AssetID]; !ok {
+			orderedAssetIDs = append(orderedAssetIDs, command.AssetID)
+		}
+
+		totalsByAssetID[command.AssetID] += command.Quantity
+	}
+
+	normalizedCommands := make([]CustodyLineCommand, 0, len(orderedAssetIDs))
+
+	for _, assetID := range orderedAssetIDs {
+		normalizedCommands = append(normalizedCommands, CustodyLineCommand{
+			AssetID:  assetID,
+			Quantity: totalsByAssetID[assetID],
+		})
+	}
+
+	return normalizedCommands
+}
+
+func buildCustodyLines(
+	ctx context.Context,
+	assetRepository ports.AssetRepository,
+	commands []CustodyLineCommand,
+) ([]domain.CustodyLine, error) {
+	normalizedCommands := normalizeCustodyLineCommands(commands)
+
+	lines := make([]domain.CustodyLine, 0, len(normalizedCommands))
+
+	for _, lineCommand := range normalizedCommands {
+		quantity, err := domain.NewQuantity(lineCommand.Quantity)
+		if err != nil {
+			return nil, err
+		}
+
+		line, err := domain.NewCustodyLine(lineCommand.AssetID, quantity)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err := assetRepository.FindByID(ctx, lineCommand.AssetID); err != nil {
+			return nil, err
+		}
+
+		lines = append(lines, line)
+	}
+
+	return lines, nil
+}
+
 // RegisterCheckoutCommand contains the input data required to register an asset checkout.
 type RegisterCheckoutCommand struct {
 	PersonnelID domain.PersonnelID
@@ -74,24 +128,9 @@ func (s *RegisterCheckoutService) Execute(
 		return domain.CustodyTransaction{}, ports.ErrNotFound
 	}
 
-	lines := make([]domain.CustodyLine, 0, len(cmd.Lines))
-
-	for _, lineCommand := range cmd.Lines {
-		quantity, err := domain.NewQuantity(lineCommand.Quantity)
-		if err != nil {
-			return domain.CustodyTransaction{}, err
-		}
-
-		line, err := domain.NewCustodyLine(lineCommand.AssetID, quantity)
-		if err != nil {
-			return domain.CustodyTransaction{}, err
-		}
-
-		if _, err := s.assetRepository.FindByID(ctx, lineCommand.AssetID); err != nil {
-			return domain.CustodyTransaction{}, err
-		}
-
-		lines = append(lines, line)
+	lines, err := buildCustodyLines(ctx, s.assetRepository, cmd.Lines)
+	if err != nil {
+		return domain.CustodyTransaction{}, err
 	}
 
 	id, err := s.idGenerator.NewID()
@@ -180,33 +219,20 @@ func (s *RegisterReturnService) Execute(
 		return domain.CustodyTransaction{}, ports.ErrNotFound
 	}
 
-	lines := make([]domain.CustodyLine, 0, len(cmd.Lines))
+	lines, err := buildCustodyLines(ctx, s.assetRepository, cmd.Lines)
+	if err != nil {
+		return domain.CustodyTransaction{}, err
+	}
 
-	for _, lineCommand := range cmd.Lines {
-		quantity, err := domain.NewQuantity(lineCommand.Quantity)
+	for _, line := range lines {
+		currentQuantity, err := s.custodyRepository.CurrentQuantity(ctx, cmd.PersonnelID, line.AssetID())
 		if err != nil {
 			return domain.CustodyTransaction{}, err
 		}
 
-		line, err := domain.NewCustodyLine(lineCommand.AssetID, quantity)
-		if err != nil {
-			return domain.CustodyTransaction{}, err
-		}
-
-		if _, err := s.assetRepository.FindByID(ctx, lineCommand.AssetID); err != nil {
-			return domain.CustodyTransaction{}, err
-		}
-
-		currentQuantity, err := s.custodyRepository.CurrentQuantity(ctx, cmd.PersonnelID, lineCommand.AssetID)
-		if err != nil {
-			return domain.CustodyTransaction{}, err
-		}
-
-		if currentQuantity < quantity.Int() {
+		if currentQuantity < line.Quantity().Int() {
 			return domain.CustodyTransaction{}, domain.ErrInsufficientCustodyBalance
 		}
-
-		lines = append(lines, line)
 	}
 
 	id, err := s.idGenerator.NewID()
