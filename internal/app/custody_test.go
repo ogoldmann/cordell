@@ -465,6 +465,7 @@ func TestListCurrentCustodyServiceExecute(t *testing.T) {
 					PersonnelID: "personnel-1",
 					AssetID:     "asset-1",
 					AssetName:   "Radio",
+					AssetActive: true,
 					Quantity:    2,
 				},
 			},
@@ -490,6 +491,47 @@ func TestListCurrentCustodyServiceExecute(t *testing.T) {
 
 	if items[0].Quantity != 2 {
 		t.Fatalf("expected quantity 2, got %d", items[0].Quantity)
+	}
+}
+
+func TestListCurrentCustodyServicePreservesAssetActiveState(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+
+	custodyRepository := &fakeCustodyRepository{
+		currentByPerson: map[domain.PersonnelID][]ports.CurrentCustodyItem{
+			personnel.ID(): {
+				{
+					PersonnelID: personnel.ID(),
+					AssetID:     "asset-1",
+					AssetName:   "Radio",
+					AssetActive: false,
+					Quantity:    1,
+				},
+			},
+		},
+	}
+
+	service := NewListCurrentCustodyService(personnelRepository, custodyRepository)
+
+	items, err := service.Execute(context.Background(), ListCurrentCustodyCommand{
+		PersonnelID: personnel.ID(),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(items) != 1 {
+		t.Fatalf("expected 1 item, got %d", len(items))
+	}
+
+	if items[0].AssetActive {
+		t.Fatal("expected inactive asset state to be preserved")
 	}
 }
 
@@ -646,6 +688,9 @@ func TestListCurrentAssetHoldersServiceExecute(t *testing.T) {
 					AssetID:           "asset-1",
 					PersonnelID:       "personnel-1",
 					PersonnelFullName: "John Doe",
+					PersonnelAlias:    "doe",
+					PersonnelRank:     domain.RankSergeant,
+					PersonnelActive:   true,
 					Quantity:          2,
 				},
 			},
@@ -671,6 +716,49 @@ func TestListCurrentAssetHoldersServiceExecute(t *testing.T) {
 
 	if holders[0].Quantity != 2 {
 		t.Fatalf("expected quantity 2, got %d", holders[0].Quantity)
+	}
+}
+
+func TestListCurrentAssetHoldersServicePreservesPersonnelActiveState(t *testing.T) {
+	asset := mustBuildAsset(t, "asset-1")
+
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+
+	custodyRepository := &fakeCustodyRepository{
+		currentByAsset: map[domain.AssetID][]ports.CurrentAssetHolder{
+			asset.ID(): {
+				{
+					AssetID:           asset.ID(),
+					PersonnelID:       "personnel-1",
+					PersonnelFullName: "John Doe",
+					PersonnelAlias:    "doe",
+					PersonnelRank:     domain.RankSergeant,
+					PersonnelActive:   false,
+					Quantity:          1,
+				},
+			},
+		},
+	}
+
+	service := NewListCurrentAssetHoldersService(assetRepository, custodyRepository)
+
+	holders, err := service.Execute(context.Background(), ListCurrentAssetHoldersCommand{
+		AssetID: asset.ID(),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(holders) != 1 {
+		t.Fatalf("expected 1 holder, got %d", len(holders))
+	}
+
+	if holders[0].PersonnelActive {
+		t.Fatal("expected inactive personnel state to be preserved")
 	}
 }
 
@@ -724,6 +812,55 @@ func TestRegisterCheckoutServiceRejectsInactivePersonnel(t *testing.T) {
 	})
 	if err != domain.ErrInactivePersonnel {
 		t.Fatalf("expected ErrInactivePersonnel, got %v", err)
+	}
+
+	if len(custodyRepository.saved) != 0 {
+		t.Fatalf("expected no saved transactions, got %d", len(custodyRepository.saved))
+	}
+}
+
+func TestRegisterCheckoutServiceRejectsInactiveAsset(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+
+	asset := mustBuildAsset(t, "asset-1")
+	inactiveAsset, err := domain.ReconstituteAsset(asset.ID(), asset.Name(), false)
+	if err != nil {
+		t.Fatalf("expected valid inactive asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			inactiveAsset.ID(): inactiveAsset,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
+	custodyRepository := &fakeCustodyRepository{}
+	idGenerator := fixedIDGenerator{id: "transaction-1"}
+
+	service := NewRegisterCheckoutService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+		idGenerator,
+	)
+
+	_, err = service.Execute(context.Background(), RegisterCheckoutCommand{
+		PersonnelID: personnel.ID(),
+		OperatorID:  operator.ID(),
+		Lines: []CustodyLineCommand{
+			{AssetID: inactiveAsset.ID(), Quantity: 1},
+		},
+	})
+	if err != domain.ErrInactiveAsset {
+		t.Fatalf("expected ErrInactiveAsset, got %v", err)
 	}
 
 	if len(custodyRepository.saved) != 0 {

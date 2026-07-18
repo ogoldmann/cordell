@@ -29,9 +29,10 @@ type assetNewPageData struct {
 
 type assetShowPageData struct {
 	privateLayoutData
-	Title   string
-	Asset   assetView
-	Holders []assetHolderView
+	Title              string
+	Asset              assetView
+	Holders            []assetHolderView
+	HasInactiveHolders bool
 }
 
 type assetView struct {
@@ -42,9 +43,12 @@ type assetView struct {
 }
 
 type assetHolderView struct {
-	PersonnelID       string
-	PersonnelFullName string
-	Quantity          int
+	PersonnelID          string
+	PersonnelFullName    string
+	PersonnelDisplay     string
+	PersonnelActive      bool
+	PersonnelStatusLabel string
+	Quantity             int
 }
 
 func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
@@ -163,10 +167,22 @@ func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, holder := range holders {
+		statusLabel := "Inactive"
+		if holder.PersonnelActive {
+			statusLabel = "Active"
+		}
+
+		if !holder.PersonnelActive {
+			data.HasInactiveHolders = true
+		}
+
 		data.Holders = append(data.Holders, assetHolderView{
-			PersonnelID:       string(holder.PersonnelID),
-			PersonnelFullName: holder.PersonnelFullName,
-			Quantity:          holder.Quantity,
+			PersonnelID:          string(holder.PersonnelID),
+			PersonnelFullName:    holder.PersonnelFullName,
+			PersonnelDisplay:     militaryDisplayName(holder.PersonnelRank, holder.PersonnelAlias),
+			PersonnelActive:      holder.PersonnelActive,
+			PersonnelStatusLabel: statusLabel,
+			Quantity:             holder.Quantity,
 		})
 	}
 

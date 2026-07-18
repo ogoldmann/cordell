@@ -914,3 +914,20 @@ Default behavior:
 - return flows can still reference records needed to clear existing custody
 
 List pages display an Active/Inactive badge for each record.
+
+## Inactive Record Visibility
+
+Inactive records must not disappear from contexts where they still matter.
+
+Visibility rules:
+
+- inactive personnel are hidden from new checkout selectors
+- inactive personnel can still appear in current custody if they have pending custody
+- inactive personnel can still appear in asset holder views
+- inactive personnel can still appear in custody history and receipts
+- inactive assets are hidden from new checkout selectors
+- inactive assets can still appear in current custody if they were already issued
+- inactive assets can still appear in custody history and receipts
+- global search should clearly mark inactive records
+
+Backend validation remains the source of truth. UI filters and badges are only guardrails.

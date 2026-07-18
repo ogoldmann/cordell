@@ -29,10 +29,13 @@ type personnelNewPageData struct {
 
 type personnelShowPageData struct {
 	privateLayoutData
-	Title          string
-	Personnel      personnelView
-	CurrentCustody []currentCustodyView
-	History        []custodyHistoryView
+	Title                          string
+	Personnel                      personnelView
+	CurrentCustody                 []currentCustodyView
+	HasCurrentCustody              bool
+	ShowInactiveCustodyWarning     bool
+	HasInactiveAssetCurrentCustody bool
+	History                        []custodyHistoryView
 }
 
 type personnelIndexPageData struct {
@@ -61,9 +64,11 @@ type personnelView struct {
 }
 
 type currentCustodyView struct {
-	AssetID   string
-	AssetName string
-	Quantity  int
+	AssetID     string
+	AssetName   string
+	AssetActive bool
+	StatusLabel string
+	Quantity    int
 }
 
 type custodyHistoryView struct {
@@ -204,12 +209,26 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, item := range currentCustody {
+		assetStatusLabel := "Inactive"
+		if item.AssetActive {
+			assetStatusLabel = "Active"
+		}
+
+		if !item.AssetActive {
+			data.HasInactiveAssetCurrentCustody = true
+		}
+
 		data.CurrentCustody = append(data.CurrentCustody, currentCustodyView{
-			AssetID:   string(item.AssetID),
-			AssetName: item.AssetName,
-			Quantity:  item.Quantity,
+			AssetID:     string(item.AssetID),
+			AssetName:   item.AssetName,
+			AssetActive: item.AssetActive,
+			StatusLabel: assetStatusLabel,
+			Quantity:    item.Quantity,
 		})
 	}
+
+	data.HasCurrentCustody = len(data.CurrentCustody) > 0
+	data.ShowInactiveCustodyWarning = !personnel.Active() && data.HasCurrentCustody
 
 	for _, entry := range history {
 		historyView := custodyHistoryView{

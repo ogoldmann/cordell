@@ -194,3 +194,16 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Lists show Active/Inactive badges.
 - [ ] Direct detail access still works for inactive records.
 - [ ] Checkout selectors use active records only.
+
+## Inactive Visibility
+
+- [ ] Inactive personnel with current custody remains visible in personnel detail.
+- [ ] Inactive personnel with current custody shows a warning.
+- [ ] Asset detail marks inactive personnel holders.
+- [ ] Current custody marks inactive assets.
+- [ ] Global search marks inactive personnel.
+- [ ] Global search marks inactive assets.
+- [ ] Checkout backend rejects inactive personnel.
+- [ ] Checkout backend rejects inactive assets.
+- [ ] Return backend can clear custody involving inactive records.
+- [ ] UI visibility rules do not replace backend validation.

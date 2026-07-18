@@ -39,15 +39,13 @@
   </div>
 </section>
 
-{{if not .Personnel.Active}}
-  <div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
-    This personnel record is inactive. It cannot receive new checkout, but existing custody can still be returned.
-  </div>
-{{end}}
-
-{{if and (not .Personnel.Active) .CurrentCustody}}
+{{if .ShowInactiveCustodyWarning}}
   <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
     This inactive personnel record still has current custody. Deactivation does not settle custody. Register returns or future corrections to clear pending responsibility.
+  </div>
+{{else if not .Personnel.Active}}
+  <div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
+    This personnel record is inactive. It cannot receive new checkout, but existing custody can still be returned.
   </div>
 {{end}}
 
@@ -156,6 +154,9 @@
           <div>
             <strong class="block text-lg">{{.AssetName}}</strong>
             <span class="mt-1 block font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.AssetID}}</span>
+            <span class="mt-2 inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold {{if .AssetActive}}bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200{{else}}bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300{{end}}">
+              {{.StatusLabel}}
+            </span>
           </div>
 
           <span class="inline-flex w-fit rounded-full bg-cordell-primary/10 px-3 py-1 text-xs font-bold text-cordell-primary dark:bg-cordell-dark-primary/15 dark:text-cordell-dark-primary">

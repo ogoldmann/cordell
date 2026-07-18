@@ -130,6 +130,7 @@ func (r *CustodyRepository) ListCurrentByPersonnel(
 			PersonnelID: domain.PersonnelID(row.PersonnelID),
 			AssetID:     domain.AssetID(row.AssetID),
 			AssetName:   row.AssetName,
+			AssetActive: row.AssetActive,
 			Quantity:    int(row.Quantity),
 		})
 	}
@@ -154,6 +155,9 @@ func (r *CustodyRepository) ListCurrentByAsset(
 			AssetID:           domain.AssetID(row.AssetID),
 			PersonnelID:       domain.PersonnelID(row.PersonnelID),
 			PersonnelFullName: row.PersonnelFullName,
+			PersonnelAlias:    row.PersonnelAlias,
+			PersonnelRank:     domain.Rank(row.PersonnelRank),
+			PersonnelActive:   row.PersonnelActive,
 			Quantity:          int(row.Quantity),
 		})
 	}

@@ -26,6 +26,12 @@
   </div>
 </section>
 
+{{if .HasInactiveHolders}}
+  <div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
+    This asset is currently under custody of inactive personnel. The pending custody remains visible and should be cleared through return or future correction workflows.
+  </div>
+{{end}}
+
 <section class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
   <dl class="grid gap-5 md:grid-cols-2">
     <div class="grid gap-1">
@@ -69,19 +75,29 @@
   {{if .Holders}}
     <div class="grid gap-3">
       {{range .Holders}}
-        <a
-          class="flex flex-col gap-4 rounded-2xl border border-cordell-border bg-cordell-surface p-4 no-underline shadow-lg shadow-slate-900/5 transition hover:border-cordell-primary/50 sm:flex-row sm:items-center sm:justify-between dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:hover:border-cordell-dark-primary/60"
-          href="/personnel/{{.PersonnelID}}"
+        <article
+          class="flex flex-col gap-4 rounded-2xl border border-cordell-border bg-cordell-surface p-4 shadow-lg shadow-slate-900/5 sm:flex-row sm:items-center sm:justify-between dark:border-cordell-dark-border dark:bg-cordell-dark-surface"
         >
           <div>
-            <strong class="block text-lg">{{.PersonnelFullName}}</strong>
+            <a
+              class="font-bold text-cordell-text no-underline hover:text-cordell-primary dark:text-cordell-dark-text dark:hover:text-cordell-dark-primary"
+              href="/personnel/{{.PersonnelID}}"
+            >
+              {{.PersonnelDisplay}}
+            </a>
+            <p class="mt-1 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+              {{.PersonnelFullName}}
+            </p>
             <span class="mt-1 block font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.PersonnelID}}</span>
+            <span class="mt-2 inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold {{if .PersonnelActive}}bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200{{else}}bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300{{end}}">
+              {{.PersonnelStatusLabel}}
+            </span>
           </div>
 
           <span class="inline-flex w-fit rounded-full bg-cordell-primary/10 px-3 py-1 text-xs font-bold text-cordell-primary dark:bg-cordell-dark-primary/15 dark:text-cordell-dark-primary">
             {{.Quantity}}
           </span>
-        </a>
+        </article>
       {{end}}
     </div>
   {{else}}

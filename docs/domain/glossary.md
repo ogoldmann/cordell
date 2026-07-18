@@ -151,3 +151,11 @@ The transaction boundary decision is documented in ADR 0005.
 A status filter controls whether list pages show active records, inactive records, or all records.
 
 Cordell uses status filters to avoid polluting daily operational screens while preserving access to historical and inactive records.
+
+## Inactive Pending Custody
+
+Inactive pending custody means an inactive personnel or inactive asset is still involved in a current custody balance.
+
+This is allowed because deactivation does not settle custody.
+
+Inactive pending custody must remain visible until it is cleared through return or future correction workflows.

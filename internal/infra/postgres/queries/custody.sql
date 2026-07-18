@@ -61,6 +61,7 @@ SELECT
     cb.personnel_id,
     cb.asset_id,
     a.name AS asset_name,
+    a.active AS asset_active,
     cb.quantity,
     cb.updated_at
 FROM custody_balances cb
@@ -106,6 +107,9 @@ SELECT
     cb.asset_id,
     cb.personnel_id,
     p.full_name AS personnel_full_name,
+    p.alias AS personnel_alias,
+    p.rank AS personnel_rank,
+    p.active AS personnel_active,
     cb.quantity,
     cb.updated_at
 FROM custody_balances cb

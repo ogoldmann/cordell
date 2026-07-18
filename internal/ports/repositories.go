@@ -12,6 +12,7 @@ type CurrentCustodyItem struct {
 	PersonnelID domain.PersonnelID
 	AssetID     domain.AssetID
 	AssetName   string
+	AssetActive bool
 	Quantity    int
 }
 
@@ -20,6 +21,9 @@ type CurrentAssetHolder struct {
 	AssetID           domain.AssetID
 	PersonnelID       domain.PersonnelID
 	PersonnelFullName string
+	PersonnelAlias    string
+	PersonnelRank     domain.Rank
+	PersonnelActive   bool
 	Quantity          int
 }
 

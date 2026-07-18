@@ -255,6 +255,9 @@ SELECT
     cb.asset_id,
     cb.personnel_id,
     p.full_name AS personnel_full_name,
+    p.alias AS personnel_alias,
+    p.rank AS personnel_rank,
+    p.active AS personnel_active,
     cb.quantity,
     cb.updated_at
 FROM custody_balances cb
@@ -268,6 +271,9 @@ type ListCurrentCustodyByAssetRow struct {
 	AssetID           string             `json:"asset_id"`
 	PersonnelID       string             `json:"personnel_id"`
 	PersonnelFullName string             `json:"personnel_full_name"`
+	PersonnelAlias    string             `json:"personnel_alias"`
+	PersonnelRank     string             `json:"personnel_rank"`
+	PersonnelActive   bool               `json:"personnel_active"`
 	Quantity          int32              `json:"quantity"`
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
 }
@@ -285,6 +291,9 @@ func (q *Queries) ListCurrentCustodyByAsset(ctx context.Context, assetID string)
 			&i.AssetID,
 			&i.PersonnelID,
 			&i.PersonnelFullName,
+			&i.PersonnelAlias,
+			&i.PersonnelRank,
+			&i.PersonnelActive,
 			&i.Quantity,
 			&i.UpdatedAt,
 		); err != nil {
@@ -303,6 +312,7 @@ SELECT
     cb.personnel_id,
     cb.asset_id,
     a.name AS asset_name,
+    a.active AS asset_active,
     cb.quantity,
     cb.updated_at
 FROM custody_balances cb
@@ -316,6 +326,7 @@ type ListCurrentCustodyByPersonnelRow struct {
 	PersonnelID string             `json:"personnel_id"`
 	AssetID     string             `json:"asset_id"`
 	AssetName   string             `json:"asset_name"`
+	AssetActive bool               `json:"asset_active"`
 	Quantity    int32              `json:"quantity"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
@@ -333,6 +344,7 @@ func (q *Queries) ListCurrentCustodyByPersonnel(ctx context.Context, personnelID
 			&i.PersonnelID,
 			&i.AssetID,
 			&i.AssetName,
+			&i.AssetActive,
 			&i.Quantity,
 			&i.UpdatedAt,
 		); err != nil {
