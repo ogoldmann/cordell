@@ -122,3 +122,11 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Audit metadata does not contain session tokens.
 - [ ] Audit metadata does not contain CSRF tokens.
 - [ ] A failed audit write after a successful action is logged as a server error.
+
+## Audit Transaction Boundary
+
+- [ ] Audit event recording behavior matches ADR 0005.
+- [ ] A successful main action does not return a misleading failure if audit recording fails afterward.
+- [ ] Audit write failures are logged as server-side errors.
+- [ ] Audit events are still treated as best-effort until a transaction boundary is implemented.
+- [ ] Production deployment review includes revisiting audit transaction boundaries.

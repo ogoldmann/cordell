@@ -783,3 +783,19 @@ This protects against accidental mutation and reinforces the audit model. It is 
 Audit recording currently happens after the main application action succeeds. If audit recording fails after the action has already completed, Cordell logs the audit failure as a server error instead of returning a misleading failure to the user.
 
 Future audit hardening should add stronger transaction boundaries and tamper-evident hashing.
+
+### Audit transaction boundary
+
+Audit event recording is currently best-effort.
+
+Cordell first executes the main application action. If the action succeeds, Cordell attempts to record an audit event.
+
+If audit recording fails after the main action has already succeeded, Cordell logs the audit failure as a server-side error instead of returning a misleading failure to the user.
+
+This is documented in:
+
+```txt
+docs/adr/0005-audit-log-transaction-boundary.md
+```
+
+Future production hardening should revisit this decision and likely introduce an application transaction boundary for audit-critical operations.

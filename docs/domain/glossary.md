@@ -65,3 +65,9 @@ An audit event is an append-only application record describing a high-value acti
 It records the actor, event type, entity, outcome, timestamp, and minimal metadata.
 
 Audit events are not debug logs and must not contain secrets.
+
+Audit events are currently recorded on a best-effort basis after the main application action succeeds.
+
+This means audit events are useful for traceability, but they are not yet guaranteed to be committed atomically with the action that caused them.
+
+The transaction boundary decision is documented in ADR 0005.

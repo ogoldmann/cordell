@@ -1,4 +1,4 @@
-# ADR 0004: Authentication and RBAC
+# ADR 0008: Authentication and RBAC
 
 ## Status
 
@@ -63,6 +63,8 @@ Operator deletion is intentionally not implemented. Operators are identities and
 Audit events are append-only at the database level through triggers that reject update, delete, and truncate operations.
 
 This is not yet cryptographic tamper evidence. A later milestone should add a canonical event payload and chained hashes.
+
+Audit event transaction boundaries are documented separately in ADR 0005.
 
 Benefits:
 
