@@ -35,6 +35,7 @@ type CustodyTransaction struct {
 	ID              string             `json:"id"`
 	TransactionType string             `json:"transaction_type"`
 	PersonnelID     string             `json:"personnel_id"`
+	OperatorID      string             `json:"operator_id"`
 	Notes           string             `json:"notes"`
 	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 }

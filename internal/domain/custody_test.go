@@ -66,6 +66,7 @@ func TestNewCustodyTransaction(t *testing.T) {
 		"transaction-1",
 		CustodyTransactionTypeCheckout,
 		"personnel-1",
+		"operator-1",
 		[]CustodyLine{line},
 		"  Operational checkout  ",
 	)
@@ -85,6 +86,10 @@ func TestNewCustodyTransaction(t *testing.T) {
 		t.Fatalf("expected personnel id personnel-1, got %s", transaction.PersonnelID())
 	}
 
+	if transaction.OperatorID() != "operator-1" {
+		t.Fatalf("expected operator id operator-1, got %s", transaction.OperatorID())
+	}
+
 	if len(transaction.Lines()) != 1 {
 		t.Fatalf("expected 1 line, got %d", len(transaction.Lines()))
 	}
@@ -101,6 +106,7 @@ func TestNewCustodyTransactionRejectsEmptyID(t *testing.T) {
 		"",
 		CustodyTransactionTypeCheckout,
 		"personnel-1",
+		"operator-1",
 		[]CustodyLine{line},
 		"",
 	)
@@ -116,6 +122,7 @@ func TestNewCustodyTransactionRejectsInvalidType(t *testing.T) {
 		"transaction-1",
 		CustodyTransactionType("invalid"),
 		"personnel-1",
+		"operator-1",
 		[]CustodyLine{line},
 		"",
 	)
@@ -131,6 +138,7 @@ func TestNewCustodyTransactionRejectsEmptyPersonnelID(t *testing.T) {
 		"transaction-1",
 		CustodyTransactionTypeCheckout,
 		"",
+		"operator-1",
 		[]CustodyLine{line},
 		"",
 	)
@@ -139,11 +147,31 @@ func TestNewCustodyTransactionRejectsEmptyPersonnelID(t *testing.T) {
 	}
 }
 
+func TestNewCustodyTransactionRejectsEmptyOperatorID(t *testing.T) {
+	line, err := NewCustodyLine("asset-1", Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid line, got %v", err)
+	}
+
+	_, err = NewCustodyTransaction(
+		"transaction-1",
+		CustodyTransactionTypeCheckout,
+		"personnel-1",
+		"",
+		[]CustodyLine{line},
+		"",
+	)
+	if err != ErrEmptyOperatorID {
+		t.Fatalf("expected ErrEmptyOperatorID, got %v", err)
+	}
+}
+
 func TestNewCustodyTransactionRejectsEmptyLines(t *testing.T) {
 	_, err := NewCustodyTransaction(
 		"transaction-1",
 		CustodyTransactionTypeCheckout,
 		"personnel-1",
+		"operator-1",
 		nil,
 		"",
 	)
@@ -159,6 +187,7 @@ func TestCustodyTransactionLinesReturnsCopy(t *testing.T) {
 		"transaction-1",
 		CustodyTransactionTypeCheckout,
 		"personnel-1",
+		"operator-1",
 		[]CustodyLine{line},
 		"",
 	)

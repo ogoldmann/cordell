@@ -12,6 +12,7 @@ import (
 func TestRegisterCheckoutServiceExecute(t *testing.T) {
 	personnel := mustBuildPersonnel(t, "personnel-1")
 	asset := mustBuildAsset(t, "asset-1")
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
 
 	personnelRepository := &fakePersonnelRepository{
 		byID: map[domain.PersonnelID]domain.Personnel{
@@ -23,18 +24,21 @@ func TestRegisterCheckoutServiceExecute(t *testing.T) {
 			asset.ID(): asset,
 		},
 	}
+	operatorRepository := newFakeOperatorRepository(operator)
 	custodyRepository := &fakeCustodyRepository{}
 	idGenerator := fixedIDGenerator{id: "transaction-1"}
 
 	service := NewRegisterCheckoutService(
 		personnelRepository,
 		assetRepository,
+		operatorRepository,
 		custodyRepository,
 		idGenerator,
 	)
 
 	transaction, err := service.Execute(context.Background(), RegisterCheckoutCommand{
 		PersonnelID: "personnel-1",
+		OperatorID:  operator.ID(),
 		Lines: []CustodyLineCommand{
 			{
 				AssetID:  "asset-1",
@@ -59,6 +63,10 @@ func TestRegisterCheckoutServiceExecute(t *testing.T) {
 		t.Fatalf("expected personnel id personnel-1, got %s", transaction.PersonnelID())
 	}
 
+	if transaction.OperatorID() != operator.ID() {
+		t.Fatalf("expected operator id %s, got %s", operator.ID(), transaction.OperatorID())
+	}
+
 	if len(transaction.Lines()) != 1 {
 		t.Fatalf("expected 1 transaction line, got %d", len(transaction.Lines()))
 	}
@@ -75,6 +83,7 @@ func TestRegisterCheckoutServiceExecute(t *testing.T) {
 func TestRegisterCheckoutServiceRejectsInvalidQuantity(t *testing.T) {
 	personnel := mustBuildPersonnel(t, "personnel-1")
 	asset := mustBuildAsset(t, "asset-1")
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
 
 	personnelRepository := &fakePersonnelRepository{
 		byID: map[domain.PersonnelID]domain.Personnel{
@@ -86,18 +95,21 @@ func TestRegisterCheckoutServiceRejectsInvalidQuantity(t *testing.T) {
 			asset.ID(): asset,
 		},
 	}
+	operatorRepository := newFakeOperatorRepository(operator)
 	custodyRepository := &fakeCustodyRepository{}
 	idGenerator := fixedIDGenerator{id: "transaction-1"}
 
 	service := NewRegisterCheckoutService(
 		personnelRepository,
 		assetRepository,
+		operatorRepository,
 		custodyRepository,
 		idGenerator,
 	)
 
 	_, err := service.Execute(context.Background(), RegisterCheckoutCommand{
 		PersonnelID: "personnel-1",
+		OperatorID:  operator.ID(),
 		Lines: []CustodyLineCommand{
 			{
 				AssetID:  "asset-1",
@@ -114,7 +126,7 @@ func TestRegisterCheckoutServiceRejectsInvalidQuantity(t *testing.T) {
 	}
 }
 
-func TestRegisterReturnServiceExecute(t *testing.T) {
+func TestRegisterCheckoutServiceRejectsEmptyOperatorID(t *testing.T) {
 	personnel := mustBuildPersonnel(t, "personnel-1")
 	asset := mustBuildAsset(t, "asset-1")
 
@@ -128,6 +140,47 @@ func TestRegisterReturnServiceExecute(t *testing.T) {
 			asset.ID(): asset,
 		},
 	}
+	operatorRepository := newFakeOperatorRepository()
+	custodyRepository := &fakeCustodyRepository{}
+	idGenerator := fixedIDGenerator{id: "transaction-1"}
+
+	service := NewRegisterCheckoutService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+		idGenerator,
+	)
+
+	_, err := service.Execute(context.Background(), RegisterCheckoutCommand{
+		PersonnelID: "personnel-1",
+		OperatorID:  "",
+		Lines: []CustodyLineCommand{
+			{AssetID: "asset-1", Quantity: 1},
+		},
+	})
+
+	if err != domain.ErrEmptyOperatorID {
+		t.Fatalf("expected ErrEmptyOperatorID, got %v", err)
+	}
+}
+
+func TestRegisterReturnServiceExecute(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+	asset := mustBuildAsset(t, "asset-1")
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
 	custodyRepository := &fakeCustodyRepository{
 		currentQuantity: map[string]int{
 			custodyBalanceKey("personnel-1", "asset-1"): 2,
@@ -138,12 +191,14 @@ func TestRegisterReturnServiceExecute(t *testing.T) {
 	service := NewRegisterReturnService(
 		personnelRepository,
 		assetRepository,
+		operatorRepository,
 		custodyRepository,
 		idGenerator,
 	)
 
 	transaction, err := service.Execute(context.Background(), RegisterReturnCommand{
 		PersonnelID: "personnel-1",
+		OperatorID:  operator.ID(),
 		Lines: []CustodyLineCommand{
 			{
 				AssetID:  "asset-1",
@@ -172,6 +227,7 @@ func TestRegisterReturnServiceExecute(t *testing.T) {
 func TestRegisterReturnServiceRejectsInsufficientCustodyBalance(t *testing.T) {
 	personnel := mustBuildPersonnel(t, "personnel-1")
 	asset := mustBuildAsset(t, "asset-1")
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin)
 
 	personnelRepository := &fakePersonnelRepository{
 		byID: map[domain.PersonnelID]domain.Personnel{
@@ -183,6 +239,7 @@ func TestRegisterReturnServiceRejectsInsufficientCustodyBalance(t *testing.T) {
 			asset.ID(): asset,
 		},
 	}
+	operatorRepository := newFakeOperatorRepository(operator)
 	custodyRepository := &fakeCustodyRepository{
 		currentQuantity: map[string]int{
 			custodyBalanceKey("personnel-1", "asset-1"): 1,
@@ -193,12 +250,14 @@ func TestRegisterReturnServiceRejectsInsufficientCustodyBalance(t *testing.T) {
 	service := NewRegisterReturnService(
 		personnelRepository,
 		assetRepository,
+		operatorRepository,
 		custodyRepository,
 		idGenerator,
 	)
 
 	_, err := service.Execute(context.Background(), RegisterReturnCommand{
 		PersonnelID: "personnel-1",
+		OperatorID:  operator.ID(),
 		Lines: []CustodyLineCommand{
 			{
 				AssetID:  "asset-1",

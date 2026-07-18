@@ -3,6 +3,7 @@ CREATE TABLE custody_transactions (
     id TEXT PRIMARY KEY,
     transaction_type TEXT NOT NULL,
     personnel_id TEXT NOT NULL,
+    operator_id TEXT NOT NULL,
     notes TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
@@ -11,6 +12,11 @@ CREATE TABLE custody_transactions (
     CONSTRAINT custody_transactions_personnel_id_fk
         FOREIGN KEY (personnel_id)
         REFERENCES personnel (id)
+        ON UPDATE RESTRICT
+        ON DELETE RESTRICT,
+    CONSTRAINT custody_transactions_operator_id_fk
+        FOREIGN KEY (operator_id)
+        REFERENCES operators (id)
         ON UPDATE RESTRICT
         ON DELETE RESTRICT
 );
@@ -67,6 +73,9 @@ CREATE INDEX idx_custody_lines_transaction_id
 
 CREATE INDEX idx_custody_balances_asset_id
     ON custody_balances (asset_id);
+
+CREATE INDEX idx_custody_transactions_operator_id
+    ON custody_transactions (operator_id);
 
 -- +goose Down
 DROP TABLE custody_balances;

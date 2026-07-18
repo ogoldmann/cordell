@@ -43,6 +43,7 @@ func (r *CustodyRepository) SaveTransaction(ctx context.Context, transaction dom
 		ID:              string(transaction.ID()),
 		TransactionType: string(transaction.Type()),
 		PersonnelID:     string(transaction.PersonnelID()),
+		OperatorID:      string(transaction.OperatorID()),
 		Notes:           transaction.Notes(),
 	})
 	if err != nil {
@@ -188,12 +189,15 @@ func (r *CustodyRepository) ListHistoryByPersonnel(
 			}
 
 			entries = append(entries, ports.CustodyHistoryEntry{
-				ID:          domain.CustodyTransactionID(row.TransactionID),
-				Type:        domain.CustodyTransactionType(row.TransactionType),
-				PersonnelID: domain.PersonnelID(row.PersonnelID),
-				Notes:       row.Notes,
-				CreatedAt:   createdAt,
-				Lines:       make([]ports.CustodyHistoryLine, 0),
+				ID:            domain.CustodyTransactionID(row.TransactionID),
+				Type:          domain.CustodyTransactionType(row.TransactionType),
+				PersonnelID:   domain.PersonnelID(row.PersonnelID),
+				OperatorID:    domain.OperatorID(row.OperatorID),
+				OperatorAlias: row.OperatorAlias,
+				OperatorRank:  domain.Rank(row.OperatorRank),
+				Notes:         row.Notes,
+				CreatedAt:     createdAt,
+				Lines:         make([]ports.CustodyHistoryLine, 0),
 			})
 
 			entryIndex = len(entries) - 1

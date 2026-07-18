@@ -72,8 +72,15 @@ func (s *Server) handleCreateReturn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	currentOperator, ok := currentOperatorFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	_, err = s.services.RegisterReturn.Execute(r.Context(), app.RegisterReturnCommand{
 		PersonnelID: domain.PersonnelID(personnelID),
+		OperatorID:  currentOperator.ID(),
 		Lines: []app.CustodyLineCommand{
 			{
 				AssetID:  domain.AssetID(assetID),

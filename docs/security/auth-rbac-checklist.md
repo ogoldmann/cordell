@@ -79,3 +79,11 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Logs do not print plaintext passwords.
 - [ ] Logs do not print session tokens.
 - [ ] Logs do not print CSRF tokens.
+
+## Custody Attribution
+
+- [ ] Checkout history shows the operator that registered the transaction.
+- [ ] Return history shows the operator that registered the transaction.
+- [ ] Checkout cannot be registered without an authenticated operator.
+- [ ] Return cannot be registered without an authenticated operator.
+- [ ] Custody transaction rows include `operator_id`.

@@ -699,3 +699,25 @@ Operator reactivation:
 - is protected by CSRF
 
 Reactivated operators can authenticate again using their current password.
+
+## Custody Operator Attribution
+
+Every custody transaction records the operator that registered it.
+
+Custody transactions store:
+
+- transaction type
+- personnel
+- operator
+- notes
+- timestamp
+- custody lines
+
+This means checkout and return history can answer:
+
+- who received or returned the asset
+- which operator registered the event
+- when the event happened
+- which assets and quantities were involved
+
+Operator records are not deleted, so historical custody records keep their administrative attribution.

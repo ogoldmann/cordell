@@ -17,6 +17,7 @@ type CustodyLineCommand struct {
 // RegisterCheckoutCommand contains the input data required to register an asset checkout.
 type RegisterCheckoutCommand struct {
 	PersonnelID domain.PersonnelID
+	OperatorID  domain.OperatorID
 	Lines       []CustodyLineCommand
 	Notes       string
 }
@@ -25,6 +26,7 @@ type RegisterCheckoutCommand struct {
 type RegisterCheckoutService struct {
 	personnelRepository ports.PersonnelRepository
 	assetRepository     ports.AssetRepository
+	operatorRepository  ports.OperatorRepository
 	custodyRepository   ports.CustodyRepository
 	idGenerator         ports.IDGenerator
 }
@@ -33,12 +35,14 @@ type RegisterCheckoutService struct {
 func NewRegisterCheckoutService(
 	personnelRepository ports.PersonnelRepository,
 	assetRepository ports.AssetRepository,
+	operatorRepository ports.OperatorRepository,
 	custodyRepository ports.CustodyRepository,
 	idGenerator ports.IDGenerator,
 ) *RegisterCheckoutService {
 	return &RegisterCheckoutService{
 		personnelRepository: personnelRepository,
 		assetRepository:     assetRepository,
+		operatorRepository:  operatorRepository,
 		custodyRepository:   custodyRepository,
 		idGenerator:         idGenerator,
 	}
@@ -55,6 +59,19 @@ func (s *RegisterCheckoutService) Execute(
 
 	if _, err := s.personnelRepository.FindByID(ctx, cmd.PersonnelID); err != nil {
 		return domain.CustodyTransaction{}, err
+	}
+
+	if cmd.OperatorID == "" {
+		return domain.CustodyTransaction{}, domain.ErrEmptyOperatorID
+	}
+
+	operator, err := s.operatorRepository.FindByID(ctx, cmd.OperatorID)
+	if err != nil {
+		return domain.CustodyTransaction{}, err
+	}
+
+	if !operator.Active() {
+		return domain.CustodyTransaction{}, ports.ErrNotFound
 	}
 
 	lines := make([]domain.CustodyLine, 0, len(cmd.Lines))
@@ -88,6 +105,7 @@ func (s *RegisterCheckoutService) Execute(
 		transactionID,
 		domain.CustodyTransactionTypeCheckout,
 		cmd.PersonnelID,
+		cmd.OperatorID,
 		lines,
 		cmd.Notes,
 	)
@@ -105,6 +123,7 @@ func (s *RegisterCheckoutService) Execute(
 // RegisterReturnCommand contains the input data required to register an asset return.
 type RegisterReturnCommand struct {
 	PersonnelID domain.PersonnelID
+	OperatorID  domain.OperatorID
 	Lines       []CustodyLineCommand
 	Notes       string
 }
@@ -113,6 +132,7 @@ type RegisterReturnCommand struct {
 type RegisterReturnService struct {
 	personnelRepository ports.PersonnelRepository
 	assetRepository     ports.AssetRepository
+	operatorRepository  ports.OperatorRepository
 	custodyRepository   ports.CustodyRepository
 	idGenerator         ports.IDGenerator
 }
@@ -121,12 +141,14 @@ type RegisterReturnService struct {
 func NewRegisterReturnService(
 	personnelRepository ports.PersonnelRepository,
 	assetRepository ports.AssetRepository,
+	operatorRepository ports.OperatorRepository,
 	custodyRepository ports.CustodyRepository,
 	idGenerator ports.IDGenerator,
 ) *RegisterReturnService {
 	return &RegisterReturnService{
 		personnelRepository: personnelRepository,
 		assetRepository:     assetRepository,
+		operatorRepository:  operatorRepository,
 		custodyRepository:   custodyRepository,
 		idGenerator:         idGenerator,
 	}
@@ -143,6 +165,19 @@ func (s *RegisterReturnService) Execute(
 
 	if _, err := s.personnelRepository.FindByID(ctx, cmd.PersonnelID); err != nil {
 		return domain.CustodyTransaction{}, err
+	}
+
+	if cmd.OperatorID == "" {
+		return domain.CustodyTransaction{}, domain.ErrEmptyOperatorID
+	}
+
+	operator, err := s.operatorRepository.FindByID(ctx, cmd.OperatorID)
+	if err != nil {
+		return domain.CustodyTransaction{}, err
+	}
+
+	if !operator.Active() {
+		return domain.CustodyTransaction{}, ports.ErrNotFound
 	}
 
 	lines := make([]domain.CustodyLine, 0, len(cmd.Lines))
@@ -185,6 +220,7 @@ func (s *RegisterReturnService) Execute(
 		transactionID,
 		domain.CustodyTransactionTypeReturn,
 		cmd.PersonnelID,
+		cmd.OperatorID,
 		lines,
 		cmd.Notes,
 	)
@@ -275,12 +311,15 @@ type CustodyHistoryLine struct {
 
 // CustodyHistoryEntry contains a custody transaction and its lines.
 type CustodyHistoryEntry struct {
-	ID          domain.CustodyTransactionID
-	Type        domain.CustodyTransactionType
-	PersonnelID domain.PersonnelID
-	Notes       string
-	CreatedAt   time.Time
-	Lines       []CustodyHistoryLine
+	ID            domain.CustodyTransactionID
+	Type          domain.CustodyTransactionType
+	PersonnelID   domain.PersonnelID
+	OperatorID    domain.OperatorID
+	OperatorAlias string
+	OperatorRank  domain.Rank
+	Notes         string
+	CreatedAt     time.Time
+	Lines         []CustodyHistoryLine
 }
 
 // ListCustodyHistoryCommand contains the input data required to list custody history.
@@ -337,12 +376,15 @@ func (s *ListCustodyHistoryService) Execute(
 
 	for _, entry := range entries {
 		historyEntry := CustodyHistoryEntry{
-			ID:          entry.ID,
-			Type:        entry.Type,
-			PersonnelID: entry.PersonnelID,
-			Notes:       entry.Notes,
-			CreatedAt:   entry.CreatedAt,
-			Lines:       make([]CustodyHistoryLine, 0, len(entry.Lines)),
+			ID:            entry.ID,
+			Type:          entry.Type,
+			PersonnelID:   entry.PersonnelID,
+			OperatorID:    entry.OperatorID,
+			OperatorAlias: entry.OperatorAlias,
+			OperatorRank:  entry.OperatorRank,
+			Notes:         entry.Notes,
+			CreatedAt:     entry.CreatedAt,
+			Lines:         make([]CustodyHistoryLine, 0, len(entry.Lines)),
 		}
 
 		for _, line := range entry.Lines {

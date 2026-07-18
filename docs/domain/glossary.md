@@ -42,6 +42,12 @@ Operators authenticate with a unique operator registration ID and password.
 
 Operator display names use rank and alias, such as "sergeant silva".
 
+## Operator Attribution
+
+Operator attribution is the link between a custody transaction and the authenticated operator who registered it in Cordell.
+
+It is different from the personnel receiving or returning assets.
+
 ## Audit Log
 
 A technical append-only record of relevant actions performed in the system.

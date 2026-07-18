@@ -347,6 +347,36 @@ func mustBuildOperator(
 	return operator
 }
 
+func mustNewTestOperator(
+	t *testing.T,
+	id domain.OperatorID,
+	registrationID string,
+	alias string,
+	rank domain.Rank,
+	role domain.OperatorRole,
+) domain.Operator {
+	t.Helper()
+
+	validRegistrationID, err := domain.NewRegistrationID(registrationID)
+	if err != nil {
+		t.Fatalf("expected valid registration id, got %v", err)
+	}
+
+	operator, err := domain.NewOperator(
+		id,
+		validRegistrationID,
+		alias,
+		rank,
+		role,
+		"$argon2id$hash",
+	)
+	if err != nil {
+		t.Fatalf("expected valid operator, got %v", err)
+	}
+
+	return operator
+}
+
 func mustRegistrationID(t *testing.T, value string) domain.RegistrationID {
 	t.Helper()
 

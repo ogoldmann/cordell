@@ -15,7 +15,17 @@ func TestPostgresCustodyRepositoryRegisterCheckout(t *testing.T) {
 
 	personnelRepository := postgres.NewPersonnelRepository(queries)
 	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
 	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"52998224725",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
 
 	createPersonnelService := app.NewCreatePersonnelService(
 		personnelRepository,
@@ -28,9 +38,14 @@ func TestPostgresCustodyRepositoryRegisterCheckout(t *testing.T) {
 	registerCheckoutService := app.NewRegisterCheckoutService(
 		personnelRepository,
 		assetRepository,
+		operatorRepository,
 		custodyRepository,
 		fixedIDGenerator{id: "transaction-1"},
 	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
 
 	_, err := createPersonnelService.Execute(context.Background(), validCreatePersonnelCommand("John Doe", "Doe", "52998224725"))
 	if err != nil {
@@ -46,6 +61,7 @@ func TestPostgresCustodyRepositoryRegisterCheckout(t *testing.T) {
 
 	transaction, err := registerCheckoutService.Execute(context.Background(), app.RegisterCheckoutCommand{
 		PersonnelID: "personnel-1",
+		OperatorID:  operator.ID(),
 		Lines: []app.CustodyLineCommand{
 			{
 				AssetID:  "asset-1",
@@ -102,7 +118,17 @@ func TestPostgresCustodyRepositoryRegisterReturn(t *testing.T) {
 
 	personnelRepository := postgres.NewPersonnelRepository(queries)
 	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
 	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"52998224725",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
 
 	createPersonnelService := app.NewCreatePersonnelService(
 		personnelRepository,
@@ -115,15 +141,21 @@ func TestPostgresCustodyRepositoryRegisterReturn(t *testing.T) {
 	registerCheckoutService := app.NewRegisterCheckoutService(
 		personnelRepository,
 		assetRepository,
+		operatorRepository,
 		custodyRepository,
 		fixedIDGenerator{id: "transaction-checkout-1"},
 	)
 	registerReturnService := app.NewRegisterReturnService(
 		personnelRepository,
 		assetRepository,
+		operatorRepository,
 		custodyRepository,
 		fixedIDGenerator{id: "transaction-return-1"},
 	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
 
 	_, err := createPersonnelService.Execute(context.Background(), validCreatePersonnelCommand("John Doe", "Doe", "52998224725"))
 	if err != nil {
@@ -139,6 +171,7 @@ func TestPostgresCustodyRepositoryRegisterReturn(t *testing.T) {
 
 	_, err = registerCheckoutService.Execute(context.Background(), app.RegisterCheckoutCommand{
 		PersonnelID: "personnel-1",
+		OperatorID:  operator.ID(),
 		Lines: []app.CustodyLineCommand{
 			{
 				AssetID:  "asset-1",
@@ -153,6 +186,7 @@ func TestPostgresCustodyRepositoryRegisterReturn(t *testing.T) {
 
 	transaction, err := registerReturnService.Execute(context.Background(), app.RegisterReturnCommand{
 		PersonnelID: "personnel-1",
+		OperatorID:  operator.ID(),
 		Lines: []app.CustodyLineCommand{
 			{
 				AssetID:  "asset-1",
@@ -189,7 +223,17 @@ func TestPostgresCustodyRepositoryRejectsInsufficientBalance(t *testing.T) {
 
 	personnelRepository := postgres.NewPersonnelRepository(queries)
 	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
 	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"52998224725",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
 
 	createPersonnelService := app.NewCreatePersonnelService(
 		personnelRepository,
@@ -202,15 +246,21 @@ func TestPostgresCustodyRepositoryRejectsInsufficientBalance(t *testing.T) {
 	registerCheckoutService := app.NewRegisterCheckoutService(
 		personnelRepository,
 		assetRepository,
+		operatorRepository,
 		custodyRepository,
 		fixedIDGenerator{id: "transaction-checkout-1"},
 	)
 	registerReturnService := app.NewRegisterReturnService(
 		personnelRepository,
 		assetRepository,
+		operatorRepository,
 		custodyRepository,
 		fixedIDGenerator{id: "transaction-return-1"},
 	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
 
 	_, err := createPersonnelService.Execute(context.Background(), validCreatePersonnelCommand("John Doe", "Doe", "52998224725"))
 	if err != nil {
@@ -226,6 +276,7 @@ func TestPostgresCustodyRepositoryRejectsInsufficientBalance(t *testing.T) {
 
 	_, err = registerCheckoutService.Execute(context.Background(), app.RegisterCheckoutCommand{
 		PersonnelID: "personnel-1",
+		OperatorID:  operator.ID(),
 		Lines: []app.CustodyLineCommand{
 			{
 				AssetID:  "asset-1",
@@ -239,6 +290,7 @@ func TestPostgresCustodyRepositoryRejectsInsufficientBalance(t *testing.T) {
 
 	_, err = registerReturnService.Execute(context.Background(), app.RegisterReturnCommand{
 		PersonnelID: "personnel-1",
+		OperatorID:  operator.ID(),
 		Lines: []app.CustodyLineCommand{
 			{
 				AssetID:  "asset-1",
@@ -270,7 +322,17 @@ func TestPostgresCustodyRepositoryListHistoryByPersonnel(t *testing.T) {
 
 	personnelRepository := postgres.NewPersonnelRepository(queries)
 	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
 	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"52998224725",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
 
 	createPersonnelService := app.NewCreatePersonnelService(
 		personnelRepository,
@@ -283,15 +345,21 @@ func TestPostgresCustodyRepositoryListHistoryByPersonnel(t *testing.T) {
 	registerCheckoutService := app.NewRegisterCheckoutService(
 		personnelRepository,
 		assetRepository,
+		operatorRepository,
 		custodyRepository,
 		fixedIDGenerator{id: "transaction-checkout-1"},
 	)
 	registerReturnService := app.NewRegisterReturnService(
 		personnelRepository,
 		assetRepository,
+		operatorRepository,
 		custodyRepository,
 		fixedIDGenerator{id: "transaction-return-1"},
 	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
 
 	_, err := createPersonnelService.Execute(context.Background(), validCreatePersonnelCommand("John Doe", "Doe", "52998224725"))
 	if err != nil {
@@ -307,6 +375,7 @@ func TestPostgresCustodyRepositoryListHistoryByPersonnel(t *testing.T) {
 
 	_, err = registerCheckoutService.Execute(context.Background(), app.RegisterCheckoutCommand{
 		PersonnelID: "personnel-1",
+		OperatorID:  operator.ID(),
 		Lines: []app.CustodyLineCommand{
 			{
 				AssetID:  "asset-1",
@@ -321,6 +390,7 @@ func TestPostgresCustodyRepositoryListHistoryByPersonnel(t *testing.T) {
 
 	_, err = registerReturnService.Execute(context.Background(), app.RegisterReturnCommand{
 		PersonnelID: "personnel-1",
+		OperatorID:  operator.ID(),
 		Lines: []app.CustodyLineCommand{
 			{
 				AssetID:  "asset-1",
@@ -346,6 +416,18 @@ func TestPostgresCustodyRepositoryListHistoryByPersonnel(t *testing.T) {
 		t.Fatalf("expected most recent transaction to be return, got %s", history[0].Type)
 	}
 
+	if history[0].OperatorID != operator.ID() {
+		t.Fatalf("expected operator id %s, got %s", operator.ID(), history[0].OperatorID)
+	}
+
+	if history[0].OperatorAlias != operator.Alias() {
+		t.Fatalf("expected operator alias %s, got %s", operator.Alias(), history[0].OperatorAlias)
+	}
+
+	if history[0].OperatorRank != operator.Rank() {
+		t.Fatalf("expected operator rank %s, got %s", operator.Rank(), history[0].OperatorRank)
+	}
+
 	if history[1].Type != domain.CustodyTransactionTypeCheckout {
 		t.Fatalf("expected oldest transaction to be checkout, got %s", history[1].Type)
 	}
@@ -369,7 +451,17 @@ func TestPostgresCustodyRepositoryListCurrentByAsset(t *testing.T) {
 
 	personnelRepository := postgres.NewPersonnelRepository(queries)
 	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
 	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"52998224725",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
 
 	createFirstPersonnelService := app.NewCreatePersonnelService(
 		personnelRepository,
@@ -404,18 +496,25 @@ func TestPostgresCustodyRepositoryListCurrentByAsset(t *testing.T) {
 	firstCheckoutService := app.NewRegisterCheckoutService(
 		personnelRepository,
 		assetRepository,
+		operatorRepository,
 		custodyRepository,
 		fixedIDGenerator{id: "transaction-checkout-1"},
 	)
 	secondCheckoutService := app.NewRegisterCheckoutService(
 		personnelRepository,
 		assetRepository,
+		operatorRepository,
 		custodyRepository,
 		fixedIDGenerator{id: "transaction-checkout-2"},
 	)
 
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
 	_, err = firstCheckoutService.Execute(context.Background(), app.RegisterCheckoutCommand{
 		PersonnelID: "personnel-1",
+		OperatorID:  operator.ID(),
 		Lines: []app.CustodyLineCommand{
 			{
 				AssetID:  "asset-1",
@@ -429,6 +528,7 @@ func TestPostgresCustodyRepositoryListCurrentByAsset(t *testing.T) {
 
 	_, err = secondCheckoutService.Execute(context.Background(), app.RegisterCheckoutCommand{
 		PersonnelID: "personnel-2",
+		OperatorID:  operator.ID(),
 		Lines: []app.CustodyLineCommand{
 			{
 				AssetID:  "asset-1",

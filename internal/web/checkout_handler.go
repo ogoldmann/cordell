@@ -68,8 +68,15 @@ func (s *Server) handleCreateCheckout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	currentOperator, ok := currentOperatorFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	_, err = s.services.RegisterCheckout.Execute(r.Context(), app.RegisterCheckoutCommand{
 		PersonnelID: domain.PersonnelID(personnelID),
+		OperatorID:  currentOperator.ID(),
 		Lines: []app.CustodyLineCommand{
 			{
 				AssetID:  domain.AssetID(assetID),

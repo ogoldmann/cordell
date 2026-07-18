@@ -132,12 +132,14 @@ func main() {
 		RegisterCheckout: app.NewRegisterCheckoutService(
 			personnelRepository,
 			assetRepository,
+			operatorRepository,
 			custodyRepository,
 			idGenerator,
 		),
 		RegisterReturn: app.NewRegisterReturnService(
 			personnelRepository,
 			assetRepository,
+			operatorRepository,
 			custodyRepository,
 			idGenerator,
 		),

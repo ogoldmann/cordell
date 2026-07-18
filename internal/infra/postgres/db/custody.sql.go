@@ -48,20 +48,23 @@ INSERT INTO custody_transactions (
     id,
     transaction_type,
     personnel_id,
+    operator_id,
     notes
 ) VALUES (
     $1,
     $2,
     $3,
-    $4
+    $4,
+    $5
 )
-RETURNING id, transaction_type, personnel_id, notes, created_at
+RETURNING id, transaction_type, personnel_id, operator_id, notes, created_at
 `
 
 type CreateCustodyTransactionParams struct {
 	ID              string `json:"id"`
 	TransactionType string `json:"transaction_type"`
 	PersonnelID     string `json:"personnel_id"`
+	OperatorID      string `json:"operator_id"`
 	Notes           string `json:"notes"`
 }
 
@@ -70,6 +73,7 @@ func (q *Queries) CreateCustodyTransaction(ctx context.Context, arg CreateCustod
 		arg.ID,
 		arg.TransactionType,
 		arg.PersonnelID,
+		arg.OperatorID,
 		arg.Notes,
 	)
 	var i CustodyTransaction
@@ -77,6 +81,7 @@ func (q *Queries) CreateCustodyTransaction(ctx context.Context, arg CreateCustod
 		&i.ID,
 		&i.TransactionType,
 		&i.PersonnelID,
+		&i.OperatorID,
 		&i.Notes,
 		&i.CreatedAt,
 	)
@@ -255,6 +260,7 @@ WITH recent_transactions AS (
         id,
         transaction_type,
         personnel_id,
+        operator_id,
         notes,
         created_at
     FROM custody_transactions
@@ -266,6 +272,9 @@ SELECT
     rt.id AS transaction_id,
     rt.transaction_type,
     rt.personnel_id,
+    rt.operator_id,
+    o.alias AS operator_alias,
+    o.rank AS operator_rank,
     rt.notes,
     rt.created_at AS transaction_created_at,
     cl.asset_id,
@@ -274,6 +283,7 @@ SELECT
 FROM recent_transactions rt
 JOIN custody_lines cl ON cl.custody_transaction_id = rt.id
 JOIN assets a ON a.id = cl.asset_id
+JOIN operators o ON o.id = rt.operator_id
 ORDER BY rt.created_at DESC, rt.id DESC, cl.id ASC
 `
 
@@ -286,6 +296,9 @@ type ListCustodyHistoryByPersonnelRow struct {
 	TransactionID        string             `json:"transaction_id"`
 	TransactionType      string             `json:"transaction_type"`
 	PersonnelID          string             `json:"personnel_id"`
+	OperatorID           string             `json:"operator_id"`
+	OperatorAlias        string             `json:"operator_alias"`
+	OperatorRank         string             `json:"operator_rank"`
 	Notes                string             `json:"notes"`
 	TransactionCreatedAt pgtype.Timestamptz `json:"transaction_created_at"`
 	AssetID              string             `json:"asset_id"`
@@ -306,6 +319,9 @@ func (q *Queries) ListCustodyHistoryByPersonnel(ctx context.Context, arg ListCus
 			&i.TransactionID,
 			&i.TransactionType,
 			&i.PersonnelID,
+			&i.OperatorID,
+			&i.OperatorAlias,
+			&i.OperatorRank,
 			&i.Notes,
 			&i.TransactionCreatedAt,
 			&i.AssetID,

@@ -53,6 +53,7 @@ type CustodyTransaction struct {
 	id              CustodyTransactionID
 	transactionType CustodyTransactionType
 	personnelID     PersonnelID
+	operatorID      OperatorID
 	lines           []CustodyLine
 	notes           string
 }
@@ -62,6 +63,7 @@ func NewCustodyTransaction(
 	id CustodyTransactionID,
 	transactionType CustodyTransactionType,
 	personnelID PersonnelID,
+	operatorID OperatorID,
 	lines []CustodyLine,
 	notes string,
 ) (CustodyTransaction, error) {
@@ -77,6 +79,10 @@ func NewCustodyTransaction(
 		return CustodyTransaction{}, ErrEmptyPersonnelID
 	}
 
+	if operatorID == "" {
+		return CustodyTransaction{}, ErrEmptyOperatorID
+	}
+
 	if len(lines) == 0 {
 		return CustodyTransaction{}, ErrEmptyTransactionLines
 	}
@@ -88,6 +94,7 @@ func NewCustodyTransaction(
 		id:              id,
 		transactionType: transactionType,
 		personnelID:     personnelID,
+		operatorID:      operatorID,
 		lines:           copiedLines,
 		notes:           strings.TrimSpace(notes),
 	}, nil
@@ -111,6 +118,11 @@ func (t CustodyTransaction) Type() CustodyTransactionType {
 // PersonnelID returns the personnel identifier associated with the transaction.
 func (t CustodyTransaction) PersonnelID() PersonnelID {
 	return t.personnelID
+}
+
+// OperatorID returns the operator that registered the transaction.
+func (t CustodyTransaction) OperatorID() OperatorID {
+	return t.operatorID
 }
 
 // Lines returns a defensive copy of the custody transaction lines.

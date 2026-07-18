@@ -32,12 +32,15 @@ type CustodyHistoryLine struct {
 
 // CustodyHistoryEntry represents a custody transaction with its lines.
 type CustodyHistoryEntry struct {
-	ID          domain.CustodyTransactionID
-	Type        domain.CustodyTransactionType
-	PersonnelID domain.PersonnelID
-	Notes       string
-	CreatedAt   time.Time
-	Lines       []CustodyHistoryLine
+	ID            domain.CustodyTransactionID
+	Type          domain.CustodyTransactionType
+	PersonnelID   domain.PersonnelID
+	OperatorID    domain.OperatorID
+	OperatorAlias string
+	OperatorRank  domain.Rank
+	Notes         string
+	CreatedAt     time.Time
+	Lines         []CustodyHistoryLine
 }
 
 // IDGenerator creates unique identifiers for new domain objects.

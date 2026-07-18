@@ -3,14 +3,16 @@ INSERT INTO custody_transactions (
     id,
     transaction_type,
     personnel_id,
+    operator_id,
     notes
 ) VALUES (
     @id,
     @transaction_type,
     @personnel_id,
+    @operator_id,
     @notes
 )
-RETURNING id, transaction_type, personnel_id, notes, created_at;
+RETURNING id, transaction_type, personnel_id, operator_id, notes, created_at;
 
 -- name: CreateCustodyLine :one
 INSERT INTO custody_lines (
@@ -73,6 +75,7 @@ WITH recent_transactions AS (
         id,
         transaction_type,
         personnel_id,
+        operator_id,
         notes,
         created_at
     FROM custody_transactions
@@ -84,6 +87,9 @@ SELECT
     rt.id AS transaction_id,
     rt.transaction_type,
     rt.personnel_id,
+    rt.operator_id,
+    o.alias AS operator_alias,
+    o.rank AS operator_rank,
     rt.notes,
     rt.created_at AS transaction_created_at,
     cl.asset_id,
@@ -92,6 +98,7 @@ SELECT
 FROM recent_transactions rt
 JOIN custody_lines cl ON cl.custody_transaction_id = rt.id
 JOIN assets a ON a.id = cl.asset_id
+JOIN operators o ON o.id = rt.operator_id
 ORDER BY rt.created_at DESC, rt.id DESC, cl.id ASC;
 
 -- name: ListCurrentCustodyByAsset :many
