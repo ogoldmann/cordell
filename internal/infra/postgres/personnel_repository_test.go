@@ -254,7 +254,7 @@ func TestPostgresPersonnelRepositorySearch(t *testing.T) {
 		t.Fatalf("expected no error creating second personnel, got %v", err)
 	}
 
-	personnel, err := personnelRepository.Search(context.Background(), "smith", 10)
+	personnel, err := personnelRepository.Search(context.Background(), "smith", 10, ports.RecordStatusFilterActive)
 	if err != nil {
 		t.Fatalf("expected no error searching personnel, got %v", err)
 	}
@@ -287,7 +287,7 @@ func TestPostgresPersonnelRepositorySearchByFormattedRegistrationID(t *testing.T
 		t.Fatalf("expected no error creating personnel, got %v", err)
 	}
 
-	personnel, err := personnelRepository.Search(context.Background(), "529.982", 10)
+	personnel, err := personnelRepository.Search(context.Background(), "529.982", 10, ports.RecordStatusFilterActive)
 	if err != nil {
 		t.Fatalf("expected no error searching personnel by registration id, got %v", err)
 	}
@@ -340,7 +340,7 @@ func TestPostgresPersonnelRepositorySearchByCombinedTerms(t *testing.T) {
 		t.Fatalf("expected no error creating second personnel, got %v", err)
 	}
 
-	personnel, err := personnelRepository.Search(context.Background(), "sergeant doe", 10)
+	personnel, err := personnelRepository.Search(context.Background(), "sergeant doe", 10, ports.RecordStatusFilterActive)
 	if err != nil {
 		t.Fatalf("expected no error searching personnel, got %v", err)
 	}
@@ -351,5 +351,102 @@ func TestPostgresPersonnelRepositorySearchByCombinedTerms(t *testing.T) {
 
 	if personnel[0].ID() != "personnel-1" {
 		t.Fatalf("expected personnel-1, got %s", personnel[0].ID())
+	}
+}
+
+func TestPostgresPersonnelRepositorySearchFiltersByStatus(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+
+	activePersonnel := mustNewTestPersonnel(
+		t,
+		"personnel-1",
+		"John Active",
+		"active",
+		domain.PersonnelRankSergeant,
+		"52998224725",
+	)
+
+	inactiveBase := mustNewTestPersonnel(
+		t,
+		"personnel-2",
+		"John Inactive",
+		"inactive",
+		domain.PersonnelRankCorporal,
+		"93541134780",
+	)
+
+	inactivePersonnel, err := domain.ReconstitutePersonnel(
+		inactiveBase.ID(),
+		inactiveBase.FullName(),
+		inactiveBase.Alias(),
+		inactiveBase.Rank(),
+		inactiveBase.RegistrationID(),
+		inactiveBase.Section(),
+		inactiveBase.OrganizationUnit(),
+		false,
+	)
+	if err != nil {
+		t.Fatalf("expected valid inactive personnel, got %v", err)
+	}
+
+	if err := personnelRepository.Save(context.Background(), activePersonnel); err != nil {
+		t.Fatalf("expected no error saving active personnel, got %v", err)
+	}
+
+	if err := personnelRepository.Save(context.Background(), inactivePersonnel); err != nil {
+		t.Fatalf("expected no error saving inactive personnel, got %v", err)
+	}
+
+	activeResults, err := personnelRepository.Search(
+		context.Background(),
+		"John",
+		10,
+		ports.RecordStatusFilterActive,
+	)
+	if err != nil {
+		t.Fatalf("expected no error searching active personnel, got %v", err)
+	}
+
+	if len(activeResults) != 1 {
+		t.Fatalf("expected 1 active result, got %d", len(activeResults))
+	}
+
+	if !activeResults[0].Active() {
+		t.Fatal("expected active result")
+	}
+
+	inactiveResults, err := personnelRepository.Search(
+		context.Background(),
+		"John",
+		10,
+		ports.RecordStatusFilterInactive,
+	)
+	if err != nil {
+		t.Fatalf("expected no error searching inactive personnel, got %v", err)
+	}
+
+	if len(inactiveResults) != 1 {
+		t.Fatalf("expected 1 inactive result, got %d", len(inactiveResults))
+	}
+
+	if inactiveResults[0].Active() {
+		t.Fatal("expected inactive result")
+	}
+
+	allResults, err := personnelRepository.Search(
+		context.Background(),
+		"John",
+		10,
+		ports.RecordStatusFilterAll,
+	)
+	if err != nil {
+		t.Fatalf("expected no error searching all personnel, got %v", err)
+	}
+
+	if len(allResults) != 2 {
+		t.Fatalf("expected 2 all results, got %d", len(allResults))
 	}
 }

@@ -122,8 +122,9 @@ func normalizeAssetLimit(limit int) int {
 
 // SearchAssetsCommand contains the input data required to search assets.
 type SearchAssetsCommand struct {
-	Query string
-	Limit int
+	Query        string
+	Limit        int
+	StatusFilter string
 }
 
 // SearchAssetsService handles asset search.
@@ -142,12 +143,13 @@ func NewSearchAssetsService(assetRepository ports.AssetRepository) *SearchAssets
 func (s *SearchAssetsService) Execute(ctx context.Context, cmd SearchAssetsCommand) ([]domain.Asset, error) {
 	limit := normalizeAssetLimit(cmd.Limit)
 	query := strings.TrimSpace(cmd.Query)
+	statusFilter := ports.NormalizeRecordStatusFilter(cmd.StatusFilter)
 
 	if query == "" {
-		return s.assetRepository.List(ctx, limit, ports.RecordStatusFilterActive)
+		return s.assetRepository.List(ctx, limit, statusFilter)
 	}
 
-	return s.assetRepository.Search(ctx, query, limit)
+	return s.assetRepository.Search(ctx, query, limit, statusFilter)
 }
 
 // DeactivateAssetCommand contains the input data required to deactivate an asset.

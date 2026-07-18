@@ -75,12 +75,23 @@ func (r *fakePersonnelRepository) List(
 	return personnel, nil
 }
 
-func (r *fakePersonnelRepository) Search(_ context.Context, query string, limit int) ([]domain.Personnel, error) {
+func (r *fakePersonnelRepository) Search(
+	_ context.Context,
+	query string,
+	limit int,
+	statusFilter ports.RecordStatusFilter,
+) ([]domain.Personnel, error) {
+	r.lastStatusFilter = statusFilter
+
 	query = strings.ToLower(strings.TrimSpace(query))
 
 	personnel := make([]domain.Personnel, 0, len(r.byID))
 
 	for _, item := range r.byID {
+		if !recordMatchesStatusFilter(item.Active(), statusFilter) {
+			continue
+		}
+
 		if personnelMatchesQuery(item, query) {
 			personnel = append(personnel, item)
 		}
@@ -239,12 +250,23 @@ func (r *fakeAssetRepository) List(
 	return assets, nil
 }
 
-func (r *fakeAssetRepository) Search(_ context.Context, query string, limit int) ([]domain.Asset, error) {
+func (r *fakeAssetRepository) Search(
+	_ context.Context,
+	query string,
+	limit int,
+	statusFilter ports.RecordStatusFilter,
+) ([]domain.Asset, error) {
+	r.lastStatusFilter = statusFilter
+
 	tokens := strings.Fields(strings.ToLower(strings.TrimSpace(query)))
 
 	assets := make([]domain.Asset, 0, len(r.byID))
 
 	for _, item := range r.byID {
+		if !recordMatchesStatusFilter(item.Active(), statusFilter) {
+			continue
+		}
+
 		if assetMatchesQuery(item, tokens) {
 			assets = append(assets, item)
 		}

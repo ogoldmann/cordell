@@ -38,14 +38,20 @@ SELECT
     created_at,
     updated_at
 FROM assets
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM search_terms
-    WHERE NOT (
-        name ILIKE search_terms.search_pattern ESCAPE '\'
+WHERE
+    (
+        @status_filter::text = 'all'
+        OR (@status_filter::text = 'active' AND active = true)
+        OR (@status_filter::text = 'inactive' AND active = false)
     )
-)
-ORDER BY created_at DESC, id DESC
+    AND NOT EXISTS (
+        SELECT 1
+        FROM search_terms
+        WHERE NOT (
+            name ILIKE search_terms.search_pattern ESCAPE '\'
+        )
+    )
+ORDER BY active DESC, created_at DESC, id DESC
 LIMIT sqlc.arg(limit_count);
 
 -- name: DeactivateAsset :one

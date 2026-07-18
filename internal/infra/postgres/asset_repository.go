@@ -60,9 +60,15 @@ func (r *AssetRepository) FindByID(ctx context.Context, id domain.AssetID) (doma
 }
 
 // Search retrieves asset records matching a search query.
-func (r *AssetRepository) Search(ctx context.Context, query string, limit int) ([]domain.Asset, error) {
+func (r *AssetRepository) Search(
+	ctx context.Context,
+	query string,
+	limit int,
+	statusFilter ports.RecordStatusFilter,
+) ([]domain.Asset, error) {
 	rows, err := r.queries.SearchAssets(ctx, db.SearchAssetsParams{
 		SearchPatterns: buildTextSearchPatterns(query),
+		StatusFilter:   string(statusFilter),
 		LimitCount:     int32(limit),
 	})
 	if err != nil {

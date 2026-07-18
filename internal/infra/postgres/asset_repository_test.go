@@ -306,7 +306,7 @@ func TestPostgresAssetRepositorySearch(t *testing.T) {
 		t.Fatalf("expected no error creating second asset, got %v", err)
 	}
 
-	assets, err := assetRepository.Search(context.Background(), "battery", 10)
+	assets, err := assetRepository.Search(context.Background(), "battery", 10, ports.RecordStatusFilterActive)
 	if err != nil {
 		t.Fatalf("expected no error searching assets, got %v", err)
 	}
@@ -349,7 +349,7 @@ func TestPostgresAssetRepositorySearchByCombinedTerms(t *testing.T) {
 		t.Fatalf("expected no error creating second asset, got %v", err)
 	}
 
-	assets, err := assetRepository.Search(context.Background(), "radio battery", 10)
+	assets, err := assetRepository.Search(context.Background(), "radio battery", 10, ports.RecordStatusFilterActive)
 	if err != nil {
 		t.Fatalf("expected no error searching assets, got %v", err)
 	}
@@ -360,5 +360,85 @@ func TestPostgresAssetRepositorySearchByCombinedTerms(t *testing.T) {
 
 	if assets[0].ID() != "asset-1" {
 		t.Fatalf("expected asset-1, got %s", assets[0].ID())
+	}
+}
+
+func TestPostgresAssetRepositorySearchFiltersByStatus(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	assetRepository := postgres.NewAssetRepository(queries)
+
+	activeAsset, err := domain.NewAsset("asset-1", "Radio Active")
+	if err != nil {
+		t.Fatalf("expected valid active asset, got %v", err)
+	}
+
+	inactiveBase, err := domain.NewAsset("asset-2", "Radio Inactive")
+	if err != nil {
+		t.Fatalf("expected valid inactive base asset, got %v", err)
+	}
+
+	inactiveAsset, err := domain.ReconstituteAsset(inactiveBase.ID(), inactiveBase.Name(), false)
+	if err != nil {
+		t.Fatalf("expected valid inactive asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), activeAsset); err != nil {
+		t.Fatalf("expected no error saving active asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), inactiveAsset); err != nil {
+		t.Fatalf("expected no error saving inactive asset, got %v", err)
+	}
+
+	activeResults, err := assetRepository.Search(
+		context.Background(),
+		"Radio",
+		10,
+		ports.RecordStatusFilterActive,
+	)
+	if err != nil {
+		t.Fatalf("expected no error searching active assets, got %v", err)
+	}
+
+	if len(activeResults) != 1 {
+		t.Fatalf("expected 1 active result, got %d", len(activeResults))
+	}
+
+	if !activeResults[0].Active() {
+		t.Fatal("expected active result")
+	}
+
+	inactiveResults, err := assetRepository.Search(
+		context.Background(),
+		"Radio",
+		10,
+		ports.RecordStatusFilterInactive,
+	)
+	if err != nil {
+		t.Fatalf("expected no error searching inactive assets, got %v", err)
+	}
+
+	if len(inactiveResults) != 1 {
+		t.Fatalf("expected 1 inactive result, got %d", len(inactiveResults))
+	}
+
+	if inactiveResults[0].Active() {
+		t.Fatal("expected inactive result")
+	}
+
+	allResults, err := assetRepository.Search(
+		context.Background(),
+		"Radio",
+		10,
+		ports.RecordStatusFilterAll,
+	)
+	if err != nil {
+		t.Fatalf("expected no error searching all assets, got %v", err)
+	}
+
+	if len(allResults) != 2 {
+		t.Fatalf("expected 2 all results, got %d", len(allResults))
 	}
 }

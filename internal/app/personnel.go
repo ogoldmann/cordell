@@ -138,8 +138,9 @@ func normalizePersonnelLimit(limit int) int {
 
 // SearchPersonnelCommand contains the input data required to search personnel.
 type SearchPersonnelCommand struct {
-	Query string
-	Limit int
+	Query        string
+	Limit        int
+	StatusFilter string
 }
 
 // SearchPersonnelService handles personnel search.
@@ -158,12 +159,13 @@ func NewSearchPersonnelService(personnelRepository ports.PersonnelRepository) *S
 func (s *SearchPersonnelService) Execute(ctx context.Context, cmd SearchPersonnelCommand) ([]domain.Personnel, error) {
 	limit := normalizePersonnelLimit(cmd.Limit)
 	query := strings.TrimSpace(cmd.Query)
+	statusFilter := ports.NormalizeRecordStatusFilter(cmd.StatusFilter)
 
 	if query == "" {
-		return s.personnelRepository.List(ctx, limit, ports.RecordStatusFilterActive)
+		return s.personnelRepository.List(ctx, limit, statusFilter)
 	}
 
-	return s.personnelRepository.Search(ctx, query, limit)
+	return s.personnelRepository.Search(ctx, query, limit, statusFilter)
 }
 
 // DeactivatePersonnelCommand contains the input data required to deactivate personnel.

@@ -15,6 +15,7 @@ const maxGlobalSearchLimitPerGroup = 20
 type GlobalSearchCommand struct {
 	Query        string
 	LimitPerType int
+	StatusFilter string
 }
 
 // GlobalSearchResult contains grouped global search results.
@@ -45,6 +46,7 @@ func NewGlobalSearchService(
 func (s *GlobalSearchService) Execute(ctx context.Context, cmd GlobalSearchCommand) (GlobalSearchResult, error) {
 	query := strings.TrimSpace(cmd.Query)
 	limit := normalizeGlobalSearchLimit(cmd.LimitPerType)
+	statusFilter := ports.NormalizeRecordStatusFilter(cmd.StatusFilter)
 
 	result := GlobalSearchResult{
 		Query: query,
@@ -54,12 +56,12 @@ func (s *GlobalSearchService) Execute(ctx context.Context, cmd GlobalSearchComma
 		return result, nil
 	}
 
-	personnel, err := s.personnelRepository.Search(ctx, query, limit)
+	personnel, err := s.personnelRepository.Search(ctx, query, limit, statusFilter)
 	if err != nil {
 		return GlobalSearchResult{}, err
 	}
 
-	assets, err := s.assetRepository.Search(ctx, query, limit)
+	assets, err := s.assetRepository.Search(ctx, query, limit, statusFilter)
 	if err != nil {
 		return GlobalSearchResult{}, err
 	}

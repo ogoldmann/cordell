@@ -120,10 +120,16 @@ func (r *PersonnelRepository) List(
 }
 
 // Search retrieves personnel records matching a search query.
-func (r *PersonnelRepository) Search(ctx context.Context, query string, limit int) ([]domain.Personnel, error) {
+func (r *PersonnelRepository) Search(
+	ctx context.Context,
+	query string,
+	limit int,
+	statusFilter ports.RecordStatusFilter,
+) ([]domain.Personnel, error) {
 	rows, err := r.queries.SearchPersonnel(ctx, db.SearchPersonnelParams{
 		SearchPatterns:       buildTextSearchPatterns(query),
 		RegistrationPatterns: buildDigitSearchPatterns(query),
+		StatusFilter:         string(statusFilter),
 		LimitCount:           int32(limit),
 	})
 	if err != nil {

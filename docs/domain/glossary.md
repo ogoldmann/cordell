@@ -54,6 +54,12 @@ It reduces accidental clicks while keeping the user on the current page.
 
 A confirmation modal does not replace backend validation, authentication, authorization, CSRF protection, application services, or repository/database rules.
 
+## Search Status Filter
+
+Search status filter controls whether global search returns active records, inactive records, or all records.
+
+It prevents inactive records from polluting daily operational search while preserving explicit access to archived records.
+
 ## Custody
 
 The state of responsibility over one or more assets.

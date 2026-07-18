@@ -245,3 +245,14 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Direct POST without CSRF is rejected.
 - [ ] Confirmation modals do not replace backend validation.
 - [ ] No lifecycle `/confirm` routes remain.
+
+## Global Search Inactive Awareness
+
+- [ ] Global search defaults to active records.
+- [ ] Global search supports inactive filter.
+- [ ] Global search supports all filter.
+- [ ] Search status filter is applied in backend queries.
+- [ ] Search form preserves selected status filter.
+- [ ] Personnel search results show Active/Inactive badge.
+- [ ] Asset search results show Active/Inactive badge.
+- [ ] Inactive records are not hidden when explicitly requested.

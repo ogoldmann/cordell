@@ -431,6 +431,28 @@ Confirmation modals are UX guardrails. Backend services and repositories remain 
 
 If JavaScript is unavailable, the underlying POST routes remain protected by authentication, CSRF, application services, and repository/database rules.
 
+## Global Search Status Awareness
+
+Global search defaults to active records.
+
+Supported status filters:
+
+```txt
+/search?q=radio&status=active
+/search?q=radio&status=inactive
+/search?q=radio&status=all
+```
+
+Default behavior:
+
+- missing status filter is treated as active
+- active search results show active personnel and active assets
+- inactive search results show inactive personnel and inactive assets
+- all search results include both active and inactive records
+- inactive results are clearly marked with an Inactive badge
+
+The status filter is applied by the backend query, not only by the UI.
+
 ## Development Database Reset
 
 During pre-release development, early migrations may still be edited to keep the baseline schema clean.

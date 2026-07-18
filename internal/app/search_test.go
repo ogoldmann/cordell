@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"cordell/internal/domain"
+	"cordell/internal/ports"
 )
 
 func TestGlobalSearchServiceExecuteSearchesPersonnelAndAssets(t *testing.T) {
@@ -90,5 +91,50 @@ func TestGlobalSearchServiceExecuteReturnsEmptyResultForEmptyQuery(t *testing.T)
 
 	if result.Query != "" {
 		t.Fatalf("expected empty query, got %s", result.Query)
+	}
+}
+
+func TestGlobalSearchServiceDefaultsToActiveStatusFilter(t *testing.T) {
+	personnelRepository := &fakePersonnelRepository{}
+	assetRepository := &fakeAssetRepository{}
+	service := NewGlobalSearchService(personnelRepository, assetRepository)
+
+	_, err := service.Execute(context.Background(), GlobalSearchCommand{
+		Query:        "radio",
+		LimitPerType: 10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if personnelRepository.lastStatusFilter != ports.RecordStatusFilterActive {
+		t.Fatalf("expected active personnel status filter, got %s", personnelRepository.lastStatusFilter)
+	}
+
+	if assetRepository.lastStatusFilter != ports.RecordStatusFilterActive {
+		t.Fatalf("expected active asset status filter, got %s", assetRepository.lastStatusFilter)
+	}
+}
+
+func TestGlobalSearchServiceAcceptsAllStatusFilter(t *testing.T) {
+	personnelRepository := &fakePersonnelRepository{}
+	assetRepository := &fakeAssetRepository{}
+	service := NewGlobalSearchService(personnelRepository, assetRepository)
+
+	_, err := service.Execute(context.Background(), GlobalSearchCommand{
+		Query:        "radio",
+		LimitPerType: 10,
+		StatusFilter: string(ports.RecordStatusFilterAll),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if personnelRepository.lastStatusFilter != ports.RecordStatusFilterAll {
+		t.Fatalf("expected all personnel status filter, got %s", personnelRepository.lastStatusFilter)
+	}
+
+	if assetRepository.lastStatusFilter != ports.RecordStatusFilterAll {
+		t.Fatalf("expected all asset status filter, got %s", assetRepository.lastStatusFilter)
 	}
 }

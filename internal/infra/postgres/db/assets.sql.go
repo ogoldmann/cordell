@@ -148,7 +148,7 @@ func (q *Queries) ReactivateAsset(ctx context.Context, id string) (int32, error)
 
 const searchAssets = `-- name: SearchAssets :many
 WITH search_terms AS (
-    SELECT unnest($2::text[]) AS search_pattern
+    SELECT unnest($3::text[]) AS search_pattern
 )
 SELECT
     id,
@@ -157,24 +157,31 @@ SELECT
     created_at,
     updated_at
 FROM assets
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM search_terms
-    WHERE NOT (
-        name ILIKE search_terms.search_pattern ESCAPE '\'
+WHERE
+    (
+        $1::text = 'all'
+        OR ($1::text = 'active' AND active = true)
+        OR ($1::text = 'inactive' AND active = false)
     )
-)
-ORDER BY created_at DESC, id DESC
-LIMIT $1
+    AND NOT EXISTS (
+        SELECT 1
+        FROM search_terms
+        WHERE NOT (
+            name ILIKE search_terms.search_pattern ESCAPE '\'
+        )
+    )
+ORDER BY active DESC, created_at DESC, id DESC
+LIMIT $2
 `
 
 type SearchAssetsParams struct {
+	StatusFilter   string   `json:"status_filter"`
 	LimitCount     int32    `json:"limit_count"`
 	SearchPatterns []string `json:"search_patterns"`
 }
 
 func (q *Queries) SearchAssets(ctx context.Context, arg SearchAssetsParams) ([]Asset, error) {
-	rows, err := q.db.Query(ctx, searchAssets, arg.LimitCount, arg.SearchPatterns)
+	rows, err := q.db.Query(ctx, searchAssets, arg.StatusFilter, arg.LimitCount, arg.SearchPatterns)
 	if err != nil {
 		return nil, err
 	}

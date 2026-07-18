@@ -1,6 +1,11 @@
 package web
 
-import "cordell/internal/ports"
+import (
+	"net/url"
+	"strings"
+
+	"cordell/internal/ports"
+)
 
 type statusFilterTabView struct {
 	Label  string
@@ -29,5 +34,34 @@ func newStatusFilterTabs(basePath string, selected ports.RecordStatusFilter) []s
 			URL:    basePath + "?status=all",
 			Active: selected == ports.RecordStatusFilterAll,
 		},
+	}
+}
+
+func newSearchStatusFilterTabs(query string, selected ports.RecordStatusFilter) []statusFilterTabView {
+	return []statusFilterTabView{
+		newSearchStatusFilterTab("Active", ports.RecordStatusFilterActive, query, selected),
+		newSearchStatusFilterTab("Inactive", ports.RecordStatusFilterInactive, query, selected),
+		newSearchStatusFilterTab("All", ports.RecordStatusFilterAll, query, selected),
+	}
+}
+
+func newSearchStatusFilterTab(
+	label string,
+	value ports.RecordStatusFilter,
+	query string,
+	selected ports.RecordStatusFilter,
+) statusFilterTabView {
+	values := url.Values{}
+	values.Set("status", string(value))
+
+	if strings.TrimSpace(query) != "" {
+		values.Set("q", query)
+	}
+
+	return statusFilterTabView{
+		Label:  label,
+		Value:  string(value),
+		URL:    "/search?" + values.Encode(),
+		Active: selected == value,
 	}
 }
