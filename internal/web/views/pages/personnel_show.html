@@ -11,18 +11,24 @@
       {{.Personnel.FullName}}
     </h1>
 
+    <span class="mt-3 inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold {{if .Personnel.Active}}bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200{{else}}bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300{{end}}">
+      {{.Personnel.StatusLabel}}
+    </span>
+
     <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
       Personnel record, current custody status, and custody history.
     </p>
   </div>
 
   <div class="flex flex-col gap-3 sm:flex-row">
-    <a
-      class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2.5 text-sm font-bold text-cordell-text no-underline shadow-sm transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
-      href="/custody/checkouts/new?personnel_id={{.Personnel.ID}}"
-    >
-      Register checkout
-    </a>
+    {{if .Personnel.Active}}
+      <a
+        class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2.5 text-sm font-bold text-cordell-text no-underline shadow-sm transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+        href="/custody/checkouts/new?personnel_id={{.Personnel.ID}}"
+      >
+        Register checkout
+      </a>
+    {{end}}
 
     <a
       class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2.5 text-sm font-bold text-cordell-text no-underline shadow-sm transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
@@ -32,6 +38,18 @@
     </a>
   </div>
 </section>
+
+{{if not .Personnel.Active}}
+  <div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
+    This personnel record is inactive. It cannot receive new checkout, but existing custody can still be returned.
+  </div>
+{{end}}
+
+{{if and (not .Personnel.Active) .CurrentCustody}}
+  <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+    This inactive personnel record still has current custody. Deactivation does not settle custody. Register returns or future corrections to clear pending responsibility.
+  </div>
+{{end}}
 
 <section class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
   <dl class="grid gap-5 md:grid-cols-2">
@@ -85,6 +103,36 @@
       </dd>
     </div>
   </dl>
+</section>
+
+<section class="mt-6 rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+  <h2 class="m-0 text-xl font-extrabold">Lifecycle</h2>
+
+  <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+    Deactivation removes this personnel record from normal checkout workflows without deleting historical custody records.
+  </p>
+
+  {{if .Personnel.CanDeactivate}}
+    <form class="mt-4" method="post" action="/personnel/{{.Personnel.ID}}/deactivate">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <button
+        class="inline-flex items-center justify-center rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 font-bold text-amber-800 transition hover:border-amber-400 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200"
+        type="submit"
+      >
+        Deactivate personnel
+      </button>
+    </form>
+  {{else if .Personnel.CanReactivate}}
+    <form class="mt-4" method="post" action="/personnel/{{.Personnel.ID}}/reactivate">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <button
+        class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-4 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+        type="submit"
+      >
+        Reactivate personnel
+      </button>
+    </form>
+  {{end}}
 </section>
 
 <section class="mt-8">

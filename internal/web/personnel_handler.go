@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"cordell/internal/app"
 	"cordell/internal/domain"
@@ -38,9 +37,10 @@ type personnelShowPageData struct {
 
 type personnelIndexPageData struct {
 	privateLayoutData
-	Title       string
-	SearchQuery string
-	Personnel   []personnelView
+	Title        string
+	Personnel    []personnelView
+	StatusFilter string
+	StatusTabs   []statusFilterTabView
 }
 
 type personnelView struct {
@@ -55,6 +55,9 @@ type personnelView struct {
 	OrganizationUnit      string
 	OrganizationUnitLabel string
 	Active                bool
+	StatusLabel           string
+	CanDeactivate         bool
+	CanReactivate         bool
 }
 
 type currentCustodyView struct {
@@ -236,6 +239,62 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) handleDeactivatePersonnel(w http.ResponseWriter, r *http.Request) {
+	personnelID := domain.PersonnelID(chi.URLParam(r, "id"))
+
+	err := s.services.DeactivatePersonnel.Execute(r.Context(), app.DeactivatePersonnelCommand{
+		ID: personnelID,
+	})
+	if err != nil {
+		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyPersonnelID) {
+			http.NotFound(w, r)
+			return
+		}
+
+		s.logger.Error("failed to deactivate personnel", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	s.recordAuditEventOrLog(
+		r,
+		domain.AuditEventPersonnelDeactivated,
+		domain.AuditEntityPersonnel,
+		string(personnelID),
+		nil,
+	)
+
+	http.Redirect(w, r, "/personnel/"+string(personnelID), http.StatusSeeOther)
+}
+
+func (s *Server) handleReactivatePersonnel(w http.ResponseWriter, r *http.Request) {
+	personnelID := domain.PersonnelID(chi.URLParam(r, "id"))
+
+	err := s.services.ReactivatePersonnel.Execute(r.Context(), app.ReactivatePersonnelCommand{
+		ID: personnelID,
+	})
+	if err != nil {
+		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyPersonnelID) {
+			http.NotFound(w, r)
+			return
+		}
+
+		s.logger.Error("failed to reactivate personnel", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	s.recordAuditEventOrLog(
+		r,
+		domain.AuditEventPersonnelReactivated,
+		domain.AuditEntityPersonnel,
+		string(personnelID),
+		nil,
+	)
+
+	http.Redirect(w, r, "/personnel/"+string(personnelID), http.StatusSeeOther)
+}
+
 func (s *Server) renderNewPersonnelFormWithError(
 	w http.ResponseWriter,
 	status int,
@@ -290,11 +349,11 @@ func humanizePersonnelError(err error) string {
 }
 
 func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
-	searchQuery := strings.TrimSpace(r.URL.Query().Get("q"))
+	statusFilter := ports.NormalizeRecordStatusFilter(r.URL.Query().Get("status"))
 
-	personnel, err := s.services.SearchPersonnel.Execute(r.Context(), app.SearchPersonnelCommand{
-		Query: searchQuery,
-		Limit: 50,
+	personnel, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
+		Limit:        100,
+		StatusFilter: string(statusFilter),
 	})
 	if err != nil {
 		s.logger.Error("failed to list personnel", "error", err)
@@ -303,9 +362,11 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := personnelIndexPageData{
-		Title:       "Personnel",
-		SearchQuery: searchQuery,
-		Personnel:   make([]personnelView, 0, len(personnel)),
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             "Personnel",
+		Personnel:         make([]personnelView, 0, len(personnel)),
+		StatusFilter:      string(statusFilter),
+		StatusTabs:        newStatusFilterTabs("/personnel", statusFilter),
 	}
 
 	for _, item := range personnel {
@@ -329,6 +390,11 @@ func custodyTransactionTypeLabel(transactionType domain.CustodyTransactionType) 
 }
 
 func newPersonnelView(personnel domain.Personnel) personnelView {
+	statusLabel := "Inactive"
+	if personnel.Active() {
+		statusLabel = "Active"
+	}
+
 	return personnelView{
 		ID:                    string(personnel.ID()),
 		FullName:              personnel.FullName(),
@@ -341,6 +407,9 @@ func newPersonnelView(personnel domain.Personnel) personnelView {
 		OrganizationUnit:      string(personnel.OrganizationUnit()),
 		OrganizationUnitLabel: organizationUnitLabel(personnel.OrganizationUnit()),
 		Active:                personnel.Active(),
+		StatusLabel:           statusLabel,
+		CanDeactivate:         personnel.Active(),
+		CanReactivate:         !personnel.Active(),
 	}
 }
 

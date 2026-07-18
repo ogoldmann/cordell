@@ -7,6 +7,7 @@ import (
 	"cordell/internal/app"
 	"cordell/internal/domain"
 	"cordell/internal/infra/postgres"
+	"cordell/internal/ports"
 )
 
 func TestPostgresPersonnelRepositoryCreateAndFind(t *testing.T) {
@@ -66,13 +67,127 @@ func TestPostgresPersonnelRepositoryList(t *testing.T) {
 		t.Fatalf("expected no error creating second personnel, got %v", err)
 	}
 
-	personnel, err := personnelRepository.List(context.Background(), 10)
+	personnel, err := personnelRepository.List(context.Background(), 10, ports.RecordStatusFilterActive)
 	if err != nil {
 		t.Fatalf("expected no error listing personnel, got %v", err)
 	}
 
 	if len(personnel) != 2 {
 		t.Fatalf("expected 2 personnel records, got %d", len(personnel))
+	}
+}
+
+func TestPostgresPersonnelRepositoryListFiltersByStatus(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+	repository := postgres.NewPersonnelRepository(queries)
+
+	activePersonnel := mustNewTestPersonnel(t, "personnel-1", "John Active", "active", domain.RankSergeant, "52998224725")
+	inactiveBase := mustNewTestPersonnel(t, "personnel-2", "John Inactive", "inactive", domain.RankCorporal, "93541134780")
+
+	inactivePersonnel, err := domain.ReconstitutePersonnel(
+		inactiveBase.ID(),
+		inactiveBase.FullName(),
+		inactiveBase.Alias(),
+		inactiveBase.Rank(),
+		inactiveBase.RegistrationID(),
+		inactiveBase.Section(),
+		inactiveBase.OrganizationUnit(),
+		false,
+	)
+	if err != nil {
+		t.Fatalf("expected valid inactive personnel, got %v", err)
+	}
+
+	if err := repository.Save(context.Background(), activePersonnel); err != nil {
+		t.Fatalf("expected no error saving active personnel, got %v", err)
+	}
+
+	if err := repository.Save(context.Background(), inactivePersonnel); err != nil {
+		t.Fatalf("expected no error saving inactive personnel, got %v", err)
+	}
+
+	active, err := repository.List(context.Background(), 10, ports.RecordStatusFilterActive)
+	if err != nil {
+		t.Fatalf("expected no error listing active personnel, got %v", err)
+	}
+
+	if len(active) != 1 {
+		t.Fatalf("expected 1 active personnel, got %d", len(active))
+	}
+
+	if !active[0].Active() {
+		t.Fatal("expected listed personnel to be active")
+	}
+
+	inactive, err := repository.List(context.Background(), 10, ports.RecordStatusFilterInactive)
+	if err != nil {
+		t.Fatalf("expected no error listing inactive personnel, got %v", err)
+	}
+
+	if len(inactive) != 1 {
+		t.Fatalf("expected 1 inactive personnel, got %d", len(inactive))
+	}
+
+	if inactive[0].Active() {
+		t.Fatal("expected listed personnel to be inactive")
+	}
+
+	all, err := repository.List(context.Background(), 10, ports.RecordStatusFilterAll)
+	if err != nil {
+		t.Fatalf("expected no error listing all personnel, got %v", err)
+	}
+
+	if len(all) != 2 {
+		t.Fatalf("expected 2 personnel, got %d", len(all))
+	}
+}
+
+func TestPostgresPersonnelRepositoryDeactivateAndReactivate(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+	repository := postgres.NewPersonnelRepository(queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+
+	if err := repository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	deactivated, err := repository.Deactivate(context.Background(), personnel.ID())
+	if err != nil {
+		t.Fatalf("expected no error deactivating personnel, got %v", err)
+	}
+
+	if !deactivated {
+		t.Fatal("expected personnel to be deactivated")
+	}
+
+	updated, err := repository.FindByID(context.Background(), personnel.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding personnel, got %v", err)
+	}
+
+	if updated.Active() {
+		t.Fatal("expected personnel to be inactive")
+	}
+
+	reactivated, err := repository.Reactivate(context.Background(), personnel.ID())
+	if err != nil {
+		t.Fatalf("expected no error reactivating personnel, got %v", err)
+	}
+
+	if !reactivated {
+		t.Fatal("expected personnel to be reactivated")
+	}
+
+	updated, err = repository.FindByID(context.Background(), personnel.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding personnel, got %v", err)
+	}
+
+	if !updated.Active() {
+		t.Fatal("expected personnel to be active")
 	}
 }
 

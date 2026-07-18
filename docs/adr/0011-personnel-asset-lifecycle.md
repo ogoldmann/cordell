@@ -96,6 +96,7 @@ Examples:
 * personnel transferred
 * personnel should no longer receive new custody
 * duplicate or obsolete record was resolved
+* record should be archived from normal workflows
 
 Deactivated personnel:
 
@@ -104,20 +105,30 @@ Deactivated personnel:
 * may still appear in historical custody records
 * may still appear in custody receipts
 * may still appear in audit-related views
+* may still appear in current custody views if custody is still pending
 * may be searchable through explicit inactive/archive filters
 * may be reactivated if needed
 
-Initial implementation should prevent deactivation of personnel with current custody balance greater than zero.
+Personnel deactivation does not settle custody.
+
+Personnel deactivation does not return assets.
+
+Personnel deactivation does not correct balances.
+
+Personnel deactivation only changes whether the personnel record is available for new operational responsibility.
+
+Initial implementation should allow deactivation even when current custody exists.
 
 Reason:
 
-* hidden pending custody is operationally dangerous
-* deactivation should not hide unresolved responsibility
-* outstanding material should be returned or corrected before deactivation
+* blocking deactivation can incentivize false return or correction records
+* deactivation may be administratively true even when custody is unresolved
+* pending custody should remain visible as a warning, not hidden
+* the system should preserve operational truth rather than force artificial cleanup
 
-Return behavior remains different from checkout.
+If inactive personnel still has current custody, Cordell should show clear warnings in detail/current custody views.
 
-If an inactive personnel record has current custody due to legacy data or exceptional future workflow, return should still be allowed to clear the responsibility.
+Return behavior remains allowed for inactive personnel when current custody exists, because return reduces or clears an existing responsibility.
 
 ## Asset Lifecycle Rules
 
@@ -204,11 +215,20 @@ This ADR does not require immediate search changes. It defines the direction.
 
 ## Deactivation Authorization
 
-Initial lifecycle actions should likely be admin-only.
+Initial personnel lifecycle actions do not need to be admin-only.
 
-Regular operators may view records and register normal custody operations, but deactivation/reactivation changes the operational availability of records and should be restricted.
+Any authenticated operator may deactivate or reactivate personnel records.
 
-Future policy may allow more granular permissions if needed.
+Reason:
+
+* personnel lifecycle maintenance is an operational workflow
+* yearly turnover can be high
+* restricting the action to admins may create unnecessary bottlenecks
+* audit attribution already records which operator performed the action
+
+This decision applies initially to personnel lifecycle actions.
+
+Asset lifecycle authorization should be decided separately when asset deactivation/reactivation is implemented.
 
 ## Audit Direction
 
@@ -231,22 +251,28 @@ Audit metadata may include:
 
 Audit metadata must not include secrets, session tokens, CSRF tokens, password hashes, or raw form payloads.
 
-## Reason Requirement
+## Reason Direction
 
-Deactivation should require a reason.
+Personnel deactivation will not require a free-text reason in the initial implementation.
 
-Reason examples:
+Reason:
+
+* free-text reasons create inconsistent data
+* mandatory reasons may encourage low-quality placeholder entries
+* the initial lifecycle model should stay simple
+* audit log attribution already records who performed the action and when
+
+A future implementation may introduce a controlled reason list.
+
+Possible future reason options:
 
 * transferred
 * temporary service ended
 * duplicate record
-* asset removed from use
-* asset replaced
-* administrative correction
+* administrative archive
+* other controlled option
 
-The reason should be stored in an audit event at minimum.
-
-A future schema may add explicit lifecycle event tables if richer reporting is needed.
+If reason is implemented later, it should preferably be a select list, not arbitrary free text.
 
 ## Alternatives Considered
 
@@ -369,22 +395,18 @@ The system will preserve custody history, receipts, and auditability.
 
 Inactive personnel and assets will be hidden from normal checkout workflows but remain available where history requires them.
 
-Before implementing deactivation UI, Cordell must ensure current custody is not accidentally hidden.
+Personnel detail and current custody views must ensure current custody is not accidentally hidden.
 
-The initial policy should block deactivation when current custody exists.
+The initial personnel policy should allow deactivation when current custody exists and show warnings for unresolved custody.
 
 ## Future Work
 
 Future milestones should include:
 
-* personnel deactivation use case
-* personnel reactivation use case
 * asset deactivation use case
 * asset reactivation use case
-* admin-only lifecycle routes
-* lifecycle reason field
-* audit events for lifecycle actions
-* list filters for active/inactive/all
-* inactive badges in list/search/detail views
-* tests preventing deactivation with current custody
+* asset lifecycle authorization decision
+* controlled lifecycle reason list, if needed
+* lifecycle audit metadata expansion, if needed
+* tests covering inactive personnel warnings when current custody exists
 * tests allowing return for inactive records when current custody exists

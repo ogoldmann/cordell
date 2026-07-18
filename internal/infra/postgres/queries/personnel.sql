@@ -6,7 +6,8 @@ INSERT INTO personnel (
     rank,
     registration_id,
     section,
-    organization_unit
+    organization_unit,
+    active
 ) VALUES (
     @id,
     @full_name,
@@ -14,7 +15,8 @@ INSERT INTO personnel (
     @rank,
     @registration_id,
     @section,
-    @organization_unit
+    @organization_unit,
+    @active
 );
 
 -- name: GetPersonnel :one
@@ -45,8 +47,14 @@ SELECT
     created_at,
     updated_at
 FROM personnel
+WHERE
+    (
+        @status_filter::text = 'all'
+        OR (@status_filter::text = 'active' AND active = true)
+        OR (@status_filter::text = 'inactive' AND active = false)
+    )
 ORDER BY created_at DESC, id DESC
-LIMIT sqlc.arg(limit_count);
+LIMIT @limit_count;
 
 -- name: SearchPersonnel :many
 WITH search_terms AS (
@@ -84,3 +92,29 @@ WHERE NOT EXISTS (
 )
 ORDER BY created_at DESC, id DESC
 LIMIT sqlc.arg(limit_count);
+
+-- name: DeactivatePersonnel :one
+WITH updated AS (
+    UPDATE personnel
+    SET
+        active = false,
+        updated_at = now()
+    WHERE id = @id
+      AND active = true
+    RETURNING id
+)
+SELECT count(*)::int
+FROM updated;
+
+-- name: ReactivatePersonnel :one
+WITH updated AS (
+    UPDATE personnel
+    SET
+        active = true,
+        updated_at = now()
+    WHERE id = @id
+      AND active = false
+    RETURNING id
+)
+SELECT count(*)::int
+FROM updated;

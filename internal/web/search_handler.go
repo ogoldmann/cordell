@@ -56,9 +56,15 @@ func (s *Server) handleGlobalSearch(w http.ResponseWriter, r *http.Request) {
 }
 
 func newAssetView(asset domain.Asset) assetView {
+	statusLabel := "Inactive"
+	if asset.Active() {
+		statusLabel = "Active"
+	}
+
 	return assetView{
-		ID:     string(asset.ID()),
-		Name:   asset.Name(),
-		Active: asset.Active(),
+		ID:          string(asset.ID()),
+		Name:        asset.Name(),
+		Active:      asset.Active(),
+		StatusLabel: statusLabel,
 	}
 }

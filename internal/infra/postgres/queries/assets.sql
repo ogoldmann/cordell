@@ -18,8 +18,14 @@ WHERE id = @id;
 -- name: ListAssets :many
 SELECT id, name, active, created_at, updated_at
 FROM assets
+WHERE
+    (
+        @status_filter::text = 'all'
+        OR (@status_filter::text = 'active' AND active = true)
+        OR (@status_filter::text = 'inactive' AND active = false)
+    )
 ORDER BY created_at DESC, id DESC
-LIMIT sqlc.arg(limit_count);
+LIMIT @limit_count;
 
 -- name: SearchAssets :many
 WITH search_terms AS (

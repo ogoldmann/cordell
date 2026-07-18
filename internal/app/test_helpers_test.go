@@ -21,8 +21,9 @@ func (g fixedIDGenerator) NewID() (string, error) {
 }
 
 type fakePersonnelRepository struct {
-	saved []domain.Personnel
-	byID  map[domain.PersonnelID]domain.Personnel
+	saved            []domain.Personnel
+	byID             map[domain.PersonnelID]domain.Personnel
+	lastStatusFilter ports.RecordStatusFilter
 }
 
 func (r *fakePersonnelRepository) Save(_ context.Context, personnel domain.Personnel) error {
@@ -46,10 +47,20 @@ func (r *fakePersonnelRepository) FindByID(_ context.Context, id domain.Personne
 	return personnel, nil
 }
 
-func (r *fakePersonnelRepository) List(_ context.Context, limit int) ([]domain.Personnel, error) {
+func (r *fakePersonnelRepository) List(
+	_ context.Context,
+	limit int,
+	statusFilter ports.RecordStatusFilter,
+) ([]domain.Personnel, error) {
+	r.lastStatusFilter = statusFilter
+
 	personnel := make([]domain.Personnel, 0, len(r.byID))
 
 	for _, item := range r.byID {
+		if !recordMatchesStatusFilter(item.Active(), statusFilter) {
+			continue
+		}
+
 		personnel = append(personnel, item)
 	}
 
@@ -84,6 +95,54 @@ func (r *fakePersonnelRepository) Search(_ context.Context, query string, limit 
 	}
 
 	return personnel, nil
+}
+
+func (r *fakePersonnelRepository) Deactivate(_ context.Context, id domain.PersonnelID) (bool, error) {
+	personnel, ok := r.byID[id]
+	if !ok {
+		return false, ports.ErrNotFound
+	}
+
+	deactivated, err := domain.ReconstitutePersonnel(
+		personnel.ID(),
+		personnel.FullName(),
+		personnel.Alias(),
+		personnel.Rank(),
+		personnel.RegistrationID(),
+		personnel.Section(),
+		personnel.OrganizationUnit(),
+		false,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	r.byID[id] = deactivated
+	return true, nil
+}
+
+func (r *fakePersonnelRepository) Reactivate(_ context.Context, id domain.PersonnelID) (bool, error) {
+	personnel, ok := r.byID[id]
+	if !ok {
+		return false, ports.ErrNotFound
+	}
+
+	reactivated, err := domain.ReconstitutePersonnel(
+		personnel.ID(),
+		personnel.FullName(),
+		personnel.Alias(),
+		personnel.Rank(),
+		personnel.RegistrationID(),
+		personnel.Section(),
+		personnel.OrganizationUnit(),
+		true,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	r.byID[id] = reactivated
+	return true, nil
 }
 
 func personnelMatchesQuery(personnel domain.Personnel, query string) bool {
@@ -121,8 +180,9 @@ func anyValueContainsToken(values []string, token string) bool {
 }
 
 type fakeAssetRepository struct {
-	saved []domain.Asset
-	byID  map[domain.AssetID]domain.Asset
+	saved            []domain.Asset
+	byID             map[domain.AssetID]domain.Asset
+	lastStatusFilter ports.RecordStatusFilter
 }
 
 func (r *fakeAssetRepository) Save(_ context.Context, asset domain.Asset) error {
@@ -146,10 +206,20 @@ func (r *fakeAssetRepository) FindByID(_ context.Context, id domain.AssetID) (do
 	return asset, nil
 }
 
-func (r *fakeAssetRepository) List(_ context.Context, limit int) ([]domain.Asset, error) {
+func (r *fakeAssetRepository) List(
+	_ context.Context,
+	limit int,
+	statusFilter ports.RecordStatusFilter,
+) ([]domain.Asset, error) {
+	r.lastStatusFilter = statusFilter
+
 	assets := make([]domain.Asset, 0, len(r.byID))
 
 	for _, item := range r.byID {
+		if !recordMatchesStatusFilter(item.Active(), statusFilter) {
+			continue
+		}
+
 		assets = append(assets, item)
 	}
 
@@ -200,6 +270,17 @@ func assetMatchesQuery(asset domain.Asset, tokens []string) bool {
 	}
 
 	return true
+}
+
+func recordMatchesStatusFilter(active bool, statusFilter ports.RecordStatusFilter) bool {
+	switch statusFilter {
+	case ports.RecordStatusFilterAll:
+		return true
+	case ports.RecordStatusFilterInactive:
+		return !active
+	default:
+		return active
+	}
 }
 
 type fakeCustodyRepository struct {

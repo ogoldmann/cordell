@@ -13,15 +13,9 @@
     </span>
   </div>
 
-  {{if .Active}}
-    <span class="inline-flex w-fit rounded-full bg-cordell-primary/10 px-3 py-1 text-xs font-bold text-cordell-primary dark:bg-cordell-dark-primary/15 dark:text-cordell-dark-primary">
-      Active
-    </span>
-  {{else}}
-    <span class="inline-flex w-fit rounded-full bg-cordell-muted/10 px-3 py-1 text-xs font-bold text-cordell-muted dark:bg-cordell-dark-muted/15 dark:text-cordell-dark-muted">
-      Inactive
-    </span>
-  {{end}}
+  <span class="inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold {{if .Active}}bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200{{else}}bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300{{end}}">
+    {{.StatusLabel}}
+  </span>
 </a>
 {{end}}
 
@@ -37,14 +31,8 @@
     </span>
   </div>
 
-  {{if .Active}}
-    <span class="inline-flex w-fit rounded-full bg-cordell-primary/10 px-3 py-1 text-xs font-bold text-cordell-primary dark:bg-cordell-dark-primary/15 dark:text-cordell-dark-primary">
-      Active
-    </span>
-  {{else}}
-    <span class="inline-flex w-fit rounded-full bg-cordell-muted/10 px-3 py-1 text-xs font-bold text-cordell-muted dark:bg-cordell-dark-muted/15 dark:text-cordell-dark-muted">
-      Inactive
-    </span>
-  {{end}}
+  <span class="inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold {{if .Active}}bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200{{else}}bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300{{end}}">
+    {{.StatusLabel}}
+  </span>
 </a>
 {{end}}

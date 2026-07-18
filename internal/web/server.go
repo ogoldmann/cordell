@@ -84,6 +84,8 @@ func (s *Server) Routes() http.Handler {
 		private.Get("/personnel/new", s.handleNewPersonnelForm)
 		private.Post("/personnel", s.handleCreatePersonnel)
 		private.Get("/personnel/{id}", s.handleShowPersonnel)
+		private.Post("/personnel/{id}/deactivate", s.handleDeactivatePersonnel)
+		private.Post("/personnel/{id}/reactivate", s.handleReactivatePersonnel)
 
 		private.Get("/assets", s.handleListAssets)
 		private.Get("/assets/new", s.handleNewAssetForm)

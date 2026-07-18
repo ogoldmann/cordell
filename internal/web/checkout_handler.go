@@ -144,14 +144,16 @@ func (s *Server) buildCheckoutNewPageData(
 	data.privateLayoutData = newPrivateLayoutData(r)
 
 	personnel, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
-		Limit: 100,
+		Limit:        100,
+		StatusFilter: string(ports.RecordStatusFilterActive),
 	})
 	if err != nil {
 		return checkoutNewPageData{}, err
 	}
 
 	assets, err := s.services.ListAssets.Execute(r.Context(), app.ListAssetsCommand{
-		Limit: 100,
+		Limit:        100,
+		StatusFilter: string(ports.RecordStatusFilterActive),
 	})
 	if err != nil {
 		return checkoutNewPageData{}, err
@@ -172,11 +174,7 @@ func (s *Server) buildCheckoutNewPageData(
 			continue
 		}
 
-		data.Assets = append(data.Assets, assetView{
-			ID:     string(item.ID()),
-			Name:   item.Name(),
-			Active: item.Active(),
-		})
+		data.Assets = append(data.Assets, newAssetView(item))
 	}
 	if data.Quantity == "" {
 		data.Quantity = "1"

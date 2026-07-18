@@ -100,7 +100,8 @@ const (
 
 // ListPersonnelCommand contains the input data required to list personnel.
 type ListPersonnelCommand struct {
-	Limit int
+	Limit        int
+	StatusFilter string
 }
 
 // ListPersonnelService handles the personnel listing use case.
@@ -117,7 +118,10 @@ func NewListPersonnelService(personnelRepository ports.PersonnelRepository) *Lis
 
 // Execute retrieves a limited list of personnel records.
 func (s *ListPersonnelService) Execute(ctx context.Context, cmd ListPersonnelCommand) ([]domain.Personnel, error) {
-	return s.personnelRepository.List(ctx, normalizePersonnelLimit(cmd.Limit))
+	limit := normalizePersonnelLimit(cmd.Limit)
+	statusFilter := ports.NormalizeRecordStatusFilter(cmd.StatusFilter)
+
+	return s.personnelRepository.List(ctx, limit, statusFilter)
 }
 
 func normalizePersonnelLimit(limit int) int {
@@ -156,8 +160,96 @@ func (s *SearchPersonnelService) Execute(ctx context.Context, cmd SearchPersonne
 	query := strings.TrimSpace(cmd.Query)
 
 	if query == "" {
-		return s.personnelRepository.List(ctx, limit)
+		return s.personnelRepository.List(ctx, limit, ports.RecordStatusFilterActive)
 	}
 
 	return s.personnelRepository.Search(ctx, query, limit)
+}
+
+// DeactivatePersonnelCommand contains the input data required to deactivate personnel.
+type DeactivatePersonnelCommand struct {
+	ID domain.PersonnelID
+}
+
+// DeactivatePersonnelService handles personnel deactivation.
+type DeactivatePersonnelService struct {
+	personnelRepository ports.PersonnelRepository
+}
+
+// NewDeactivatePersonnelService creates a DeactivatePersonnelService.
+func NewDeactivatePersonnelService(personnelRepository ports.PersonnelRepository) *DeactivatePersonnelService {
+	return &DeactivatePersonnelService{
+		personnelRepository: personnelRepository,
+	}
+}
+
+// Execute marks personnel as inactive.
+func (s *DeactivatePersonnelService) Execute(ctx context.Context, cmd DeactivatePersonnelCommand) error {
+	if cmd.ID == "" {
+		return domain.ErrEmptyPersonnelID
+	}
+
+	personnel, err := s.personnelRepository.FindByID(ctx, cmd.ID)
+	if err != nil {
+		return err
+	}
+
+	if !personnel.Active() {
+		return nil
+	}
+
+	deactivated, err := s.personnelRepository.Deactivate(ctx, personnel.ID())
+	if err != nil {
+		return err
+	}
+
+	if !deactivated {
+		return ports.ErrNotFound
+	}
+
+	return nil
+}
+
+// ReactivatePersonnelCommand contains the input data required to reactivate personnel.
+type ReactivatePersonnelCommand struct {
+	ID domain.PersonnelID
+}
+
+// ReactivatePersonnelService handles personnel reactivation.
+type ReactivatePersonnelService struct {
+	personnelRepository ports.PersonnelRepository
+}
+
+// NewReactivatePersonnelService creates a ReactivatePersonnelService.
+func NewReactivatePersonnelService(personnelRepository ports.PersonnelRepository) *ReactivatePersonnelService {
+	return &ReactivatePersonnelService{
+		personnelRepository: personnelRepository,
+	}
+}
+
+// Execute marks personnel as active.
+func (s *ReactivatePersonnelService) Execute(ctx context.Context, cmd ReactivatePersonnelCommand) error {
+	if cmd.ID == "" {
+		return domain.ErrEmptyPersonnelID
+	}
+
+	personnel, err := s.personnelRepository.FindByID(ctx, cmd.ID)
+	if err != nil {
+		return err
+	}
+
+	if personnel.Active() {
+		return nil
+	}
+
+	reactivated, err := s.personnelRepository.Reactivate(ctx, personnel.ID())
+	if err != nil {
+		return err
+	}
+
+	if !reactivated {
+		return ports.ErrNotFound
+	}
+
+	return nil
 }

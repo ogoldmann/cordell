@@ -891,3 +891,26 @@ docs/adr/0005-audit-log-transaction-boundary.md
 ```
 
 Future production hardening should revisit this decision and likely introduce an application transaction boundary for audit-critical operations.
+
+## Active/Inactive List Filtering
+
+Personnel and asset list pages show active records by default.
+
+Both pages support status filters:
+
+```txt
+?status=active
+?status=inactive
+?status=all
+```
+
+Default behavior:
+
+- /personnel shows active personnel
+- /assets shows active assets
+- inactive records can be viewed through the Inactive filter
+- all records can be viewed through the All filter
+- checkout selectors use active records only
+- return flows can still reference records needed to clear existing custody
+
+List pages display an Active/Inactive badge for each record.

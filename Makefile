@@ -88,3 +88,7 @@ admin-create-operator:
 .PHONY: admin
 admin:
 	$(MAKE) admin-create-operator REGISTRATION_ID=52998224725 ALIAS="John Doe" RANK=sergeant ROLE=admin
+
+.PHONY: operator
+operator:
+	$(MAKE) admin-create-operator REGISTRATION_ID=29109142088 ALIAS="Smith" RANK=sergeant ROLE=operator

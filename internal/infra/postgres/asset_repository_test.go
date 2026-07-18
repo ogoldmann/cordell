@@ -5,7 +5,9 @@ import (
 	"testing"
 
 	"cordell/internal/app"
+	"cordell/internal/domain"
 	"cordell/internal/infra/postgres"
+	"cordell/internal/ports"
 )
 
 func TestPostgresAssetRepositoryCreateAndFind(t *testing.T) {
@@ -71,13 +73,72 @@ func TestPostgresAssetRepositoryList(t *testing.T) {
 		t.Fatalf("expected no error creating second asset, got %v", err)
 	}
 
-	assets, err := assetRepository.List(context.Background(), 10)
+	assets, err := assetRepository.List(context.Background(), 10, ports.RecordStatusFilterActive)
 	if err != nil {
 		t.Fatalf("expected no error listing assets, got %v", err)
 	}
 
 	if len(assets) != 2 {
 		t.Fatalf("expected 2 asset records, got %d", len(assets))
+	}
+}
+
+func TestPostgresAssetRepositoryListFiltersByStatus(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+	repository := postgres.NewAssetRepository(queries)
+
+	activeAsset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid active asset, got %v", err)
+	}
+
+	inactiveAsset, err := domain.ReconstituteAsset("asset-2", "Battery", false)
+	if err != nil {
+		t.Fatalf("expected valid inactive asset, got %v", err)
+	}
+
+	if err := repository.Save(context.Background(), activeAsset); err != nil {
+		t.Fatalf("expected no error saving active asset, got %v", err)
+	}
+
+	if err := repository.Save(context.Background(), inactiveAsset); err != nil {
+		t.Fatalf("expected no error saving inactive asset, got %v", err)
+	}
+
+	active, err := repository.List(context.Background(), 10, ports.RecordStatusFilterActive)
+	if err != nil {
+		t.Fatalf("expected no error listing active assets, got %v", err)
+	}
+
+	if len(active) != 1 {
+		t.Fatalf("expected 1 active asset, got %d", len(active))
+	}
+
+	if !active[0].Active() {
+		t.Fatal("expected listed asset to be active")
+	}
+
+	inactive, err := repository.List(context.Background(), 10, ports.RecordStatusFilterInactive)
+	if err != nil {
+		t.Fatalf("expected no error listing inactive assets, got %v", err)
+	}
+
+	if len(inactive) != 1 {
+		t.Fatalf("expected 1 inactive asset, got %d", len(inactive))
+	}
+
+	if inactive[0].Active() {
+		t.Fatal("expected listed asset to be inactive")
+	}
+
+	all, err := repository.List(context.Background(), 10, ports.RecordStatusFilterAll)
+	if err != nil {
+		t.Fatalf("expected no error listing all assets, got %v", err)
+	}
+
+	if len(all) != 2 {
+		t.Fatalf("expected 2 assets, got %d", len(all))
 	}
 }
 

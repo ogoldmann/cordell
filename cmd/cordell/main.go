@@ -111,6 +111,12 @@ func main() {
 		ListPersonnel: app.NewListPersonnelService(
 			personnelRepository,
 		),
+		DeactivatePersonnel: app.NewDeactivatePersonnelService(
+			personnelRepository,
+		),
+		ReactivatePersonnel: app.NewReactivatePersonnelService(
+			personnelRepository,
+		),
 		SearchPersonnel: app.NewSearchPersonnelService(
 			personnelRepository,
 		),

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"cordell/internal/domain"
+	"cordell/internal/ports"
 )
 
 func TestCreatePersonnelServiceExecute(t *testing.T) {
@@ -108,7 +109,8 @@ func TestListPersonnelServiceExecute(t *testing.T) {
 	service := NewListPersonnelService(repository)
 
 	personnel, err := service.Execute(context.Background(), ListPersonnelCommand{
-		Limit: 10,
+		Limit:        10,
+		StatusFilter: string(ports.RecordStatusFilterActive),
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -124,7 +126,8 @@ func TestListPersonnelServiceAppliesDefaultLimit(t *testing.T) {
 	service := NewListPersonnelService(repository)
 
 	_, err := service.Execute(context.Background(), ListPersonnelCommand{
-		Limit: 0,
+		Limit:        0,
+		StatusFilter: string(ports.RecordStatusFilterActive),
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -136,7 +139,144 @@ func TestListPersonnelServiceCapsLimit(t *testing.T) {
 	service := NewListPersonnelService(repository)
 
 	_, err := service.Execute(context.Background(), ListPersonnelCommand{
-		Limit: 1000,
+		Limit:        1000,
+		StatusFilter: string(ports.RecordStatusFilterActive),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
+func TestListPersonnelServiceDefaultsToActiveStatusFilter(t *testing.T) {
+	repository := &fakePersonnelRepository{}
+	service := NewListPersonnelService(repository)
+
+	_, err := service.Execute(context.Background(), ListPersonnelCommand{
+		Limit: 10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if repository.lastStatusFilter != ports.RecordStatusFilterActive {
+		t.Fatalf("expected active status filter, got %s", repository.lastStatusFilter)
+	}
+}
+
+func TestDeactivatePersonnelServiceExecute(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+
+	repository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+
+	service := NewDeactivatePersonnelService(repository)
+
+	err := service.Execute(context.Background(), DeactivatePersonnelCommand{
+		ID: personnel.ID(),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	updated, err := repository.FindByID(context.Background(), personnel.ID())
+	if err != nil {
+		t.Fatalf("expected personnel to exist, got %v", err)
+	}
+
+	if updated.Active() {
+		t.Fatal("expected personnel to be inactive")
+	}
+}
+
+func TestDeactivatePersonnelServiceIsNoOpForInactivePersonnel(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+	inactivePersonnel, err := domain.ReconstitutePersonnel(
+		personnel.ID(),
+		personnel.FullName(),
+		personnel.Alias(),
+		personnel.Rank(),
+		personnel.RegistrationID(),
+		personnel.Section(),
+		personnel.OrganizationUnit(),
+		false,
+	)
+	if err != nil {
+		t.Fatalf("expected valid inactive personnel, got %v", err)
+	}
+
+	repository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			inactivePersonnel.ID(): inactivePersonnel,
+		},
+	}
+
+	service := NewDeactivatePersonnelService(repository)
+
+	err = service.Execute(context.Background(), DeactivatePersonnelCommand{
+		ID: inactivePersonnel.ID(),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
+func TestReactivatePersonnelServiceExecute(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+	inactivePersonnel, err := domain.ReconstitutePersonnel(
+		personnel.ID(),
+		personnel.FullName(),
+		personnel.Alias(),
+		personnel.Rank(),
+		personnel.RegistrationID(),
+		personnel.Section(),
+		personnel.OrganizationUnit(),
+		false,
+	)
+	if err != nil {
+		t.Fatalf("expected valid inactive personnel, got %v", err)
+	}
+
+	repository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			inactivePersonnel.ID(): inactivePersonnel,
+		},
+	}
+
+	service := NewReactivatePersonnelService(repository)
+
+	err = service.Execute(context.Background(), ReactivatePersonnelCommand{
+		ID: inactivePersonnel.ID(),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	updated, err := repository.FindByID(context.Background(), inactivePersonnel.ID())
+	if err != nil {
+		t.Fatalf("expected personnel to exist, got %v", err)
+	}
+
+	if !updated.Active() {
+		t.Fatal("expected personnel to be active")
+	}
+}
+
+func TestReactivatePersonnelServiceIsNoOpForActivePersonnel(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+
+	repository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+
+	service := NewReactivatePersonnelService(repository)
+
+	err := service.Execute(context.Background(), ReactivatePersonnelCommand{
+		ID: personnel.ID(),
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)

@@ -17,7 +17,8 @@ INSERT INTO personnel (
     rank,
     registration_id,
     section,
-    organization_unit
+    organization_unit,
+    active
 ) VALUES (
     $1,
     $2,
@@ -25,7 +26,8 @@ INSERT INTO personnel (
     $4,
     $5,
     $6,
-    $7
+    $7,
+    $8
 )
 `
 
@@ -37,6 +39,7 @@ type CreatePersonnelParams struct {
 	RegistrationID   string `json:"registration_id"`
 	Section          string `json:"section"`
 	OrganizationUnit string `json:"organization_unit"`
+	Active           bool   `json:"active"`
 }
 
 func (q *Queries) CreatePersonnel(ctx context.Context, arg CreatePersonnelParams) error {
@@ -48,8 +51,30 @@ func (q *Queries) CreatePersonnel(ctx context.Context, arg CreatePersonnelParams
 		arg.RegistrationID,
 		arg.Section,
 		arg.OrganizationUnit,
+		arg.Active,
 	)
 	return err
+}
+
+const deactivatePersonnel = `-- name: DeactivatePersonnel :one
+WITH updated AS (
+    UPDATE personnel
+    SET
+        active = false,
+        updated_at = now()
+    WHERE id = $1
+      AND active = true
+    RETURNING id
+)
+SELECT count(*)::int
+FROM updated
+`
+
+func (q *Queries) DeactivatePersonnel(ctx context.Context, id string) (int32, error) {
+	row := q.db.QueryRow(ctx, deactivatePersonnel, id)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const getPersonnel = `-- name: GetPersonnel :one
@@ -99,12 +124,23 @@ SELECT
     created_at,
     updated_at
 FROM personnel
+WHERE
+    (
+        $1::text = 'all'
+        OR ($1::text = 'active' AND active = true)
+        OR ($1::text = 'inactive' AND active = false)
+    )
 ORDER BY created_at DESC, id DESC
-LIMIT $1
+LIMIT $2
 `
 
-func (q *Queries) ListPersonnel(ctx context.Context, limitCount int32) ([]Personnel, error) {
-	rows, err := q.db.Query(ctx, listPersonnel, limitCount)
+type ListPersonnelParams struct {
+	StatusFilter string `json:"status_filter"`
+	LimitCount   int32  `json:"limit_count"`
+}
+
+func (q *Queries) ListPersonnel(ctx context.Context, arg ListPersonnelParams) ([]Personnel, error) {
+	rows, err := q.db.Query(ctx, listPersonnel, arg.StatusFilter, arg.LimitCount)
 	if err != nil {
 		return nil, err
 	}
@@ -132,6 +168,27 @@ func (q *Queries) ListPersonnel(ctx context.Context, limitCount int32) ([]Person
 		return nil, err
 	}
 	return items, nil
+}
+
+const reactivatePersonnel = `-- name: ReactivatePersonnel :one
+WITH updated AS (
+    UPDATE personnel
+    SET
+        active = true,
+        updated_at = now()
+    WHERE id = $1
+      AND active = false
+    RETURNING id
+)
+SELECT count(*)::int
+FROM updated
+`
+
+func (q *Queries) ReactivatePersonnel(ctx context.Context, id string) (int32, error) {
+	row := q.db.QueryRow(ctx, reactivatePersonnel, id)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const searchPersonnel = `-- name: SearchPersonnel :many

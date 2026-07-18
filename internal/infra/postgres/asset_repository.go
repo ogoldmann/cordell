@@ -82,8 +82,15 @@ func (r *AssetRepository) Search(ctx context.Context, query string, limit int) (
 var _ ports.AssetRepository = (*AssetRepository)(nil)
 
 // List retrieves recent asset records.
-func (r *AssetRepository) List(ctx context.Context, limit int) ([]domain.Asset, error) {
-	rows, err := r.queries.ListAssets(ctx, int32(limit))
+func (r *AssetRepository) List(
+	ctx context.Context,
+	limit int,
+	statusFilter ports.RecordStatusFilter,
+) ([]domain.Asset, error) {
+	rows, err := r.queries.ListAssets(ctx, db.ListAssetsParams{
+		StatusFilter: string(statusFilter),
+		LimitCount:   int32(limit),
+	})
 	if err != nil {
 		return nil, err
 	}

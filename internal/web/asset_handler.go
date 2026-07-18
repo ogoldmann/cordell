@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"cordell/internal/app"
 	"cordell/internal/domain"
@@ -15,9 +14,10 @@ import (
 
 type assetIndexPageData struct {
 	privateLayoutData
-	Title       string
-	SearchQuery string
-	Assets      []assetView
+	Title        string
+	Assets       []assetView
+	StatusFilter string
+	StatusTabs   []statusFilterTabView
 }
 
 type assetNewPageData struct {
@@ -35,9 +35,10 @@ type assetShowPageData struct {
 }
 
 type assetView struct {
-	ID     string
-	Name   string
-	Active bool
+	ID          string
+	Name        string
+	Active      bool
+	StatusLabel string
 }
 
 type assetHolderView struct {
@@ -47,11 +48,11 @@ type assetHolderView struct {
 }
 
 func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
-	searchQuery := strings.TrimSpace(r.URL.Query().Get("q"))
+	statusFilter := ports.NormalizeRecordStatusFilter(r.URL.Query().Get("status"))
 
-	assets, err := s.services.SearchAssets.Execute(r.Context(), app.SearchAssetsCommand{
-		Query: searchQuery,
-		Limit: 50,
+	assets, err := s.services.ListAssets.Execute(r.Context(), app.ListAssetsCommand{
+		Limit:        100,
+		StatusFilter: string(statusFilter),
 	})
 	if err != nil {
 		s.logger.Error("failed to list assets", "error", err)
@@ -62,16 +63,13 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 	data := assetIndexPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Assets",
-		SearchQuery:       searchQuery,
 		Assets:            make([]assetView, 0, len(assets)),
+		StatusFilter:      string(statusFilter),
+		StatusTabs:        newStatusFilterTabs("/assets", statusFilter),
 	}
 
 	for _, item := range assets {
-		data.Assets = append(data.Assets, assetView{
-			ID:     string(item.ID()),
-			Name:   item.Name(),
-			Active: item.Active(),
-		})
+		data.Assets = append(data.Assets, newAssetView(item))
 	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "assets_index.html", data); err != nil {
@@ -160,12 +158,8 @@ func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
 	data := assetShowPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             asset.Name(),
-		Asset: assetView{
-			ID:     string(asset.ID()),
-			Name:   asset.Name(),
-			Active: asset.Active(),
-		},
-		Holders: make([]assetHolderView, 0, len(holders)),
+		Asset:             newAssetView(asset),
+		Holders:           make([]assetHolderView, 0, len(holders)),
 	}
 
 	for _, holder := range holders {

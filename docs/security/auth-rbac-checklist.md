@@ -162,7 +162,7 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 
 ## Audit Transaction Boundary
 
-- [ ] Audit event recording behavior matches ADR 0005.
+- [ ] Audit event recording behavior matches ADR 0005.w
 - [ ] A successful main action does not return a misleading failure if audit recording fails afterward.
 - [ ] Audit write failures are logged as server-side errors.
 - [ ] Audit events are still treated as best-effort until a transaction boundary is implemented.
@@ -182,3 +182,15 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Future deactivation actions require a reason.
 - [ ] Future deactivation actions produce audit events.
 - [ ] Future deactivation is blocked when current custody exists.
+
+## Active/Inactive Filtering
+
+- [ ] Personnel list defaults to active records.
+- [ ] Asset list defaults to active records.
+- [ ] Personnel list supports inactive filter.
+- [ ] Asset list supports inactive filter.
+- [ ] Personnel list supports all filter.
+- [ ] Asset list supports all filter.
+- [ ] Lists show Active/Inactive badges.
+- [ ] Direct detail access still works for inactive records.
+- [ ] Checkout selectors use active records only.

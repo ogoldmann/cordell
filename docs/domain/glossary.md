@@ -145,3 +145,9 @@ Audit events are currently recorded on a best-effort basis after the main applic
 This means audit events are useful for traceability, but they are not yet guaranteed to be committed atomically with the action that caused them.
 
 The transaction boundary decision is documented in ADR 0005.
+
+## Status Filter
+
+A status filter controls whether list pages show active records, inactive records, or all records.
+
+Cordell uses status filters to avoid polluting daily operational screens while preserving access to historical and inactive records.

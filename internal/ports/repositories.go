@@ -70,6 +70,26 @@ type CustodyReceipt struct {
 	Lines                     []CustodyReceiptLine
 }
 
+// RecordStatusFilter controls active/inactive list filtering.
+type RecordStatusFilter string
+
+const (
+	RecordStatusFilterActive   RecordStatusFilter = "active"
+	RecordStatusFilterInactive RecordStatusFilter = "inactive"
+	RecordStatusFilterAll      RecordStatusFilter = "all"
+)
+
+func NormalizeRecordStatusFilter(value string) RecordStatusFilter {
+	switch RecordStatusFilter(value) {
+	case RecordStatusFilterInactive:
+		return RecordStatusFilterInactive
+	case RecordStatusFilterAll:
+		return RecordStatusFilterAll
+	default:
+		return RecordStatusFilterActive
+	}
+}
+
 // IDGenerator creates unique identifiers for new domain objects.
 type IDGenerator interface {
 	NewID() (string, error)
@@ -79,15 +99,17 @@ type IDGenerator interface {
 type PersonnelRepository interface {
 	Save(ctx context.Context, personnel domain.Personnel) error
 	FindByID(ctx context.Context, id domain.PersonnelID) (domain.Personnel, error)
-	List(ctx context.Context, limit int) ([]domain.Personnel, error)
+	List(ctx context.Context, limit int, statusFilter RecordStatusFilter) ([]domain.Personnel, error)
 	Search(ctx context.Context, query string, limit int) ([]domain.Personnel, error)
+	Deactivate(ctx context.Context, id domain.PersonnelID) (bool, error)
+	Reactivate(ctx context.Context, id domain.PersonnelID) (bool, error)
 }
 
 // AssetRepository persists and retrieves asset records.
 type AssetRepository interface {
 	Save(ctx context.Context, asset domain.Asset) error
 	FindByID(ctx context.Context, id domain.AssetID) (domain.Asset, error)
-	List(ctx context.Context, limit int) ([]domain.Asset, error)
+	List(ctx context.Context, limit int, statusFilter RecordStatusFilter) ([]domain.Asset, error)
 	Search(ctx context.Context, query string, limit int) ([]domain.Asset, error)
 }
 

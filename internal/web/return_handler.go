@@ -137,7 +137,8 @@ func (s *Server) buildReturnFormPageData(
 	errorMessage string,
 ) (returnNewPageData, error) {
 	personnelList, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
-		Limit: 100,
+		Limit:        100,
+		StatusFilter: string(ports.RecordStatusFilterAll),
 	})
 	if err != nil {
 		return returnNewPageData{}, err

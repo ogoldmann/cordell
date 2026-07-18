@@ -34,6 +34,7 @@ func (r *PersonnelRepository) Save(ctx context.Context, personnel domain.Personn
 		RegistrationID:   personnel.RegistrationID().String(),
 		Section:          string(personnel.Section()),
 		OrganizationUnit: string(personnel.OrganizationUnit()),
+		Active:           personnel.Active(),
 	})
 	if err != nil {
 		if isUniqueViolation(err, "personnel_registration_id_unique") {
@@ -77,8 +78,15 @@ func (r *PersonnelRepository) FindByID(ctx context.Context, id domain.PersonnelI
 var _ ports.PersonnelRepository = (*PersonnelRepository)(nil)
 
 // List retrieves recent personnel records.
-func (r *PersonnelRepository) List(ctx context.Context, limit int) ([]domain.Personnel, error) {
-	rows, err := r.queries.ListPersonnel(ctx, int32(limit))
+func (r *PersonnelRepository) List(
+	ctx context.Context,
+	limit int,
+	statusFilter ports.RecordStatusFilter,
+) ([]domain.Personnel, error) {
+	rows, err := r.queries.ListPersonnel(ctx, db.ListPersonnelParams{
+		StatusFilter: string(statusFilter),
+		LimitCount:   int32(limit),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -148,6 +156,26 @@ func (r *PersonnelRepository) Search(ctx context.Context, query string, limit in
 	}
 
 	return personnel, nil
+}
+
+// Deactivate marks a personnel record as inactive.
+func (r *PersonnelRepository) Deactivate(ctx context.Context, id domain.PersonnelID) (bool, error) {
+	updatedCount, err := r.queries.DeactivatePersonnel(ctx, string(id))
+	if err != nil {
+		return false, err
+	}
+
+	return updatedCount > 0, nil
+}
+
+// Reactivate marks a personnel record as active.
+func (r *PersonnelRepository) Reactivate(ctx context.Context, id domain.PersonnelID) (bool, error) {
+	updatedCount, err := r.queries.ReactivatePersonnel(ctx, string(id))
+	if err != nil {
+		return false, err
+	}
+
+	return updatedCount > 0, nil
 }
 
 func isUniqueViolation(err error, constraintName string) bool {

@@ -19,6 +19,8 @@ type Services struct {
 	CreatePersonnel         *CreatePersonnelService
 	GetPersonnel            *GetPersonnelService
 	ListPersonnel           *ListPersonnelService
+	DeactivatePersonnel     *DeactivatePersonnelService
+	ReactivatePersonnel     *ReactivatePersonnelService
 	SearchPersonnel         *SearchPersonnelService
 	CreateAsset             *CreateAssetService
 	GetAsset                *GetAssetService

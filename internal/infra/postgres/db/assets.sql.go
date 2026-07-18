@@ -63,12 +63,23 @@ func (q *Queries) GetAsset(ctx context.Context, id string) (Asset, error) {
 const listAssets = `-- name: ListAssets :many
 SELECT id, name, active, created_at, updated_at
 FROM assets
+WHERE
+    (
+        $1::text = 'all'
+        OR ($1::text = 'active' AND active = true)
+        OR ($1::text = 'inactive' AND active = false)
+    )
 ORDER BY created_at DESC, id DESC
-LIMIT $1
+LIMIT $2
 `
 
-func (q *Queries) ListAssets(ctx context.Context, limitCount int32) ([]Asset, error) {
-	rows, err := q.db.Query(ctx, listAssets, limitCount)
+type ListAssetsParams struct {
+	StatusFilter string `json:"status_filter"`
+	LimitCount   int32  `json:"limit_count"`
+}
+
+func (q *Queries) ListAssets(ctx context.Context, arg ListAssetsParams) ([]Asset, error) {
+	rows, err := q.db.Query(ctx, listAssets, arg.StatusFilter, arg.LimitCount)
 	if err != nil {
 		return nil, err
 	}

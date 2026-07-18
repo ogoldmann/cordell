@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"cordell/internal/app"
+	"cordell/internal/ports"
 )
 
 type dashboardPageData struct {
@@ -15,7 +16,8 @@ type dashboardPageData struct {
 
 func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	personnel, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
-		Limit: 5,
+		Limit:        5,
+		StatusFilter: string(ports.RecordStatusFilterActive),
 	})
 	if err != nil {
 		s.logger.Error("failed to list recent personnel for dashboard", "error", err)
@@ -24,7 +26,8 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	assets, err := s.services.ListAssets.Execute(r.Context(), app.ListAssetsCommand{
-		Limit: 5,
+		Limit:        5,
+		StatusFilter: string(ports.RecordStatusFilterActive),
 	})
 	if err != nil {
 		s.logger.Error("failed to list recent assets for dashboard", "error", err)
@@ -44,11 +47,7 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, item := range assets {
-		data.RecentAssets = append(data.RecentAssets, assetView{
-			ID:     string(item.ID()),
-			Name:   item.Name(),
-			Active: item.Active(),
-		})
+		data.RecentAssets = append(data.RecentAssets, newAssetView(item))
 	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "dashboard.html", data); err != nil {

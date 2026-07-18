@@ -84,7 +84,8 @@ func (s *GetAssetService) Execute(ctx context.Context, cmd GetAssetCommand) (dom
 
 // ListAssetsCommand contains the input data required to list assets.
 type ListAssetsCommand struct {
-	Limit int
+	Limit        int
+	StatusFilter string
 }
 
 // ListAssetsService handles the asset listing use case.
@@ -101,7 +102,10 @@ func NewListAssetsService(assetRepository ports.AssetRepository) *ListAssetsServ
 
 // Execute retrieves a limited list of asset records.
 func (s *ListAssetsService) Execute(ctx context.Context, cmd ListAssetsCommand) ([]domain.Asset, error) {
-	return s.assetRepository.List(ctx, normalizeAssetLimit(cmd.Limit))
+	limit := normalizeAssetLimit(cmd.Limit)
+	statusFilter := ports.NormalizeRecordStatusFilter(cmd.StatusFilter)
+
+	return s.assetRepository.List(ctx, limit, statusFilter)
 }
 
 func normalizeAssetLimit(limit int) int {
@@ -140,7 +144,7 @@ func (s *SearchAssetsService) Execute(ctx context.Context, cmd SearchAssetsComma
 	query := strings.TrimSpace(cmd.Query)
 
 	if query == "" {
-		return s.assetRepository.List(ctx, limit)
+		return s.assetRepository.List(ctx, limit, ports.RecordStatusFilterActive)
 	}
 
 	return s.assetRepository.Search(ctx, query, limit)

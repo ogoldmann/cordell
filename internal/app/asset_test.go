@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"cordell/internal/domain"
+	"cordell/internal/ports"
 )
 
 func TestCreateAssetServiceExecute(t *testing.T) {
@@ -104,7 +105,8 @@ func TestListAssetsServiceExecute(t *testing.T) {
 	service := NewListAssetsService(repository)
 
 	assets, err := service.Execute(context.Background(), ListAssetsCommand{
-		Limit: 10,
+		Limit:        10,
+		StatusFilter: string(ports.RecordStatusFilterActive),
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -120,7 +122,8 @@ func TestListAssetsServiceAppliesDefaultLimit(t *testing.T) {
 	service := NewListAssetsService(repository)
 
 	_, err := service.Execute(context.Background(), ListAssetsCommand{
-		Limit: 0,
+		Limit:        0,
+		StatusFilter: string(ports.RecordStatusFilterActive),
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -132,10 +135,27 @@ func TestListAssetsServiceCapsLimit(t *testing.T) {
 	service := NewListAssetsService(repository)
 
 	_, err := service.Execute(context.Background(), ListAssetsCommand{
-		Limit: 1000,
+		Limit:        1000,
+		StatusFilter: string(ports.RecordStatusFilterActive),
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
+func TestListAssetsServiceDefaultsToActiveStatusFilter(t *testing.T) {
+	repository := &fakeAssetRepository{}
+	service := NewListAssetsService(repository)
+
+	_, err := service.Execute(context.Background(), ListAssetsCommand{
+		Limit: 10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if repository.lastStatusFilter != ports.RecordStatusFilterActive {
+		t.Fatalf("expected active status filter, got %s", repository.lastStatusFilter)
 	}
 }
 
