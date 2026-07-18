@@ -414,6 +414,21 @@ Lifecycle direction:
 - future deactivation should produce audit events
 - initial lifecycle implementation should prevent deactivation while current custody exists
 
+## Lifecycle Confirmation Pages
+
+Personnel and asset lifecycle actions use server-rendered confirmation pages.
+
+The detail pages link to a confirmation page before submitting lifecycle actions such as:
+
+- personnel deactivation
+- personnel reactivation
+- asset deactivation
+- asset reactivation
+
+The final action is still performed through authenticated POST requests protected by CSRF.
+
+Confirmation pages are UX guardrails. Backend services and repositories remain the source of truth.
+
 ## Development Database Reset
 
 During pre-release development, early migrations may still be edited to keep the baseline schema clean.

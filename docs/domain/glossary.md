@@ -46,6 +46,12 @@ A deactivated record remains part of historical custody records.
 
 Reactivation makes a previously inactive record available for normal operational workflows again.
 
+## Confirmation Page
+
+A confirmation page is a server-rendered page shown before a sensitive state-changing action.
+
+It reduces accidental clicks but does not replace backend validation, authentication, authorization, or CSRF protection.
+
 ## Custody
 
 The state of responsibility over one or more assets.

@@ -84,14 +84,18 @@ func (s *Server) Routes() http.Handler {
 		private.Get("/personnel/new", s.handleNewPersonnelForm)
 		private.Post("/personnel", s.handleCreatePersonnel)
 		private.Get("/personnel/{id}", s.handleShowPersonnel)
+		private.Get("/personnel/{id}/deactivate/confirm", s.handleConfirmDeactivatePersonnel)
 		private.Post("/personnel/{id}/deactivate", s.handleDeactivatePersonnel)
+		private.Get("/personnel/{id}/reactivate/confirm", s.handleConfirmReactivatePersonnel)
 		private.Post("/personnel/{id}/reactivate", s.handleReactivatePersonnel)
 
 		private.Get("/assets", s.handleListAssets)
 		private.Get("/assets/new", s.handleNewAssetForm)
 		private.Post("/assets", s.handleCreateAsset)
 		private.Get("/assets/{id}", s.handleShowAsset)
+		private.Get("/assets/{id}/deactivate/confirm", s.handleConfirmDeactivateAsset)
 		private.Post("/assets/{id}/deactivate", s.handleDeactivateAsset)
+		private.Get("/assets/{id}/reactivate/confirm", s.handleConfirmReactivateAsset)
 		private.Post("/assets/{id}/reactivate", s.handleReactivateAsset)
 
 		private.Get("/custody/transactions/{id}", s.handleShowCustodyReceipt)

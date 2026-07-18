@@ -233,3 +233,14 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Inactive asset appears under inactive filter.
 - [ ] Reactivated asset appears under active filter.
 - [ ] Deactivated asset name remains reserved.
+
+## Dangerous Action Confirmation
+
+- [ ] Personnel deactivation uses a confirmation page.
+- [ ] Personnel reactivation uses a confirmation page.
+- [ ] Asset deactivation uses a confirmation page.
+- [ ] Asset reactivation uses a confirmation page.
+- [ ] Confirmation pages submit through POST.
+- [ ] Confirmation POST requests include CSRF token.
+- [ ] Direct POST without CSRF is rejected.
+- [ ] Confirmation pages do not replace backend validation.

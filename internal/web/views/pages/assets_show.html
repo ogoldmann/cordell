@@ -83,25 +83,19 @@
   </p>
 
   {{if .Asset.CanDeactivate}}
-    <form class="mt-4" method="post" action="/assets/{{.Asset.ID}}/deactivate">
-      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <button
-        class="inline-flex items-center justify-center rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 font-bold text-amber-800 transition hover:border-amber-400 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200"
-        type="submit"
-      >
-        Deactivate asset
-      </button>
-    </form>
+    <a
+      class="inline-flex items-center justify-center rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 font-bold text-amber-800 no-underline transition hover:border-amber-400 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200"
+      href="/assets/{{.Asset.ID}}/deactivate/confirm"
+    >
+      Deactivate asset
+    </a>
   {{else if .Asset.CanReactivate}}
-    <form class="mt-4" method="post" action="/assets/{{.Asset.ID}}/reactivate">
-      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <button
-        class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-4 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
-        type="submit"
-      >
-        Reactivate asset
-      </button>
-    </form>
+    <a
+      class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-4 py-3 font-bold text-white no-underline transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+      href="/assets/{{.Asset.ID}}/reactivate/confirm"
+    >
+      Reactivate asset
+    </a>
   {{end}}
 </section>
 

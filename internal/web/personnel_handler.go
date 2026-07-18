@@ -258,6 +258,92 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) handleConfirmDeactivatePersonnel(w http.ResponseWriter, r *http.Request) {
+	personnelID := domain.PersonnelID(chi.URLParam(r, "id"))
+
+	personnel, err := s.services.GetPersonnel.Execute(r.Context(), app.GetPersonnelCommand{
+		ID: personnelID,
+	})
+	if err != nil {
+		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyPersonnelID) {
+			http.NotFound(w, r)
+			return
+		}
+
+		s.logger.Error("failed to load personnel deactivation confirmation", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if !personnel.Active() {
+		http.Redirect(w, r, "/personnel/"+string(personnelID), http.StatusSeeOther)
+		return
+	}
+
+	displayName := militaryDisplayName(personnel.Rank(), personnel.Alias())
+
+	data := confirmationPageData{
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             "Deactivate personnel",
+		Kicker:            "Personnel lifecycle",
+		Heading:           "Deactivate " + displayName + "?",
+		Description:       "This personnel record will be removed from normal checkout workflows, but historical custody records, receipts, and audit events will remain available.",
+		Warning:           "Deactivation does not settle current custody. Existing pending custody must still be returned or corrected later.",
+		ConfirmLabel:      "Deactivate personnel",
+		CancelLabel:       "Cancel",
+		ConfirmAction:     "/personnel/" + string(personnelID) + "/deactivate",
+		CancelURL:         "/personnel/" + string(personnelID),
+		ConfirmationStyle: "warning",
+	}
+
+	if err := s.renderer.Render(w, http.StatusOK, "confirmation.html", data); err != nil {
+		s.handleRenderError(w, err)
+	}
+}
+
+func (s *Server) handleConfirmReactivatePersonnel(w http.ResponseWriter, r *http.Request) {
+	personnelID := domain.PersonnelID(chi.URLParam(r, "id"))
+
+	personnel, err := s.services.GetPersonnel.Execute(r.Context(), app.GetPersonnelCommand{
+		ID: personnelID,
+	})
+	if err != nil {
+		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyPersonnelID) {
+			http.NotFound(w, r)
+			return
+		}
+
+		s.logger.Error("failed to load personnel reactivation confirmation", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if personnel.Active() {
+		http.Redirect(w, r, "/personnel/"+string(personnelID), http.StatusSeeOther)
+		return
+	}
+
+	displayName := militaryDisplayName(personnel.Rank(), personnel.Alias())
+
+	data := confirmationPageData{
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             "Reactivate personnel",
+		Kicker:            "Personnel lifecycle",
+		Heading:           "Reactivate " + displayName + "?",
+		Description:       "This personnel record will become available for normal checkout workflows again.",
+		Warning:           "",
+		ConfirmLabel:      "Reactivate personnel",
+		CancelLabel:       "Cancel",
+		ConfirmAction:     "/personnel/" + string(personnelID) + "/reactivate",
+		CancelURL:         "/personnel/" + string(personnelID),
+		ConfirmationStyle: "primary",
+	}
+
+	if err := s.renderer.Render(w, http.StatusOK, "confirmation.html", data); err != nil {
+		s.handleRenderError(w, err)
+	}
+}
+
 func (s *Server) handleDeactivatePersonnel(w http.ResponseWriter, r *http.Request) {
 	personnelID := domain.PersonnelID(chi.URLParam(r, "id"))
 
