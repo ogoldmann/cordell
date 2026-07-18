@@ -1,0 +1,55 @@
+{{define "confirm_modal"}}
+<dialog
+  class="fixed inset-0 m-auto max-h-[calc(100vh-2rem)] w-[min(92vw,42rem)] overflow-y-auto rounded-3xl border border-cordell-border bg-cordell-surface p-0 text-cordell-text shadow-2xl backdrop:bg-slate-950/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text"
+  data-confirm-modal
+  aria-labelledby="confirm-modal-title"
+>
+  <div class="p-6">
+    <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+      Confirm action
+    </p>
+
+    <h2
+      class="m-0 text-2xl font-extrabold leading-tight tracking-[-0.04em]"
+      id="confirm-modal-title"
+      data-confirm-modal-title
+    >
+      Confirm action
+    </h2>
+
+    <p
+      class="mt-3 text-cordell-muted dark:text-cordell-dark-muted"
+      data-confirm-modal-description
+    ></p>
+
+    <div
+      class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200"
+      data-confirm-modal-warning
+      hidden
+    ></div>
+
+    <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+      <form method="post" data-confirm-modal-form>
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+        <button
+          class="inline-flex w-full items-center justify-center rounded-xl px-5 py-3 font-bold transition sm:w-auto"
+          type="submit"
+          data-confirm-modal-button
+        >
+          Confirm
+        </button>
+      </form>
+
+      <form method="dialog">
+        <button
+          class="inline-flex w-full items-center justify-center rounded-xl border border-cordell-border bg-white px-5 py-3 font-bold text-cordell-text transition hover:border-cordell-primary/50 sm:w-auto dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+          type="submit"
+        >
+          Cancel
+        </button>
+      </form>
+    </div>
+  </div>
+</dialog>
+{{end}}

@@ -414,11 +414,11 @@ Lifecycle direction:
 - future deactivation should produce audit events
 - initial lifecycle implementation should prevent deactivation while current custody exists
 
-## Lifecycle Confirmation Pages
+## Lifecycle Confirmation Modals
 
-Personnel and asset lifecycle actions use server-rendered confirmation pages.
+Personnel and asset lifecycle actions use confirmation modals.
 
-The detail pages link to a confirmation page before submitting lifecycle actions such as:
+The detail pages open a modal before submitting lifecycle actions such as:
 
 - personnel deactivation
 - personnel reactivation
@@ -427,7 +427,9 @@ The detail pages link to a confirmation page before submitting lifecycle actions
 
 The final action is still performed through authenticated POST requests protected by CSRF.
 
-Confirmation pages are UX guardrails. Backend services and repositories remain the source of truth.
+Confirmation modals are UX guardrails. Backend services and repositories remain the source of truth.
+
+If JavaScript is unavailable, the underlying POST routes remain protected by authentication, CSRF, application services, and repository/database rules.
 
 ## Development Database Reset
 

@@ -111,19 +111,47 @@
   </p>
 
   {{if .Personnel.CanDeactivate}}
-    <a
-      class="inline-flex items-center justify-center rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 font-bold text-amber-800 no-underline transition hover:border-amber-400 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200"
-      href="/personnel/{{.Personnel.ID}}/deactivate/confirm"
+    <form
+      class="mt-4"
+      method="post"
+      action="/personnel/{{.Personnel.ID}}/deactivate"
+      data-confirm-trigger
+      data-confirm-style="warning"
+      data-confirm-title="Deactivate {{.Personnel.DisplayName}}?"
+      data-confirm-description="This personnel record will be removed from normal checkout workflows, but historical custody records, receipts, and audit events will remain available."
+      data-confirm-warning="Deactivation does not settle current custody. Existing pending custody must still be returned or corrected later."
+      data-confirm-label="Deactivate personnel"
     >
-      Deactivate personnel
-    </a>
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+      <button
+        class="inline-flex items-center justify-center rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 font-bold text-amber-800 transition hover:border-amber-400 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200"
+        type="submit"
+      >
+        Deactivate personnel
+      </button>
+    </form>
   {{else if .Personnel.CanReactivate}}
-    <a
-      class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-4 py-3 font-bold text-white no-underline transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
-      href="/personnel/{{.Personnel.ID}}/reactivate/confirm"
+    <form
+      class="mt-4"
+      method="post"
+      action="/personnel/{{.Personnel.ID}}/reactivate"
+      data-confirm-trigger
+      data-confirm-style="primary"
+      data-confirm-title="Reactivate {{.Personnel.DisplayName}}?"
+      data-confirm-description="This personnel record will become available for normal checkout workflows again."
+      data-confirm-warning=""
+      data-confirm-label="Reactivate personnel"
     >
-      Reactivate personnel
-    </a>
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+      <button
+        class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-4 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+        type="submit"
+      >
+        Reactivate personnel
+      </button>
+    </form>
   {{end}}
 </section>
 
@@ -253,5 +281,6 @@
   </a>
 </div>
 
+{{template "confirm_modal" .}}
 {{template "layout_end" .}}
 {{end}}

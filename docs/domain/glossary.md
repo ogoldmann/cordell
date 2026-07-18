@@ -46,11 +46,13 @@ A deactivated record remains part of historical custody records.
 
 Reactivation makes a previously inactive record available for normal operational workflows again.
 
-## Confirmation Page
+## Confirmation Modal
 
-A confirmation page is a server-rendered page shown before a sensitive state-changing action.
+A confirmation modal is a contextual confirmation prompt shown before a sensitive state-changing action.
 
-It reduces accidental clicks but does not replace backend validation, authentication, authorization, or CSRF protection.
+It reduces accidental clicks while keeping the user on the current page.
+
+A confirmation modal does not replace backend validation, authentication, authorization, CSRF protection, application services, or repository/database rules.
 
 ## Custody
 

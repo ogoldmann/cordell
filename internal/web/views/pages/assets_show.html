@@ -83,19 +83,47 @@
   </p>
 
   {{if .Asset.CanDeactivate}}
-    <a
-      class="inline-flex items-center justify-center rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 font-bold text-amber-800 no-underline transition hover:border-amber-400 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200"
-      href="/assets/{{.Asset.ID}}/deactivate/confirm"
+    <form
+      class="mt-4"
+      method="post"
+      action="/assets/{{.Asset.ID}}/deactivate"
+      data-confirm-trigger
+      data-confirm-style="warning"
+      data-confirm-title="Deactivate {{.Asset.Name}}?"
+      data-confirm-description="This asset will be removed from normal checkout workflows, but historical custody records, receipts, and audit events will remain available."
+      data-confirm-warning="Deactivation does not settle current custody. Existing pending custody must still be returned or corrected later."
+      data-confirm-label="Deactivate asset"
     >
-      Deactivate asset
-    </a>
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+      <button
+        class="inline-flex items-center justify-center rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 font-bold text-amber-800 transition hover:border-amber-400 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200"
+        type="submit"
+      >
+        Deactivate asset
+      </button>
+    </form>
   {{else if .Asset.CanReactivate}}
-    <a
-      class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-4 py-3 font-bold text-white no-underline transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
-      href="/assets/{{.Asset.ID}}/reactivate/confirm"
+    <form
+      class="mt-4"
+      method="post"
+      action="/assets/{{.Asset.ID}}/reactivate"
+      data-confirm-trigger
+      data-confirm-style="primary"
+      data-confirm-title="Reactivate {{.Asset.Name}}?"
+      data-confirm-description="This asset will become available for normal checkout workflows again."
+      data-confirm-warning=""
+      data-confirm-label="Reactivate asset"
     >
-      Reactivate asset
-    </a>
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+      <button
+        class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-4 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+        type="submit"
+      >
+        Reactivate asset
+      </button>
+    </form>
   {{end}}
 </section>
 
@@ -162,5 +190,6 @@
   </a>
 </div>
 
+{{template "confirm_modal" .}}
 {{template "layout_end" .}}
 {{end}}

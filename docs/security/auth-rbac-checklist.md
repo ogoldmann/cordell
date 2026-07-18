@@ -234,13 +234,14 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Reactivated asset appears under active filter.
 - [ ] Deactivated asset name remains reserved.
 
-## Dangerous Action Confirmation
+## Dangerous Action Confirmation Modals
 
-- [ ] Personnel deactivation uses a confirmation page.
-- [ ] Personnel reactivation uses a confirmation page.
-- [ ] Asset deactivation uses a confirmation page.
-- [ ] Asset reactivation uses a confirmation page.
-- [ ] Confirmation pages submit through POST.
+- [ ] Personnel deactivation uses a confirmation modal.
+- [ ] Personnel reactivation uses a confirmation modal.
+- [ ] Asset deactivation uses a confirmation modal.
+- [ ] Asset reactivation uses a confirmation modal.
+- [ ] Confirmation modals submit through POST.
 - [ ] Confirmation POST requests include CSRF token.
 - [ ] Direct POST without CSRF is rejected.
-- [ ] Confirmation pages do not replace backend validation.
+- [ ] Confirmation modals do not replace backend validation.
+- [ ] No lifecycle `/confirm` routes remain.
