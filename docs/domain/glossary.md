@@ -57,3 +57,11 @@ It is different from the personnel receiving or returning assets.
 ## Audit Log
 
 A technical append-only record of relevant actions performed in the system.
+
+## Audit Event
+
+An audit event is an append-only application record describing a high-value action performed in Cordell.
+
+It records the actor, event type, entity, outcome, timestamp, and minimal metadata.
+
+Audit events are not debug logs and must not contain secrets.

@@ -175,7 +175,7 @@ func (s *Server) handleCreateAdminOperator(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	_, err := s.services.CreateOperator.Execute(r.Context(), app.CreateOperatorCommand{
+	createdOperator, err := s.services.CreateOperator.Execute(r.Context(), app.CreateOperatorCommand{
 		RegistrationID: registrationID,
 		Alias:          alias,
 		Rank:           rank,
@@ -193,6 +193,21 @@ func (s *Server) handleCreateAdminOperator(w http.ResponseWriter, r *http.Reques
 			rank,
 			role,
 		)
+		return
+	}
+
+	if err := s.recordAuditEvent(
+		r,
+		domain.AuditEventOperatorCreated,
+		domain.AuditEntityOperator,
+		string(createdOperator.ID()),
+		map[string]string{
+			"role": createdOperator.Role().String(),
+			"rank": createdOperator.Rank().String(),
+		},
+	); err != nil {
+		s.logger.Error("failed to record audit event", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -247,6 +262,18 @@ func (s *Server) handleDeactivateAdminOperator(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	if err := s.recordAuditEvent(
+		r,
+		domain.AuditEventOperatorDeactivated,
+		domain.AuditEntityOperator,
+		string(operatorID),
+		nil,
+	); err != nil {
+		s.logger.Error("failed to record audit event", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
 	http.Redirect(w, r, "/admin/operators/"+string(operatorID), http.StatusSeeOther)
 }
 
@@ -273,6 +300,20 @@ func (s *Server) handleChangeAdminOperatorRole(w http.ResponseWriter, r *http.Re
 			operatorID,
 			humanizeChangeOperatorRoleWebError(err),
 		)
+		return
+	}
+
+	if err := s.recordAuditEvent(
+		r,
+		domain.AuditEventOperatorRoleChanged,
+		domain.AuditEntityOperator,
+		string(operatorID),
+		map[string]string{
+			"new_role": role,
+		},
+	); err != nil {
+		s.logger.Error("failed to record audit event", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -322,6 +363,18 @@ func (s *Server) handleResetAdminOperatorPassword(w http.ResponseWriter, r *http
 		return
 	}
 
+	if err := s.recordAuditEvent(
+		r,
+		domain.AuditEventOperatorPasswordReset,
+		domain.AuditEntityOperator,
+		string(operatorID),
+		nil,
+	); err != nil {
+		s.logger.Error("failed to record audit event", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
 	http.Redirect(w, r, "/admin/operators/"+string(operatorID), http.StatusSeeOther)
 }
 
@@ -339,6 +392,18 @@ func (s *Server) handleReactivateAdminOperator(w http.ResponseWriter, r *http.Re
 			operatorID,
 			humanizeReactivateOperatorWebError(err),
 		)
+		return
+	}
+
+	if err := s.recordAuditEvent(
+		r,
+		domain.AuditEventOperatorReactivated,
+		domain.AuditEntityOperator,
+		string(operatorID),
+		nil,
+	); err != nil {
+		s.logger.Error("failed to record audit event", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 

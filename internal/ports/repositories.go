@@ -134,3 +134,21 @@ type OperatorSummary struct {
 	Active         bool
 	CreatedAt      time.Time
 }
+
+type AuditEventEntry struct {
+	ID              domain.AuditEventID
+	ActorOperatorID domain.OperatorID
+	ActorAlias      string
+	ActorRank       domain.Rank
+	EventType       domain.AuditEventType
+	EntityType      domain.AuditEntityType
+	EntityID        string
+	Outcome         domain.AuditOutcome
+	Metadata        map[string]string
+	OccurredAt      time.Time
+}
+
+type AuditLogRepository interface {
+	Save(ctx context.Context, event domain.AuditEvent) error
+	List(ctx context.Context, limit int) ([]AuditEventEntry, error)
+}

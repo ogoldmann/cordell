@@ -96,3 +96,17 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Receipt shows registering operator.
 - [ ] Receipt shows assets and quantities.
 - [ ] Receipt does not expose password hashes, session tokens, or CSRF tokens.
+
+## Audit Events
+
+- [ ] Creating an operator records `operator.created`.
+- [ ] Deactivating an operator records `operator.deactivated`.
+- [ ] Reactivating an operator records `operator.reactivated`.
+- [ ] Changing an operator role records `operator.role_changed`.
+- [ ] Resetting an operator password records `operator.password_reset`.
+- [ ] Creating a checkout records `custody.checkout_created`.
+- [ ] Creating a return records `custody.return_created`.
+- [ ] Audit events do not include passwords.
+- [ ] Audit events do not include password hashes.
+- [ ] Audit events do not include session tokens.
+- [ ] Audit events do not include CSRF tokens.

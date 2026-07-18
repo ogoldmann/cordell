@@ -16,6 +16,17 @@ type Asset struct {
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
+type AuditEvent struct {
+	ID              string             `json:"id"`
+	ActorOperatorID pgtype.Text        `json:"actor_operator_id"`
+	EventType       string             `json:"event_type"`
+	EntityType      string             `json:"entity_type"`
+	EntityID        string             `json:"entity_id"`
+	Outcome         string             `json:"outcome"`
+	Metadata        []byte             `json:"metadata"`
+	OccurredAt      pgtype.Timestamptz `json:"occurred_at"`
+}
+
 type CustodyBalance struct {
 	PersonnelID string             `json:"personnel_id"`
 	AssetID     string             `json:"asset_id"`

@@ -64,11 +64,15 @@ var (
 	// ErrInvalidCSRFToken is returned when a CSRF token is invalid.
 	ErrInvalidCSRFToken = errors.New("invalid csrf token")
 
-	ErrCannotDeactivateCurrentOperator = errors.New("cannot deactivate current operator")
-	ErrCannotDeactivateLastAdmin       = errors.New("cannot deactivate last admin")
-
-	ErrCannotChangeCurrentOperatorRole = errors.New("cannot change current operator role")
-	ErrCannotDemoteLastAdmin           = errors.New("cannot demote last admin")
-
+	ErrCannotDeactivateCurrentOperator    = errors.New("cannot deactivate current operator")
+	ErrCannotDeactivateLastAdmin          = errors.New("cannot deactivate last admin")
+	ErrCannotChangeCurrentOperatorRole    = errors.New("cannot change current operator role")
+	ErrCannotDemoteLastAdmin              = errors.New("cannot demote last admin")
 	ErrCannotResetCurrentOperatorPassword = errors.New("cannot reset current operator password")
+
+	ErrEmptyAuditEventID    = errors.New("empty audit event id")
+	ErrEmptyAuditEventType  = errors.New("empty audit event type")
+	ErrEmptyAuditEntityType = errors.New("empty audit entity type")
+	ErrEmptyAuditEntityID   = errors.New("empty audit entity id")
+	ErrEmptyAuditOutcome    = errors.New("empty audit outcome")
 )

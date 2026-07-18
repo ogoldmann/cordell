@@ -747,3 +747,25 @@ Operator reactivation:
 - is protected by CSRF
 
 Reactivated operators can authenticate again using their current password.
+
+## Audit Events
+
+Cordell stores application-level audit events for high-value actions.
+
+Current audited events include:
+
+- operator creation
+- operator deactivation
+- operator reactivation
+- operator role changes
+- operator password resets
+- checkout creation
+- return creation
+
+Audit events are append-only application records and are visible to admins at:
+
+```txt
+/admin/audit-events
+```
+
+Audit events must not include passwords, password hashes, session tokens, CSRF tokens, or raw form payloads.

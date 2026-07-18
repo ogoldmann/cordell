@@ -1,0 +1,86 @@
+{{define "admin_audit_events_index.html"}}
+{{template "layout_start" .}}
+
+<section class="mb-8">
+  <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+    Administration
+  </p>
+
+  <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <div>
+      <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
+        Audit events
+      </h1>
+
+      <p class="mt-3 max-w-2xl text-cordell-muted dark:text-cordell-dark-muted">
+        Application-level audit events for administrative and custody traceability.
+      </p>
+    </div>
+
+    <a
+      class="inline-flex w-fit items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2.5 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+      href="/admin"
+    >
+      Back to admin
+    </a>
+  </div>
+</section>
+
+{{if .Events}}
+  <section class="overflow-hidden rounded-3xl border border-cordell-border bg-cordell-surface shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+    <div class="overflow-x-auto">
+      <table class="min-w-full border-collapse text-left text-sm">
+        <thead class="border-b border-cordell-border bg-cordell-background/70 text-xs uppercase tracking-[0.08em] text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-background/70 dark:text-cordell-dark-muted">
+          <tr>
+            <th class="px-4 py-3 font-extrabold">Time</th>
+            <th class="px-4 py-3 font-extrabold">Actor</th>
+            <th class="px-4 py-3 font-extrabold">Event</th>
+            <th class="px-4 py-3 font-extrabold">Entity</th>
+            <th class="px-4 py-3 font-extrabold">Outcome</th>
+            <th class="px-4 py-3 font-extrabold">Metadata</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-cordell-border dark:divide-cordell-dark-border">
+          {{range .Events}}
+            <tr>
+              <td class="px-4 py-3 text-cordell-muted dark:text-cordell-dark-muted">
+                {{.OccurredAt}}
+              </td>
+
+              <td class="px-4 py-3 font-bold">
+                {{.ActorDisplay}}
+              </td>
+
+              <td class="px-4 py-3 font-mono text-xs">
+                {{.EventType}}
+              </td>
+
+              <td class="px-4 py-3">
+                <div class="font-mono text-xs">{{.EntityType}}</div>
+                <div class="font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.EntityID}}</div>
+              </td>
+
+              <td class="px-4 py-3">
+                <span class="inline-flex w-fit rounded-full bg-cordell-primary/10 px-3 py-1 text-xs font-bold text-cordell-primary dark:bg-cordell-dark-primary/15 dark:text-cordell-dark-primary">
+                  {{.Outcome}}
+                </span>
+              </td>
+
+              <td class="px-4 py-3">
+                <pre class="m-0 max-w-md overflow-x-auto rounded-xl bg-cordell-background p-3 text-xs text-cordell-muted dark:bg-cordell-dark-background dark:text-cordell-dark-muted">{{.Metadata}}</pre>
+              </td>
+            </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{{else}}
+  <section class="rounded-3xl border border-dashed border-cordell-border bg-cordell-surface p-8 text-center text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-muted">
+    No audit events found.
+  </section>
+{{end}}
+
+{{template "layout_end" .}}
+{{end}}

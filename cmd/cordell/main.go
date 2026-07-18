@@ -44,6 +44,8 @@ func main() {
 	operatorRepository := postgres.NewOperatorRepository(queries)
 	passwordHasher := security.NewDefaultArgon2idPasswordHasher()
 
+	auditLogRepository := postgres.NewAuditLogRepository(queries)
+
 	sessionRepository := postgres.NewOperatorSessionRepository(queries)
 	sessionTokenGenerator := security.NewDefaultRandomSessionTokenGenerator()
 	sessionTokenHasher := security.NewSHA256SessionTokenHasher()
@@ -156,6 +158,11 @@ func main() {
 			personnelRepository,
 			custodyRepository,
 		),
+		RecordAuditEvent: app.NewRecordAuditEventService(
+			auditLogRepository,
+			idGenerator,
+		),
+		ListAuditEvents: app.NewListAuditEventsService(auditLogRepository),
 	}
 
 	server, err := web.NewServer(

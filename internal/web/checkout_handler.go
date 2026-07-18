@@ -74,7 +74,7 @@ func (s *Server) handleCreateCheckout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = s.services.RegisterCheckout.Execute(r.Context(), app.RegisterCheckoutCommand{
+	transaction, err := s.services.RegisterCheckout.Execute(r.Context(), app.RegisterCheckoutCommand{
 		PersonnelID: domain.PersonnelID(personnelID),
 		OperatorID:  currentOperator.ID(),
 		Lines: []app.CustodyLineCommand{
@@ -92,6 +92,20 @@ func (s *Server) handleCreateCheckout(w http.ResponseWriter, r *http.Request) {
 			http.StatusBadRequest,
 			humanizeCheckoutError(err),
 		)
+		return
+	}
+
+	if err := s.recordAuditEvent(
+		r,
+		domain.AuditEventCustodyCheckoutCreated,
+		domain.AuditEntityCustodyTransaction,
+		string(transaction.ID()),
+		map[string]string{
+			"personnel_id": string(transaction.PersonnelID()),
+		},
+	); err != nil {
+		s.logger.Error("failed to record audit event", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
