@@ -5,6 +5,11 @@
   :root, :host {
     --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    --color-red-50: oklch(97.1% 0.013 17.38);
+    --color-red-200: oklch(88.5% 0.062 18.334);
+    --color-red-700: oklch(50.5% 0.213 27.518);
+    --color-red-900: oklch(39.6% 0.141 25.723);
+    --color-red-950: oklch(25.8% 0.092 26.042);
     --color-amber-400: oklch(82.8% 0.189 84.429);
     --color-amber-700: oklch(55.5% 0.163 48.998);
     --color-slate-900: oklch(20.8% 0.042 265.755);
@@ -206,6 +211,17 @@
   .visible {
     visibility: visible;
   }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border-width: 0;
+  }
   .fixed {
     position: fixed;
   }
@@ -289,6 +305,9 @@
   }
   .min-h-16 {
     min-height: calc(var(--spacing) * 16);
+  }
+  .min-h-24 {
+    min-height: calc(var(--spacing) * 24);
   }
   .min-h-28 {
     min-height: calc(var(--spacing) * 28);
@@ -455,6 +474,9 @@
   .border-cordell-danger-border {
     border-color: var(--color-cordell-danger-border);
   }
+  .border-red-200 {
+    border-color: var(--color-red-200);
+  }
   .bg-amber-700 {
     background-color: var(--color-amber-700);
   }
@@ -493,6 +515,9 @@
   }
   .bg-cordell-surface {
     background-color: var(--color-cordell-surface);
+  }
+  .bg-red-50 {
+    background-color: var(--color-red-50);
   }
   .bg-white {
     background-color: var(--color-white);
@@ -562,6 +587,9 @@
   }
   .px-4 {
     padding-inline: calc(var(--spacing) * 4);
+  }
+  .px-5 {
+    padding-inline: calc(var(--spacing) * 5);
   }
   .px-6 {
     padding-inline: calc(var(--spacing) * 6);
@@ -672,6 +700,9 @@
   .text-cordell-text {
     color: var(--color-cordell-text);
   }
+  .text-red-700 {
+    color: var(--color-red-700);
+  }
   .text-white {
     color: var(--color-white);
   }
@@ -696,6 +727,12 @@
   .shadow-xl {
     --tw-shadow: 0 20px 25px -5px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 8px 10px -6px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .shadow-cordell-primary\/20 {
+    --tw-shadow-color: color-mix(in srgb, #1f3a5f 20%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-cordell-primary) 20%, transparent) var(--tw-shadow-alpha), transparent);
+    }
   }
   .shadow-slate-900\/5 {
     --tw-shadow-color: color-mix(in srgb, oklch(20.8% 0.042 265.755) 5%, transparent);
@@ -722,6 +759,14 @@
       color: color-mix(in srgb, #667085 70%, transparent);
       @supports (color: color-mix(in lab, red, red)) {
         color: color-mix(in oklab, var(--color-cordell-muted) 70%, transparent);
+      }
+    }
+  }
+  .hover\:-translate-y-0\.5 {
+    &:hover {
+      @media (hover: hover) {
+        --tw-translate-y: calc(var(--spacing) * -0.5);
+        translate: var(--tw-translate-x) var(--tw-translate-y);
       }
     }
   }
@@ -826,9 +871,9 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
-  .md\:grid-cols-\[1fr_10rem\] {
+  .md\:grid-cols-\[1fr_160px_auto\] {
     @media (width >= 48rem) {
-      grid-template-columns: 1fr 10rem;
+      grid-template-columns: 1fr 160px auto;
     }
   }
   .md\:grid-cols-\[1fr_auto\] {
@@ -896,6 +941,14 @@
   .dark\:border-cordell-dark-border {
     &:where([data-theme=dark], [data-theme=dark] *) {
       border-color: var(--color-cordell-dark-border);
+    }
+  }
+  .dark\:border-red-900\/60 {
+    &:where([data-theme=dark], [data-theme=dark] *) {
+      border-color: color-mix(in srgb, oklch(39.6% 0.141 25.723) 60%, transparent);
+      @supports (color: color-mix(in lab, red, red)) {
+        border-color: color-mix(in oklab, var(--color-red-900) 60%, transparent);
+      }
     }
   }
   .dark\:bg-amber-400 {
@@ -966,6 +1019,14 @@
       }
     }
   }
+  .dark\:bg-red-950\/40 {
+    &:where([data-theme=dark], [data-theme=dark] *) {
+      background-color: color-mix(in srgb, oklch(25.8% 0.092 26.042) 40%, transparent);
+      @supports (color: color-mix(in lab, red, red)) {
+        background-color: color-mix(in oklab, var(--color-red-950) 40%, transparent);
+      }
+    }
+  }
   .dark\:from-cordell-primary\/20 {
     &:where([data-theme=dark], [data-theme=dark] *) {
       --tw-gradient-from: color-mix(in srgb, #1f3a5f 20%, transparent);
@@ -999,6 +1060,19 @@
   .dark\:text-cordell-dark-text {
     &:where([data-theme=dark], [data-theme=dark] *) {
       color: var(--color-cordell-dark-text);
+    }
+  }
+  .dark\:text-red-200 {
+    &:where([data-theme=dark], [data-theme=dark] *) {
+      color: var(--color-red-200);
+    }
+  }
+  .dark\:shadow-cordell-dark-primary\/20 {
+    &:where([data-theme=dark], [data-theme=dark] *) {
+      --tw-shadow-color: color-mix(in srgb, #8fb4e8 20%, transparent);
+      @supports (color: color-mix(in lab, red, red)) {
+        --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-cordell-dark-primary) 20%, transparent) var(--tw-shadow-alpha), transparent);
+      }
     }
   }
   .dark\:placeholder\:text-cordell-dark-muted\/70 {
@@ -1227,6 +1301,21 @@
   syntax: "*";
   inherits: false;
 }
+@property --tw-translate-x {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-translate-y {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-translate-z {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
 @property --tw-blur {
   syntax: "*";
   inherits: false;
@@ -1320,6 +1409,9 @@
       --tw-backdrop-opacity: initial;
       --tw-backdrop-saturate: initial;
       --tw-backdrop-sepia: initial;
+      --tw-translate-x: 0;
+      --tw-translate-y: 0;
+      --tw-translate-z: 0;
       --tw-blur: initial;
       --tw-brightness: initial;
       --tw-contrast: initial;

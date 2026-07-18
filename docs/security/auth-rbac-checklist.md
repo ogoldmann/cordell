@@ -116,6 +116,15 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Duplicate asset lines are consolidated before transaction creation.
 - [ ] Invalid return rolls back transaction rows and line rows.
 
+## Return UI Guardrails
+
+- [ ] Return form requires personnel selection first.
+- [ ] Return form lists only assets currently under selected personnel custody.
+- [ ] Return form shows available quantity.
+- [ ] Return quantity input has `max` equal to available quantity.
+- [ ] Personnel with no current custody shows an empty state.
+- [ ] Backend still rejects return quantity greater than current balance.
+
 ## Audit Events
 
 - [ ] Creating an operator records `operator.created`.

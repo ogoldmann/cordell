@@ -1,7 +1,7 @@
 {{define "return_new.html"}}
 {{template "layout_start" .}}
 
-<section class="mb-6">
+<section class="mb-8">
   <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
     Custody
   </p>
@@ -10,146 +10,128 @@
     Register return
   </h1>
 
-  <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
-    Return an asset quantity previously assigned under custody.
+  <p class="mt-3 max-w-2xl text-cordell-muted dark:text-cordell-dark-muted">
+    Select a personnel record first. Cordell will only show assets currently under that person's custody.
   </p>
 </section>
 
 {{if .Error}}
-  <div class="mb-4 rounded-2xl border border-cordell-danger-border bg-cordell-danger-surface px-4 py-3 font-medium text-cordell-danger-text">
+  <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
     {{.Error}}
   </div>
 {{end}}
 
-<form
-  class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface"
-  method="get"
-  action="/custody/returns/new"
->
-  <div class="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
-    <div class="grid gap-2">
-      <label class="text-sm font-bold" for="personnel_id_lookup">Personnel</label>
-      <select
-        class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-        id="personnel_id_lookup"
-        name="personnel_id"
-        required
-      >
-        <option value="">Select personnel</option>
-        {{range .Personnel}}
-          <option value="{{.ID}}" {{if eq $.SelectedPersonnelID .ID}}selected{{end}}>
-            {{.Alias}} — {{.FullName}}
-          </option>
-        {{end}}
-      </select>
-    </div>
+<section class="mb-6 rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+  <h2 class="m-0 text-xl font-extrabold">Personnel</h2>
+
+  <form class="mt-4 grid gap-4 md:grid-cols-[1fr_auto]" method="get" action="/custody/returns/new">
+    <label class="sr-only" for="personnel_id">Personnel</label>
+
+    <select
+      class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+      id="personnel_id"
+      name="personnel_id"
+      required
+    >
+      <option value="">Select personnel</option>
+      {{range .PersonnelOptions}}
+        <option value="{{.ID}}" {{if eq $.SelectedPersonnelID .ID}}selected{{end}}>
+          {{.DisplayName}} — {{.FullName}}
+        </option>
+      {{end}}
+    </select>
 
     <button
-      class="inline-flex cursor-pointer items-center justify-center rounded-xl border-0 bg-cordell-primary px-4 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+      class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white shadow-lg shadow-cordell-primary/20 transition hover:-translate-y-0.5 hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background dark:shadow-cordell-dark-primary/20"
       type="submit"
     >
-      Load current custody
+      Continue
     </button>
-  </div>
-</form>
+  </form>
+</section>
 
-{{if .SelectedPersonnelID}}
-  <section class="mt-8">
-    <div class="mb-4">
-      <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-        Return
-      </p>
-
-      <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">
-        Current custody items
-      </h2>
-    </div>
-
-    {{if .CurrentCustody}}
-      <form
-        class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface"
-        method="post"
-        action="/custody/returns"
-      >
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        <input type="hidden" name="personnel_id" value="{{.SelectedPersonnelID}}">
-
-        <div class="grid gap-4 md:grid-cols-[1fr_10rem]">
-          <div class="grid gap-2">
-            <label class="text-sm font-bold" for="asset_id">Asset</label>
-            <select
-              class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-              id="asset_id"
-              name="asset_id"
-              required
-            >
-              <option value="">Select asset</option>
-              {{range .CurrentCustody}}
-                <option value="{{.AssetID}}" {{if eq $.SelectedAssetID .AssetID}}selected{{end}}>
-                  {{.AssetName}} — currently {{.Quantity}}
-                </option>
-              {{end}}
-            </select>
-          </div>
-
-          <div class="grid gap-2">
-            <label class="text-sm font-bold" for="quantity">Quantity</label>
-            <input
-              class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-              id="quantity"
-              name="quantity"
-              type="number"
-              min="1"
-              step="1"
-              value="{{.Quantity}}"
-              required
-            >
-          </div>
-        </div>
-
-        <div class="mt-4 grid gap-2">
-          <label class="text-sm font-bold" for="notes">Notes</label>
-          <textarea
-            class="min-h-28 w-full resize-y rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-            id="notes"
-            name="notes"
-            rows="4"
-          >{{.Notes}}</textarea>
-        </div>
-
-        <div class="mt-6 flex flex-col gap-3 sm:flex-row">
-          <button
-            class="inline-flex cursor-pointer items-center justify-center rounded-xl border-0 bg-cordell-primary px-4 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
-            type="submit"
-          >
-            Register return
-          </button>
-
-          <a
-            class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
-            href="/personnel/{{.SelectedPersonnelID}}"
-          >
-            Cancel
-          </a>
-        </div>
-      </form>
-    {{else}}
-      <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-8 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
-        <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">No assets currently under custody</h2>
-        <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
-          This personnel record has no active custody balances to return.
+{{if .HasSelectedPersonnel}}
+  <section class="mb-6 rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+    <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+      <div>
+        <h2 class="m-0 text-xl font-extrabold">Available custody</h2>
+        <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+          Showing assets currently under custody of <strong>{{.SelectedPersonnel.DisplayName}}</strong>.
         </p>
       </div>
-    {{end}}
-  </section>
-{{else}}
-  <section class="mt-8">
-    <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-8 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
-      <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Select personnel first</h2>
-      <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
-        Choose a personnel record to load current custody items available for return.
-      </p>
+
+      <a
+        class="inline-flex w-fit items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2.5 text-sm font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+        href="/personnel/{{.SelectedPersonnel.ID}}"
+      >
+        View personnel
+      </a>
     </div>
+
+    {{if .HasCurrentItems}}
+      <div class="mt-5 grid gap-4">
+        {{range .CurrentItems}}
+          <form
+            class="rounded-2xl border border-cordell-border bg-cordell-background p-4 dark:border-cordell-dark-border dark:bg-cordell-dark-background"
+            method="post"
+            action="/custody/returns"
+          >
+            <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+            <input type="hidden" name="personnel_id" value="{{$.SelectedPersonnel.ID}}">
+            <input type="hidden" name="asset_id" value="{{.AssetID}}">
+
+            <div class="grid gap-4 md:grid-cols-[1fr_160px_auto] md:items-end">
+              <div>
+                <p class="m-0 text-lg font-extrabold">{{.AssetName}}</p>
+                <p class="mt-1 font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.AssetID}}</p>
+                <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+                  Available quantity: <strong>{{.Quantity}}</strong>
+                </p>
+              </div>
+
+              <div>
+                <label class="mb-2 block text-sm font-bold" for="quantity-{{.AssetID}}">
+                  Return quantity
+                </label>
+                <input
+                  class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+                  id="quantity-{{.AssetID}}"
+                  name="quantity"
+                  type="number"
+                  min="1"
+                  max="{{.Quantity}}"
+                  value="1"
+                  required
+                >
+              </div>
+
+              <button
+                class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white shadow-lg shadow-cordell-primary/20 transition hover:-translate-y-0.5 hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background dark:shadow-cordell-dark-primary/20"
+                type="submit"
+              >
+                Register return
+              </button>
+            </div>
+
+            <div class="mt-4">
+              <label class="mb-2 block text-sm font-bold" for="notes-{{.AssetID}}">
+                Notes
+              </label>
+              <textarea
+                class="min-h-24 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+                id="notes-{{.AssetID}}"
+                name="notes"
+                placeholder="Optional return notes"
+              ></textarea>
+            </div>
+          </form>
+        {{end}}
+      </div>
+    {{else}}
+      <div class="mt-5 rounded-2xl border border-dashed border-cordell-border bg-cordell-background p-6 text-center text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-muted">
+        This personnel record has no assets currently under custody.
+      </div>
+    {{end}}
   </section>
 {{end}}
 

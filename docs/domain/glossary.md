@@ -70,6 +70,14 @@ Custody line consolidation is the application-level normalization that combines 
 
 For example, two lines for the same asset with quantities `1` and `2` become one line with quantity `3`.
 
+## Return UI Guardrail
+
+A return UI guardrail is a user-interface restriction that helps prevent invalid return attempts before submission.
+
+For example, Cordell only shows assets currently under a selected personnel record's custody in the return form.
+
+Guardrails improve usability but do not replace backend validation.
+
 ## Operator
 
 A system user who performs actions inside Cordell.

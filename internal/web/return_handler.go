@@ -12,29 +12,34 @@ import (
 
 type returnNewPageData struct {
 	privateLayoutData
-	Title               string
-	Error               string
-	Personnel           []personnelView
-	CurrentCustody      []currentCustodyView
-	SelectedPersonnelID string
-	SelectedAssetID     string
-	Quantity            string
-	Notes               string
+	Title                string
+	Error                string
+	PersonnelOptions     []personnelOptionView
+	SelectedPersonnelID  string
+	SelectedPersonnel    personnelReturnView
+	HasSelectedPersonnel bool
+	CurrentItems         []returnCurrentCustodyItemView
+	HasCurrentItems      bool
+}
+
+type personnelReturnView struct {
+	ID          string
+	DisplayName string
+	FullName    string
+}
+
+type returnCurrentCustodyItemView struct {
+	AssetID   string
+	AssetName string
+	Quantity  int
 }
 
 func (s *Server) handleNewReturnForm(w http.ResponseWriter, r *http.Request) {
-	data, err := s.buildReturnNewPageData(r, returnNewPageData{
-		Title:               "Register return",
-		SelectedPersonnelID: r.URL.Query().Get("personnel_id"),
-		Quantity:            "1",
-	})
-	if err != nil {
-		if errors.Is(err, ports.ErrNotFound) {
-			http.NotFound(w, r)
-			return
-		}
+	selectedPersonnelID := domain.PersonnelID(r.URL.Query().Get("personnel_id"))
 
-		s.logger.Error("failed to build return form data", "error", err)
+	data, err := s.buildReturnFormPageData(r, selectedPersonnelID, "")
+	if err != nil {
+		s.logger.Error("failed to build return form", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -45,55 +50,51 @@ func (s *Server) handleNewReturnForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleCreateReturn(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		s.renderReturnFormWithError(
-			w,
-			r,
-			http.StatusBadRequest,
-			"Invalid form submission.",
-		)
-		return
-	}
-
-	personnelID := r.FormValue("personnel_id")
-	assetID := r.FormValue("asset_id")
-	quantityText := r.FormValue("quantity")
-	notes := r.FormValue("notes")
-
-	quantity, err := strconv.Atoi(quantityText)
-	if err != nil {
-		s.renderReturnFormWithError(
-			w,
-			r,
-			http.StatusBadRequest,
-			"Quantity must be a valid number.",
-		)
-		return
-	}
-
 	currentOperator, ok := currentOperatorFromContext(r.Context())
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	personnelID := domain.PersonnelID(r.FormValue("personnel_id"))
+	assetID := domain.AssetID(r.FormValue("asset_id"))
+	quantity, err := parsePositiveInt(r.FormValue("quantity"))
+	if err != nil {
+		s.renderReturnFormError(
+			w,
+			r,
+			http.StatusBadRequest,
+			personnelID,
+			"Quantity must be a positive number.",
+		)
+		return
+	}
+
+	notes := r.FormValue("notes")
+
 	transaction, err := s.services.RegisterReturn.Execute(r.Context(), app.RegisterReturnCommand{
-		PersonnelID: domain.PersonnelID(personnelID),
+		PersonnelID: personnelID,
 		OperatorID:  currentOperator.ID(),
 		Lines: []app.CustodyLineCommand{
 			{
-				AssetID:  domain.AssetID(assetID),
+				AssetID:  assetID,
 				Quantity: quantity,
 			},
 		},
 		Notes: notes,
 	})
 	if err != nil {
-		s.renderReturnFormWithError(
+		s.renderReturnFormError(
 			w,
 			r,
 			http.StatusBadRequest,
-			humanizeReturnError(err),
+			personnelID,
+			humanizeReturnWebError(err),
 		)
 		return
 	}
@@ -108,30 +109,19 @@ func (s *Server) handleCreateReturn(w http.ResponseWriter, r *http.Request) {
 		},
 	)
 
-	http.Redirect(
-		w,
-		r,
-		"/personnel/"+string(transaction.PersonnelID()),
-		http.StatusSeeOther,
-	)
+	http.Redirect(w, r, "/personnel/"+string(transaction.PersonnelID()), http.StatusSeeOther)
 }
 
-func (s *Server) renderReturnFormWithError(
+func (s *Server) renderReturnFormError(
 	w http.ResponseWriter,
 	r *http.Request,
 	status int,
+	personnelID domain.PersonnelID,
 	message string,
 ) {
-	data, err := s.buildReturnNewPageData(r, returnNewPageData{
-		Title:               "Register return",
-		Error:               message,
-		SelectedPersonnelID: r.FormValue("personnel_id"),
-		SelectedAssetID:     r.FormValue("asset_id"),
-		Quantity:            r.FormValue("quantity"),
-		Notes:               r.FormValue("notes"),
-	})
+	data, err := s.buildReturnFormPageData(r, personnelID, message)
 	if err != nil {
-		s.logger.Error("failed to rebuild return form data", "error", err)
+		s.logger.Error("failed to build return form error page", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -141,62 +131,98 @@ func (s *Server) renderReturnFormWithError(
 	}
 }
 
-func (s *Server) buildReturnNewPageData(
+func (s *Server) buildReturnFormPageData(
 	r *http.Request,
-	data returnNewPageData,
+	selectedPersonnelID domain.PersonnelID,
+	errorMessage string,
 ) (returnNewPageData, error) {
-	data.privateLayoutData = newPrivateLayoutData(r)
-
-	personnel, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
+	personnelList, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
 		Limit: 100,
 	})
 	if err != nil {
 		return returnNewPageData{}, err
 	}
 
-	data.Personnel = make([]personnelView, 0, len(personnel))
-	for _, item := range personnel {
-		data.Personnel = append(data.Personnel, newPersonnelView(item))
+	data := returnNewPageData{
+		privateLayoutData:   newPrivateLayoutData(r),
+		Title:               "Register return",
+		Error:               errorMessage,
+		PersonnelOptions:    make([]personnelOptionView, 0, len(personnelList)),
+		SelectedPersonnelID: string(selectedPersonnelID),
 	}
 
-	if data.SelectedPersonnelID != "" {
-		currentCustody, err := s.services.ListCurrentCustody.Execute(r.Context(), app.ListCurrentCustodyCommand{
-			PersonnelID: domain.PersonnelID(data.SelectedPersonnelID),
+	for _, personnel := range personnelList {
+		data.PersonnelOptions = append(data.PersonnelOptions, newPersonnelOptionView(personnel))
+	}
+
+	if selectedPersonnelID == "" {
+		return data, nil
+	}
+
+	personnel, err := s.services.GetPersonnel.Execute(r.Context(), app.GetPersonnelCommand{
+		ID: selectedPersonnelID,
+	})
+	if err != nil {
+		return returnNewPageData{}, err
+	}
+
+	data.SelectedPersonnel = personnelReturnView{
+		ID:          string(personnel.ID()),
+		DisplayName: militaryDisplayName(personnel.Rank(), personnel.Alias()),
+		FullName:    personnel.FullName(),
+	}
+	data.HasSelectedPersonnel = true
+
+	currentItems, err := s.services.ListCurrentCustody.Execute(r.Context(), app.ListCurrentCustodyCommand{
+		PersonnelID: selectedPersonnelID,
+	})
+	if err != nil {
+		return returnNewPageData{}, err
+	}
+
+	data.CurrentItems = make([]returnCurrentCustodyItemView, 0, len(currentItems))
+
+	for _, item := range currentItems {
+		data.CurrentItems = append(data.CurrentItems, returnCurrentCustodyItemView{
+			AssetID:   string(item.AssetID),
+			AssetName: item.AssetName,
+			Quantity:  item.Quantity,
 		})
-		if err != nil {
-			return returnNewPageData{}, err
-		}
-
-		data.CurrentCustody = make([]currentCustodyView, 0, len(currentCustody))
-		for _, item := range currentCustody {
-			data.CurrentCustody = append(data.CurrentCustody, currentCustodyView{
-				AssetID:   string(item.AssetID),
-				AssetName: item.AssetName,
-				Quantity:  item.Quantity,
-			})
-		}
 	}
 
-	if data.Quantity == "" {
-		data.Quantity = "1"
-	}
+	data.HasCurrentItems = len(data.CurrentItems) > 0
 
 	return data, nil
 }
 
-func humanizeReturnError(err error) string {
+func humanizeReturnWebError(err error) string {
 	switch {
 	case errors.Is(err, domain.ErrEmptyPersonnelID):
 		return "Personnel is required."
+	case errors.Is(err, domain.ErrEmptyOperatorID):
+		return "Authenticated operator is required."
 	case errors.Is(err, domain.ErrEmptyAssetID):
 		return "Asset is required."
 	case errors.Is(err, domain.ErrInvalidQuantity):
-		return "Quantity must be greater than zero."
+		return "Quantity must be a positive number."
 	case errors.Is(err, domain.ErrInsufficientCustodyBalance):
-		return "Return quantity cannot exceed the current custody quantity."
+		return "Return quantity is greater than the available custody balance."
 	case errors.Is(err, ports.ErrNotFound):
-		return "Selected personnel or asset could not be found."
+		return "Personnel or asset not found."
 	default:
 		return "Could not register return."
 	}
+}
+
+func parsePositiveInt(value string) (int, error) {
+	quantity, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, err
+	}
+
+	if quantity <= 0 {
+		return 0, domain.ErrInvalidQuantity
+	}
+
+	return quantity, nil
 }

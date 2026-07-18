@@ -310,6 +310,20 @@ Current balance behavior:
 
 Custody transaction persistence is atomic inside the PostgreSQL repository. If balance update fails, transaction rows and line rows are rolled back.
 
+## Return UI Guardrails
+
+The return form is guided by current custody state.
+
+Return workflow:
+
+1. Select personnel.
+2. Cordell lists only assets currently under that personnel's custody.
+3. Each return card shows the available quantity.
+4. The quantity input uses the available quantity as the HTML maximum.
+5. The backend still validates the real current balance before saving.
+
+The UI reduces operational mistakes, but the application service and repository remain the source of truth.
+
 ## Dashboard
 
 The dashboard is available at:
