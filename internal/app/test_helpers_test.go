@@ -261,6 +261,44 @@ func (r *fakeAssetRepository) Search(_ context.Context, query string, limit int)
 	return assets, nil
 }
 
+func (r *fakeAssetRepository) Deactivate(_ context.Context, id domain.AssetID) (bool, error) {
+	asset, ok := r.byID[id]
+	if !ok {
+		return false, ports.ErrNotFound
+	}
+
+	deactivated, err := domain.ReconstituteAsset(
+		asset.ID(),
+		asset.Name(),
+		false,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	r.byID[id] = deactivated
+	return true, nil
+}
+
+func (r *fakeAssetRepository) Reactivate(_ context.Context, id domain.AssetID) (bool, error) {
+	asset, ok := r.byID[id]
+	if !ok {
+		return false, ports.ErrNotFound
+	}
+
+	reactivated, err := domain.ReconstituteAsset(
+		asset.ID(),
+		asset.Name(),
+		true,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	r.byID[id] = reactivated
+	return true, nil
+}
+
 func assetMatchesQuery(asset domain.Asset, tokens []string) bool {
 	if len(tokens) == 0 {
 		return true

@@ -14,6 +14,8 @@ const (
 	AuditEventOperatorPasswordReset  AuditEventType = "operator.password_reset"
 	AuditEventPersonnelDeactivated   AuditEventType = "personnel.deactivated"
 	AuditEventPersonnelReactivated   AuditEventType = "personnel.reactivated"
+	AuditEventAssetDeactivated       AuditEventType = "asset.deactivated"
+	AuditEventAssetReactivated       AuditEventType = "asset.reactivated"
 	AuditEventCustodyCheckoutCreated AuditEventType = "custody.checkout_created"
 	AuditEventCustodyReturnCreated   AuditEventType = "custody.return_created"
 )
@@ -23,6 +25,7 @@ type AuditEntityType string
 const (
 	AuditEntityOperator           AuditEntityType = "operator"
 	AuditEntityPersonnel          AuditEntityType = "personnel"
+	AuditEntityAsset              AuditEntityType = "asset"
 	AuditEntityCustodyTransaction AuditEntityType = "custody_transaction"
 )
 

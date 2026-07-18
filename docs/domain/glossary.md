@@ -167,3 +167,27 @@ Inactive pending custody means an inactive personnel or inactive asset is still 
 This is allowed because deactivation does not settle custody.
 
 Inactive pending custody must remain visible until it is cleared through return or future correction workflows.
+
+## Asset Deactivation and Reactivation
+
+Asset records can be deactivated and reactivated by authenticated operators.
+
+Deactivation:
+
+- does not delete the asset record
+- does not delete custody history
+- does not settle current custody
+- does not create a return transaction
+- prevents new checkout for that asset
+- keeps receipts and history readable
+- records an audit event
+
+Reactivation makes the asset available for normal checkout workflows again.
+
+Asset deactivation does not require a reason in the current implementation.
+
+If a reason is added later, it should preferably be selected from a controlled list instead of arbitrary free text.
+
+Inactive assets with current custody should remain visible in current custody and detail views with clear warnings.
+
+Inactive asset names remain reserved. Deactivation does not allow another asset with the same name to be created.

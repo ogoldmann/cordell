@@ -115,6 +115,8 @@ type AssetRepository interface {
 	FindByID(ctx context.Context, id domain.AssetID) (domain.Asset, error)
 	List(ctx context.Context, limit int, statusFilter RecordStatusFilter) ([]domain.Asset, error)
 	Search(ctx context.Context, query string, limit int) ([]domain.Asset, error)
+	Deactivate(ctx context.Context, id domain.AssetID) (bool, error)
+	Reactivate(ctx context.Context, id domain.AssetID) (bool, error)
 }
 
 // CustodyRepository persists custody transactions and reads current custody state.

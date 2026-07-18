@@ -41,6 +41,27 @@ func (q *Queries) CreateAsset(ctx context.Context, arg CreateAssetParams) (Asset
 	return i, err
 }
 
+const deactivateAsset = `-- name: DeactivateAsset :one
+WITH updated AS (
+    UPDATE assets
+    SET
+        active = false,
+        updated_at = now()
+    WHERE id = $1
+      AND active = true
+    RETURNING id
+)
+SELECT count(*)::int
+FROM updated
+`
+
+func (q *Queries) DeactivateAsset(ctx context.Context, id string) (int32, error) {
+	row := q.db.QueryRow(ctx, deactivateAsset, id)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const getAsset = `-- name: GetAsset :one
 SELECT id, name, active, created_at, updated_at
 FROM assets
@@ -102,6 +123,27 @@ func (q *Queries) ListAssets(ctx context.Context, arg ListAssetsParams) ([]Asset
 		return nil, err
 	}
 	return items, nil
+}
+
+const reactivateAsset = `-- name: ReactivateAsset :one
+WITH updated AS (
+    UPDATE assets
+    SET
+        active = true,
+        updated_at = now()
+    WHERE id = $1
+      AND active = false
+    RETURNING id
+)
+SELECT count(*)::int
+FROM updated
+`
+
+func (q *Queries) ReactivateAsset(ctx context.Context, id string) (int32, error) {
+	row := q.db.QueryRow(ctx, reactivateAsset, id)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const searchAssets = `-- name: SearchAssets :many

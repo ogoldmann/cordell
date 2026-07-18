@@ -120,3 +120,23 @@ func (r *AssetRepository) List(
 
 	return assets, nil
 }
+
+// Deactivate marks an asset record as inactive.
+func (r *AssetRepository) Deactivate(ctx context.Context, id domain.AssetID) (bool, error) {
+	updatedCount, err := r.queries.DeactivateAsset(ctx, string(id))
+	if err != nil {
+		return false, err
+	}
+
+	return updatedCount > 0, nil
+}
+
+// Reactivate marks an asset record as active.
+func (r *AssetRepository) Reactivate(ctx context.Context, id domain.AssetID) (bool, error) {
+	updatedCount, err := r.queries.ReactivateAsset(ctx, string(id))
+	if err != nil {
+		return false, err
+	}
+
+	return updatedCount > 0, nil
+}

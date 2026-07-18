@@ -217,3 +217,19 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Duplicate normalized asset names are rejected.
 - [ ] Duplicate asset names are rejected across active and inactive assets.
 - [ ] Asset creation shows a human-readable duplicate-name error.
+
+## Asset Lifecycle Actions
+
+- [ ] Authenticated operator can deactivate active asset.
+- [ ] Authenticated operator can reactivate inactive asset.
+- [ ] Asset deactivation does not require admin role.
+- [ ] Asset deactivation does not require reason.
+- [ ] Asset deactivation does not delete custody history.
+- [ ] Asset deactivation does not settle current custody.
+- [ ] Inactive asset cannot be used in new checkout.
+- [ ] Inactive asset can still be returned when current custody exists.
+- [ ] Deactivation records `asset.deactivated`.
+- [ ] Reactivation records `asset.reactivated`.
+- [ ] Inactive asset appears under inactive filter.
+- [ ] Reactivated asset appears under active filter.
+- [ ] Deactivated asset name remains reserved.

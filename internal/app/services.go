@@ -25,6 +25,8 @@ type Services struct {
 	CreateAsset             *CreateAssetService
 	GetAsset                *GetAssetService
 	ListAssets              *ListAssetsService
+	DeactivateAsset         *DeactivateAssetService
+	ReactivateAsset         *ReactivateAssetService
 	SearchAssets            *SearchAssetsService
 	GlobalSearch            *GlobalSearchService
 	RegisterCheckout        *RegisterCheckoutService

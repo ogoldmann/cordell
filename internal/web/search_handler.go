@@ -62,9 +62,11 @@ func newAssetView(asset domain.Asset) assetView {
 	}
 
 	return assetView{
-		ID:          string(asset.ID()),
-		Name:        asset.Name(),
-		Active:      asset.Active(),
-		StatusLabel: statusLabel,
+		ID:            string(asset.ID()),
+		Name:          asset.Name(),
+		Active:        asset.Active(),
+		StatusLabel:   statusLabel,
+		CanDeactivate: asset.Active(),
+		CanReactivate: !asset.Active(),
 	}
 }

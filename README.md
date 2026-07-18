@@ -904,7 +904,7 @@ If audit recording fails after the main action has already succeeded, Cordell lo
 This is documented in:
 
 ```txt
-docs/adr/0005-audit-log-transaction-boundary.md
+docs/adr/0009-audit-log-transaction-boundary.md
 ```
 
 Future production hardening should revisit this decision and likely introduce an application transaction boundary for audit-critical operations.
@@ -948,3 +948,27 @@ Visibility rules:
 - global search should clearly mark inactive records
 
 Backend validation remains the source of truth. UI filters and badges are only guardrails.
+
+## Asset Deactivation and Reactivation
+
+Asset records can be deactivated and reactivated by authenticated operators.
+
+Deactivation:
+
+- does not delete the asset record
+- does not delete custody history
+- does not settle current custody
+- does not create a return transaction
+- prevents new checkout for that asset
+- keeps receipts and history readable
+- records an audit event
+
+Reactivation makes the asset available for normal checkout workflows again.
+
+Asset deactivation does not require a reason in the current implementation.
+
+If a reason is added later, it should preferably be selected from a controlled list instead of arbitrary free text.
+
+Inactive assets with current custody should remain visible in current custody and detail views with clear warnings.
+
+Inactive asset names remain reserved. Deactivation does not allow another asset with the same name to be created.

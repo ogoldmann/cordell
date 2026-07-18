@@ -134,15 +134,16 @@ Return behavior remains allowed for inactive personnel when current custody exis
 
 Asset records should not be hard-deleted.
 
-An asset may be deactivated when it should no longer be issued in new checkout workflows.
+An asset may be deactivated when it should no longer appear in normal checkout workflows.
 
 Examples:
 
-* asset removed from regular use
-* asset replaced
-* asset no longer issued
+* asset no longer exists in the operational catalog
+* asset should no longer be issued
 * asset record is obsolete
+* asset was replaced
 * asset should be preserved only for history
+* asset is no longer available for new custody operations
 
 Deactivated assets:
 
@@ -154,17 +155,26 @@ Deactivated assets:
 * may be searchable through explicit inactive/archive filters
 * may be reactivated if needed
 
-Initial implementation should prevent deactivation of assets with current custody balance greater than zero.
+Asset deactivation does not settle custody.
+
+Asset deactivation does not return assets.
+
+Asset deactivation does not correct balances.
+
+Asset deactivation only changes whether the asset record is available for new checkout responsibility.
+
+Initial implementation should allow deactivation even when current custody exists.
 
 Reason:
 
-* a currently custodied asset should remain operationally visible until returned or corrected
-* deactivation should not hide unresolved custody
-* correction workflows are not implemented yet
+* blocking deactivation can incentivize false return or correction records
+* deactivation may be administratively true even when custody is unresolved
+* pending custody should remain visible as a warning, not hidden
+* the system should preserve operational truth rather than force artificial cleanup
 
-Return behavior remains different from checkout.
+If an inactive asset still has current custody, Cordell should show clear warnings in asset detail and related custody views.
 
-If an inactive asset has current custody due to legacy data or exceptional future workflow, return should still be allowed to clear the responsibility.
+Return behavior remains allowed for inactive assets when current custody exists, because return reduces or clears an existing responsibility.
 
 ## Asset Identity Direction
 
@@ -258,7 +268,19 @@ Reason:
 
 This decision applies initially to personnel lifecycle actions.
 
-Asset lifecycle authorization should be decided separately when asset deactivation/reactivation is implemented.
+## Asset Deactivation Authorization
+
+Initial asset lifecycle actions do not need to be admin-only.
+
+Any authenticated operator may deactivate or reactivate asset records.
+
+Reason:
+
+* asset lifecycle maintenance is an operational workflow
+* restricting the action to admins may create unnecessary bottlenecks
+* audit attribution already records which operator performed the action
+
+This decision matches the initial personnel lifecycle policy.
 
 ## Audit Direction
 
@@ -299,6 +321,22 @@ Possible future reason options:
 * transferred
 * temporary service ended
 * duplicate record
+* administrative archive
+* other controlled option
+
+If reason is implemented later, it should preferably be a select list, not arbitrary free text.
+
+## Asset Reason Direction
+
+Asset deactivation will not require a free-text reason in the initial implementation.
+
+A future implementation may introduce a controlled reason list.
+
+Possible future reason options:
+
+* no longer available
+* replaced
+* obsolete record
 * administrative archive
 * other controlled option
 
@@ -425,18 +463,16 @@ The system will preserve custody history, receipts, and auditability.
 
 Inactive personnel and assets will be hidden from normal checkout workflows but remain available where history requires them.
 
-Personnel detail and current custody views must ensure current custody is not accidentally hidden.
+Personnel and asset detail/current custody views must ensure current custody is not accidentally hidden.
 
-The initial personnel policy should allow deactivation when current custody exists and show warnings for unresolved custody.
+The initial personnel and asset policies should allow deactivation when current custody exists and show warnings for unresolved custody.
 
 ## Future Work
 
 Future milestones should include:
 
-* asset deactivation use case
-* asset reactivation use case
-* asset lifecycle authorization decision
 * controlled lifecycle reason list, if needed
 * lifecycle audit metadata expansion, if needed
 * tests covering inactive personnel warnings when current custody exists
+* tests covering inactive asset warnings when current custody exists
 * tests allowing return for inactive records when current custody exists

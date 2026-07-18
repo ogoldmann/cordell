@@ -91,6 +91,8 @@ func (s *Server) Routes() http.Handler {
 		private.Get("/assets/new", s.handleNewAssetForm)
 		private.Post("/assets", s.handleCreateAsset)
 		private.Get("/assets/{id}", s.handleShowAsset)
+		private.Post("/assets/{id}/deactivate", s.handleDeactivateAsset)
+		private.Post("/assets/{id}/reactivate", s.handleReactivateAsset)
 
 		private.Get("/custody/transactions/{id}", s.handleShowCustodyReceipt)
 

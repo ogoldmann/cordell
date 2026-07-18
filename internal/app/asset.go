@@ -149,3 +149,91 @@ func (s *SearchAssetsService) Execute(ctx context.Context, cmd SearchAssetsComma
 
 	return s.assetRepository.Search(ctx, query, limit)
 }
+
+// DeactivateAssetCommand contains the input data required to deactivate an asset.
+type DeactivateAssetCommand struct {
+	ID domain.AssetID
+}
+
+// DeactivateAssetService handles asset deactivation.
+type DeactivateAssetService struct {
+	assetRepository ports.AssetRepository
+}
+
+// NewDeactivateAssetService creates a DeactivateAssetService.
+func NewDeactivateAssetService(assetRepository ports.AssetRepository) *DeactivateAssetService {
+	return &DeactivateAssetService{
+		assetRepository: assetRepository,
+	}
+}
+
+// Execute marks an asset as inactive.
+func (s *DeactivateAssetService) Execute(ctx context.Context, cmd DeactivateAssetCommand) error {
+	if cmd.ID == "" {
+		return domain.ErrEmptyAssetID
+	}
+
+	asset, err := s.assetRepository.FindByID(ctx, cmd.ID)
+	if err != nil {
+		return err
+	}
+
+	if !asset.Active() {
+		return nil
+	}
+
+	deactivated, err := s.assetRepository.Deactivate(ctx, asset.ID())
+	if err != nil {
+		return err
+	}
+
+	if !deactivated {
+		return ports.ErrNotFound
+	}
+
+	return nil
+}
+
+// ReactivateAssetCommand contains the input data required to reactivate an asset.
+type ReactivateAssetCommand struct {
+	ID domain.AssetID
+}
+
+// ReactivateAssetService handles asset reactivation.
+type ReactivateAssetService struct {
+	assetRepository ports.AssetRepository
+}
+
+// NewReactivateAssetService creates a ReactivateAssetService.
+func NewReactivateAssetService(assetRepository ports.AssetRepository) *ReactivateAssetService {
+	return &ReactivateAssetService{
+		assetRepository: assetRepository,
+	}
+}
+
+// Execute marks an asset as active.
+func (s *ReactivateAssetService) Execute(ctx context.Context, cmd ReactivateAssetCommand) error {
+	if cmd.ID == "" {
+		return domain.ErrEmptyAssetID
+	}
+
+	asset, err := s.assetRepository.FindByID(ctx, cmd.ID)
+	if err != nil {
+		return err
+	}
+
+	if asset.Active() {
+		return nil
+	}
+
+	reactivated, err := s.assetRepository.Reactivate(ctx, asset.ID())
+	if err != nil {
+		return err
+	}
+
+	if !reactivated {
+		return ports.ErrNotFound
+	}
+
+	return nil
+}

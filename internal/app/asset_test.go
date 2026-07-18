@@ -173,6 +173,108 @@ func TestListAssetsServiceDefaultsToActiveStatusFilter(t *testing.T) {
 	}
 }
 
+func TestDeactivateAssetServiceExecute(t *testing.T) {
+	asset := mustBuildAsset(t, "asset-1")
+
+	repository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+
+	service := NewDeactivateAssetService(repository)
+
+	err := service.Execute(context.Background(), DeactivateAssetCommand{
+		ID: asset.ID(),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	updated, err := repository.FindByID(context.Background(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected asset to exist, got %v", err)
+	}
+
+	if updated.Active() {
+		t.Fatal("expected asset to be inactive")
+	}
+}
+
+func TestDeactivateAssetServiceIsNoOpForInactiveAsset(t *testing.T) {
+	asset := mustBuildAsset(t, "asset-1")
+	inactiveAsset, err := domain.ReconstituteAsset(asset.ID(), asset.Name(), false)
+	if err != nil {
+		t.Fatalf("expected valid inactive asset, got %v", err)
+	}
+
+	repository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			inactiveAsset.ID(): inactiveAsset,
+		},
+	}
+
+	service := NewDeactivateAssetService(repository)
+
+	err = service.Execute(context.Background(), DeactivateAssetCommand{
+		ID: inactiveAsset.ID(),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
+func TestReactivateAssetServiceExecute(t *testing.T) {
+	asset := mustBuildAsset(t, "asset-1")
+	inactiveAsset, err := domain.ReconstituteAsset(asset.ID(), asset.Name(), false)
+	if err != nil {
+		t.Fatalf("expected valid inactive asset, got %v", err)
+	}
+
+	repository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			inactiveAsset.ID(): inactiveAsset,
+		},
+	}
+
+	service := NewReactivateAssetService(repository)
+
+	err = service.Execute(context.Background(), ReactivateAssetCommand{
+		ID: inactiveAsset.ID(),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	updated, err := repository.FindByID(context.Background(), inactiveAsset.ID())
+	if err != nil {
+		t.Fatalf("expected asset to exist, got %v", err)
+	}
+
+	if !updated.Active() {
+		t.Fatal("expected asset to be active")
+	}
+}
+
+func TestReactivateAssetServiceIsNoOpForActiveAsset(t *testing.T) {
+	asset := mustBuildAsset(t, "asset-1")
+
+	repository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+
+	service := NewReactivateAssetService(repository)
+
+	err := service.Execute(context.Background(), ReactivateAssetCommand{
+		ID: asset.ID(),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
 func TestSearchAssetsServiceExecute(t *testing.T) {
 	firstAsset := mustBuildAsset(t, "asset-1")
 

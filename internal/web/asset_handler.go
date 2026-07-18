@@ -29,17 +29,21 @@ type assetNewPageData struct {
 
 type assetShowPageData struct {
 	privateLayoutData
-	Title              string
-	Asset              assetView
-	Holders            []assetHolderView
-	HasInactiveHolders bool
+	Title                      string
+	Asset                      assetView
+	Holders                    []assetHolderView
+	HasHolders                 bool
+	HasInactiveHolders         bool
+	ShowInactiveCustodyWarning bool
 }
 
 type assetView struct {
-	ID          string
-	Name        string
-	Active      bool
-	StatusLabel string
+	ID            string
+	Name          string
+	Active        bool
+	StatusLabel   string
+	CanDeactivate bool
+	CanReactivate bool
 }
 
 type assetHolderView struct {
@@ -186,9 +190,68 @@ func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	data.HasHolders = len(data.Holders) > 0
+	data.ShowInactiveCustodyWarning = !asset.Active() && data.HasHolders
+
 	if err := s.renderer.Render(w, http.StatusOK, "assets_show.html", data); err != nil {
 		s.handleRenderError(w, err)
 	}
+}
+
+func (s *Server) handleDeactivateAsset(w http.ResponseWriter, r *http.Request) {
+	assetID := domain.AssetID(chi.URLParam(r, "id"))
+
+	err := s.services.DeactivateAsset.Execute(r.Context(), app.DeactivateAssetCommand{
+		ID: assetID,
+	})
+	if err != nil {
+		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyAssetID) {
+			http.NotFound(w, r)
+			return
+		}
+
+		s.logger.Error("failed to deactivate asset", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	s.recordAuditEventOrLog(
+		r,
+		domain.AuditEventAssetDeactivated,
+		domain.AuditEntityAsset,
+		string(assetID),
+		nil,
+	)
+
+	http.Redirect(w, r, "/assets/"+string(assetID), http.StatusSeeOther)
+}
+
+func (s *Server) handleReactivateAsset(w http.ResponseWriter, r *http.Request) {
+	assetID := domain.AssetID(chi.URLParam(r, "id"))
+
+	err := s.services.ReactivateAsset.Execute(r.Context(), app.ReactivateAssetCommand{
+		ID: assetID,
+	})
+	if err != nil {
+		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyAssetID) {
+			http.NotFound(w, r)
+			return
+		}
+
+		s.logger.Error("failed to reactivate asset", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	s.recordAuditEventOrLog(
+		r,
+		domain.AuditEventAssetReactivated,
+		domain.AuditEntityAsset,
+		string(assetID),
+		nil,
+	)
+
+	http.Redirect(w, r, "/assets/"+string(assetID), http.StatusSeeOther)
 }
 
 func (s *Server) renderNewAssetFormWithError(

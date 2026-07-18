@@ -47,3 +47,29 @@ WHERE NOT EXISTS (
 )
 ORDER BY created_at DESC, id DESC
 LIMIT sqlc.arg(limit_count);
+
+-- name: DeactivateAsset :one
+WITH updated AS (
+    UPDATE assets
+    SET
+        active = false,
+        updated_at = now()
+    WHERE id = @id
+      AND active = true
+    RETURNING id
+)
+SELECT count(*)::int
+FROM updated;
+
+-- name: ReactivateAsset :one
+WITH updated AS (
+    UPDATE assets
+    SET
+        active = true,
+        updated_at = now()
+    WHERE id = @id
+      AND active = false
+    RETURNING id
+)
+SELECT count(*)::int
+FROM updated;

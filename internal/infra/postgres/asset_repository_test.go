@@ -192,6 +192,91 @@ func TestPostgresAssetRepositoryRejectsDuplicateNormalizedName(t *testing.T) {
 	}
 }
 
+func TestPostgresAssetRepositoryDeactivateAndReactivate(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+	repository := postgres.NewAssetRepository(queries)
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := repository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	deactivated, err := repository.Deactivate(context.Background(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected no error deactivating asset, got %v", err)
+	}
+
+	if !deactivated {
+		t.Fatal("expected asset to be deactivated")
+	}
+
+	updated, err := repository.FindByID(context.Background(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding asset, got %v", err)
+	}
+
+	if updated.Active() {
+		t.Fatal("expected asset to be inactive")
+	}
+
+	reactivated, err := repository.Reactivate(context.Background(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected no error reactivating asset, got %v", err)
+	}
+
+	if !reactivated {
+		t.Fatal("expected asset to be reactivated")
+	}
+
+	updated, err = repository.FindByID(context.Background(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding asset, got %v", err)
+	}
+
+	if !updated.Active() {
+		t.Fatal("expected asset to be active")
+	}
+}
+
+func TestPostgresAssetRepositoryDuplicateNameStillRejectedAfterDeactivation(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+	repository := postgres.NewAssetRepository(queries)
+
+	first, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	second, err := domain.NewAsset("asset-2", "radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := repository.Save(context.Background(), first); err != nil {
+		t.Fatalf("expected no error saving first asset, got %v", err)
+	}
+
+	deactivated, err := repository.Deactivate(context.Background(), first.ID())
+	if err != nil {
+		t.Fatalf("expected no error deactivating first asset, got %v", err)
+	}
+
+	if !deactivated {
+		t.Fatal("expected first asset to be deactivated")
+	}
+
+	err = repository.Save(context.Background(), second)
+	if err != domain.ErrDuplicateAssetName {
+		t.Fatalf("expected ErrDuplicateAssetName, got %v", err)
+	}
+}
+
 func TestPostgresAssetRepositorySearch(t *testing.T) {
 	pool := openTestPool(t)
 	queries := newTestQueries(pool)

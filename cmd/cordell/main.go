@@ -130,6 +130,12 @@ func main() {
 		ListAssets: app.NewListAssetsService(
 			assetRepository,
 		),
+		DeactivateAsset: app.NewDeactivateAssetService(
+			assetRepository,
+		),
+		ReactivateAsset: app.NewReactivateAssetService(
+			assetRepository,
+		),
 		SearchAssets: app.NewSearchAssetsService(
 			assetRepository,
 		),
