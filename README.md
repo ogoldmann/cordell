@@ -327,6 +327,28 @@ Current balance behavior:
 
 Custody transaction persistence is atomic inside the PostgreSQL repository. If balance update fails, transaction rows and line rows are rolled back.
 
+## Custody Balance Concurrency
+
+Custody balance updates are protected at the repository/database level.
+
+Return operations do not rely only on a prior balance read.
+
+The PostgreSQL repository uses an atomic conditional update when decreasing custody balance:
+
+```txt
+UPDATE custody_balances
+SET quantity = quantity - requested_quantity
+WHERE personnel_id = requested_personnel
+  AND asset_id = requested_asset
+  AND quantity >= requested_quantity
+```
+
+If the update affects no rows, Cordell treats the operation as insufficient custody balance.
+
+This prevents concurrent returns from overdrawing the same custody balance.
+
+Application services may still perform early validation for user-friendly errors, but the repository/database update is the source of truth.
+
 ## Return UI Guardrails
 
 The return form is guided by current custody state.

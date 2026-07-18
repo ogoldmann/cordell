@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"cordell/internal/app"
@@ -1147,5 +1148,354 @@ func TestPostgresCustodyRepositoryHandlesMultipleAssetsInOneTransaction(t *testi
 
 	if len(currentItems) != 2 {
 		t.Fatalf("expected 2 current custody items, got %d", len(currentItems))
+	}
+}
+
+func TestPostgresCustodyRepositoryConcurrentReturnsCannotOverdrawBalance(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"93541134780",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	checkoutLine, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid checkout line, got %v", err)
+	}
+
+	checkout, err := domain.NewCustodyTransaction(
+		"transaction-checkout",
+		domain.CustodyTransactionTypeCheckout,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{checkoutLine},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid checkout, got %v", err)
+	}
+
+	if err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
+		t.Fatalf("expected no error saving checkout, got %v", err)
+	}
+
+	errCh := make(chan error, 2)
+	startCh := make(chan struct{})
+
+	saveReturn := func(transactionID domain.CustodyTransactionID) {
+		<-startCh
+
+		returnLine, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+		if err != nil {
+			errCh <- err
+			return
+		}
+
+		returnTransaction, err := domain.NewCustodyTransaction(
+			transactionID,
+			domain.CustodyTransactionTypeReturn,
+			personnel.ID(),
+			operator.ID(),
+			[]domain.CustodyLine{returnLine},
+			"",
+		)
+		if err != nil {
+			errCh <- err
+			return
+		}
+
+		errCh <- custodyRepository.SaveTransaction(context.Background(), returnTransaction)
+	}
+
+	go saveReturn("transaction-return-1")
+	go saveReturn("transaction-return-2")
+
+	close(startCh)
+
+	firstErr := <-errCh
+	secondErr := <-errCh
+
+	successCount := 0
+	insufficientCount := 0
+
+	for _, err := range []error{firstErr, secondErr} {
+		switch {
+		case err == nil:
+			successCount++
+		case errors.Is(err, domain.ErrInsufficientCustodyBalance):
+			insufficientCount++
+		default:
+			t.Fatalf("expected nil or ErrInsufficientCustodyBalance, got %v", err)
+		}
+	}
+
+	if successCount != 1 {
+		t.Fatalf("expected exactly 1 successful return, got %d", successCount)
+	}
+
+	if insufficientCount != 1 {
+		t.Fatalf("expected exactly 1 insufficient balance error, got %d", insufficientCount)
+	}
+
+	quantity, err := custodyRepository.CurrentQuantity(context.Background(), personnel.ID(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected no error reading current quantity, got %v", err)
+	}
+
+	if quantity != 0 {
+		t.Fatalf("expected current quantity 0, got %d", quantity)
+	}
+
+	history, err := custodyRepository.ListHistoryByPersonnel(context.Background(), personnel.ID(), 10)
+	if err != nil {
+		t.Fatalf("expected no error listing history, got %v", err)
+	}
+
+	if len(history) != 2 {
+		t.Fatalf("expected checkout plus one successful return in history, got %d entries", len(history))
+	}
+}
+
+func TestPostgresCustodyRepositoryConcurrentPartialReturnsRemainConsistent(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"93541134780",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	checkoutLine, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(3))
+	if err != nil {
+		t.Fatalf("expected valid checkout line, got %v", err)
+	}
+
+	checkout, err := domain.NewCustodyTransaction(
+		"transaction-checkout",
+		domain.CustodyTransactionTypeCheckout,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{checkoutLine},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid checkout, got %v", err)
+	}
+
+	if err := custodyRepository.SaveTransaction(context.Background(), checkout); err != nil {
+		t.Fatalf("expected no error saving checkout, got %v", err)
+	}
+
+	errCh := make(chan error, 2)
+	startCh := make(chan struct{})
+
+	saveReturn := func(transactionID domain.CustodyTransactionID, quantity int) {
+		<-startCh
+
+		returnLine, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(quantity))
+		if err != nil {
+			errCh <- err
+			return
+		}
+
+		returnTransaction, err := domain.NewCustodyTransaction(
+			transactionID,
+			domain.CustodyTransactionTypeReturn,
+			personnel.ID(),
+			operator.ID(),
+			[]domain.CustodyLine{returnLine},
+			"",
+		)
+		if err != nil {
+			errCh <- err
+			return
+		}
+
+		errCh <- custodyRepository.SaveTransaction(context.Background(), returnTransaction)
+	}
+
+	go saveReturn("transaction-return-1", 2)
+	go saveReturn("transaction-return-2", 2)
+
+	close(startCh)
+
+	firstErr := <-errCh
+	secondErr := <-errCh
+
+	successCount := 0
+	insufficientCount := 0
+
+	for _, err := range []error{firstErr, secondErr} {
+		switch {
+		case err == nil:
+			successCount++
+		case errors.Is(err, domain.ErrInsufficientCustodyBalance):
+			insufficientCount++
+		default:
+			t.Fatalf("expected nil or ErrInsufficientCustodyBalance, got %v", err)
+		}
+	}
+
+	if successCount != 1 {
+		t.Fatalf("expected exactly 1 successful return, got %d", successCount)
+	}
+
+	if insufficientCount != 1 {
+		t.Fatalf("expected exactly 1 insufficient balance error, got %d", insufficientCount)
+	}
+
+	quantity, err := custodyRepository.CurrentQuantity(context.Background(), personnel.ID(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected no error reading current quantity, got %v", err)
+	}
+
+	if quantity != 1 {
+		t.Fatalf("expected current quantity 1, got %d", quantity)
+	}
+}
+
+func TestPostgresCustodyRepositoryConcurrentCheckoutsAccumulateBalance(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"93541134780",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleAdmin,
+	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	errCh := make(chan error, 2)
+	startCh := make(chan struct{})
+
+	saveCheckout := func(transactionID domain.CustodyTransactionID) {
+		<-startCh
+
+		line, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+		if err != nil {
+			errCh <- err
+			return
+		}
+
+		transaction, err := domain.NewCustodyTransaction(
+			transactionID,
+			domain.CustodyTransactionTypeCheckout,
+			personnel.ID(),
+			operator.ID(),
+			[]domain.CustodyLine{line},
+			"",
+		)
+		if err != nil {
+			errCh <- err
+			return
+		}
+
+		errCh <- custodyRepository.SaveTransaction(context.Background(), transaction)
+	}
+
+	go saveCheckout("transaction-checkout-1")
+	go saveCheckout("transaction-checkout-2")
+
+	close(startCh)
+
+	firstErr := <-errCh
+	secondErr := <-errCh
+
+	if firstErr != nil {
+		t.Fatalf("expected first checkout to succeed, got %v", firstErr)
+	}
+
+	if secondErr != nil {
+		t.Fatalf("expected second checkout to succeed, got %v", secondErr)
+	}
+
+	quantity, err := custodyRepository.CurrentQuantity(context.Background(), personnel.ID(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected no error reading current quantity, got %v", err)
+	}
+
+	if quantity != 2 {
+		t.Fatalf("expected current quantity 2, got %d", quantity)
 	}
 }

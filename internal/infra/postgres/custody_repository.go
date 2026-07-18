@@ -60,34 +60,47 @@ func (r *CustodyRepository) SaveTransaction(ctx context.Context, transaction dom
 			return err
 		}
 
-		switch transaction.Type() {
-		case domain.CustodyTransactionTypeCheckout:
-			err = qtx.IncreaseCustodyBalanceForCheckout(ctx, db.IncreaseCustodyBalanceForCheckoutParams{
-				PersonnelID: string(transaction.PersonnelID()),
-				AssetID:     string(line.AssetID()),
-				Quantity:    int32(line.Quantity().Int()),
-			})
-			if err != nil {
-				return err
-			}
-
-		case domain.CustodyTransactionTypeReturn:
-			rowsAffected, err := qtx.DecreaseCustodyBalanceForReturn(ctx, db.DecreaseCustodyBalanceForReturnParams{
-				PersonnelID: string(transaction.PersonnelID()),
-				AssetID:     string(line.AssetID()),
-				Quantity:    int32(line.Quantity().Int()),
-			})
-			if err != nil {
-				return err
-			}
-
-			if rowsAffected == 0 {
-				return domain.ErrInsufficientCustodyBalance
-			}
+		if err := applyCustodyBalanceChange(ctx, qtx, transaction, line); err != nil {
+			return err
 		}
 	}
 
 	return tx.Commit(ctx)
+}
+
+func applyCustodyBalanceChange(
+	ctx context.Context,
+	queries *db.Queries,
+	transaction domain.CustodyTransaction,
+	line domain.CustodyLine,
+) error {
+	switch transaction.Type() {
+	case domain.CustodyTransactionTypeCheckout:
+		return queries.IncreaseCustodyBalance(ctx, db.IncreaseCustodyBalanceParams{
+			PersonnelID: string(transaction.PersonnelID()),
+			AssetID:     string(line.AssetID()),
+			Quantity:    int32(line.Quantity().Int()),
+		})
+
+	case domain.CustodyTransactionTypeReturn:
+		_, err := queries.DecreaseCustodyBalanceIfAvailable(ctx, db.DecreaseCustodyBalanceIfAvailableParams{
+			PersonnelID: string(transaction.PersonnelID()),
+			AssetID:     string(line.AssetID()),
+			Quantity:    int32(line.Quantity().Int()),
+		})
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return domain.ErrInsufficientCustodyBalance
+			}
+
+			return err
+		}
+
+		return nil
+
+	default:
+		return domain.ErrInvalidTransactionType
+	}
 }
 
 // CurrentQuantity returns the current custody quantity for a personnel and asset pair.

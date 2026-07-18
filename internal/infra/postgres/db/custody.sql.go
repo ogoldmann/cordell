@@ -88,7 +88,7 @@ func (q *Queries) CreateCustodyTransaction(ctx context.Context, arg CreateCustod
 	return i, err
 }
 
-const decreaseCustodyBalanceForReturn = `-- name: DecreaseCustodyBalanceForReturn :execrows
+const decreaseCustodyBalanceIfAvailable = `-- name: DecreaseCustodyBalanceIfAvailable :one
 UPDATE custody_balances
 SET
     quantity = quantity - $1,
@@ -96,20 +96,20 @@ SET
 WHERE personnel_id = $2
   AND asset_id = $3
   AND quantity >= $1
+RETURNING quantity
 `
 
-type DecreaseCustodyBalanceForReturnParams struct {
+type DecreaseCustodyBalanceIfAvailableParams struct {
 	Quantity    int32  `json:"quantity"`
 	PersonnelID string `json:"personnel_id"`
 	AssetID     string `json:"asset_id"`
 }
 
-func (q *Queries) DecreaseCustodyBalanceForReturn(ctx context.Context, arg DecreaseCustodyBalanceForReturnParams) (int64, error) {
-	result, err := q.db.Exec(ctx, decreaseCustodyBalanceForReturn, arg.Quantity, arg.PersonnelID, arg.AssetID)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
+func (q *Queries) DecreaseCustodyBalanceIfAvailable(ctx context.Context, arg DecreaseCustodyBalanceIfAvailableParams) (int32, error) {
+	row := q.db.QueryRow(ctx, decreaseCustodyBalanceIfAvailable, arg.Quantity, arg.PersonnelID, arg.AssetID)
+	var quantity int32
+	err := row.Scan(&quantity)
+	return quantity, err
 }
 
 const getCustodyBalanceQuantity = `-- name: GetCustodyBalanceQuantity :one
@@ -223,15 +223,17 @@ func (q *Queries) GetCustodyTransactionReceiptByID(ctx context.Context, id strin
 	return items, nil
 }
 
-const increaseCustodyBalanceForCheckout = `-- name: IncreaseCustodyBalanceForCheckout :exec
+const increaseCustodyBalance = `-- name: IncreaseCustodyBalance :exec
 INSERT INTO custody_balances (
     personnel_id,
     asset_id,
-    quantity
+    quantity,
+    updated_at
 ) VALUES (
     $1,
     $2,
-    $3
+    $3,
+    now()
 )
 ON CONFLICT (personnel_id, asset_id)
 DO UPDATE SET
@@ -239,14 +241,14 @@ DO UPDATE SET
     updated_at = now()
 `
 
-type IncreaseCustodyBalanceForCheckoutParams struct {
+type IncreaseCustodyBalanceParams struct {
 	PersonnelID string `json:"personnel_id"`
 	AssetID     string `json:"asset_id"`
 	Quantity    int32  `json:"quantity"`
 }
 
-func (q *Queries) IncreaseCustodyBalanceForCheckout(ctx context.Context, arg IncreaseCustodyBalanceForCheckoutParams) error {
-	_, err := q.db.Exec(ctx, increaseCustodyBalanceForCheckout, arg.PersonnelID, arg.AssetID, arg.Quantity)
+func (q *Queries) IncreaseCustodyBalance(ctx context.Context, arg IncreaseCustodyBalanceParams) error {
+	_, err := q.db.Exec(ctx, increaseCustodyBalance, arg.PersonnelID, arg.AssetID, arg.Quantity)
 	return err
 }
 

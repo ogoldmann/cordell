@@ -32,29 +32,32 @@ FROM custody_balances
 WHERE personnel_id = @personnel_id
   AND asset_id = @asset_id;
 
--- name: IncreaseCustodyBalanceForCheckout :exec
+-- name: IncreaseCustodyBalance :exec
 INSERT INTO custody_balances (
     personnel_id,
     asset_id,
-    quantity
+    quantity,
+    updated_at
 ) VALUES (
     @personnel_id,
     @asset_id,
-    @quantity
+    @quantity,
+    now()
 )
 ON CONFLICT (personnel_id, asset_id)
 DO UPDATE SET
     quantity = custody_balances.quantity + EXCLUDED.quantity,
     updated_at = now();
 
--- name: DecreaseCustodyBalanceForReturn :execrows
+-- name: DecreaseCustodyBalanceIfAvailable :one
 UPDATE custody_balances
 SET
     quantity = quantity - @quantity,
     updated_at = now()
 WHERE personnel_id = @personnel_id
   AND asset_id = @asset_id
-  AND quantity >= @quantity;
+  AND quantity >= @quantity
+RETURNING quantity;
 
 -- name: ListCurrentCustodyByPersonnel :many
 SELECT

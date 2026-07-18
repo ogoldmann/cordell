@@ -84,6 +84,14 @@ A line inside a custody transaction representing an asset and a quantity.
 
 The current quantity of a given asset under the custody of a given person.
 
+## Atomic Custody Balance Update
+
+An atomic custody balance update validates and changes a custody balance in one database operation.
+
+For returns, Cordell decreases balance only when the current quantity is still sufficient.
+
+This prevents concurrent returns from consuming the same balance twice.
+
 ## Custody Receipt
 
 A custody receipt is a read-only view of a checkout or return transaction.

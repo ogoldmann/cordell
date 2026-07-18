@@ -116,6 +116,16 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Duplicate asset lines are consolidated before transaction creation.
 - [ ] Invalid return rolls back transaction rows and line rows.
 
+## Custody Concurrency
+
+- [ ] Return balance decrease uses atomic conditional update.
+- [ ] Return does not rely only on read-before-update validation.
+- [ ] Concurrent returns cannot overdraw custody balance.
+- [ ] Failed concurrent return does not save transaction rows.
+- [ ] Failed concurrent return does not save line rows.
+- [ ] Concurrent checkouts accumulate balance correctly.
+- [ ] Repository/database remains the source of truth for custody balance.
+
 ## Return UI Guardrails
 
 - [ ] Return form requires personnel selection first.
