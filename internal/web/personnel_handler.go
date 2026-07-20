@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"cordell/internal/app"
 	"cordell/internal/domain"
@@ -236,14 +235,6 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 	data.ShowInactiveCustodyWarning = !personnel.Active() && data.HasCurrentCustody
 
 	for _, entry := range history {
-		editLabel := ""
-		if entry.HasCorrection {
-			editLabel = "Edited " + strconv.Itoa(entry.EditCount) + " time"
-			if entry.EditCount != 1 {
-				editLabel += "s"
-			}
-		}
-
 		historyView := custodyHistoryView{
 			ID:              string(entry.ID),
 			Type:            string(entry.Type),
@@ -255,7 +246,7 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 			Lines:           make([]custodyHistoryLineView, 0, len(entry.Lines)),
 			HasCorrection:   entry.HasCorrection,
 			EditCount:       entry.EditCount,
-			EditLabel:       editLabel,
+			EditLabel:       editCountLabel(entry.EditCount),
 		}
 
 		for _, line := range entry.Lines {

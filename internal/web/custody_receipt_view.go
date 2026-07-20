@@ -33,6 +33,7 @@ type custodyReceiptView struct {
 	HasCorrection            bool
 	Correction               custodyReceiptCorrectionView
 	EditCount                int
+	EditCountLabel           string
 	HasEdits                 bool
 	EditHistoryURL           string
 	Current                  custodyReceiptCurrentView
@@ -138,6 +139,7 @@ func newCustodyReceiptView(receipt app.CustodyReceipt) custodyReceiptView {
 		CreatedAt:               formatDateTime(receipt.CreatedAt),
 		Lines:                   make([]custodyReceiptLineView, 0, len(receipt.Lines)),
 		EditCount:               receipt.EditCount,
+		EditCountLabel:          editCountLabel(receipt.EditCount),
 		HasEdits:                receipt.EditCount > 0,
 		EditHistoryURL:          "#edit-history",
 		Current:                 newCustodyReceiptCurrentView(effectiveInterpretation),

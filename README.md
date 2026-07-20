@@ -253,6 +253,46 @@ This prevents inactive assets or inactive personnel from becoming impossible to 
 - [ ] Return asset selector/list includes inactive assets under current custody.
 - [ ] Return service continues to allow safe custody-clearing returns for inactive records.
 
+## Effective Custody Read Models
+
+Cordell separates immutable custody history from effective custody state.
+
+Immutable history preserves:
+
+- original custody transaction
+- correction records
+- audit events
+
+Effective custody state is used by operational read models.
+
+Operational read models should use:
+
+- custody balances for current custody
+- latest correction context for corrected transaction interpretation
+- original transaction only when no correction exists
+
+Personnel history uses the effective personnel.
+
+If a transaction is corrected from one personnel to another, it appears in the corrected personnel history and no longer appears in the previous personnel effective history.
+
+Asset current holder views use custody balances, so asset corrections are reflected through balance deltas.
+
+If asset history is added or present, it must use the effective asset lines from the latest correction.
+
+## Effective Custody Read Models Checklist
+
+- [ ] Current custody by personnel uses custody balances.
+- [ ] Current custody by asset uses custody balances.
+- [ ] Personnel history uses effective corrected personnel.
+- [ ] Corrected transaction leaves previous personnel effective history.
+- [ ] Corrected transaction appears in corrected personnel effective history.
+- [ ] Personnel history marks corrected transactions with edit count.
+- [ ] Receipt main cards show effective state.
+- [ ] Receipt edit history preserves original transaction.
+- [ ] Asset current holder views reflect correction balance deltas.
+- [ ] Asset history uses effective corrected asset if asset history exists.
+- [ ] Audit remains append-only and is not rewritten as effective state.
+
 ## Custody History
 
 Personnel detail pages display:

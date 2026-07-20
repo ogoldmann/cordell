@@ -142,6 +142,14 @@ Return transactions decrease current custody balance.
 
 Current custody views hide zero-balance rows.
 
+## Effective Custody Read Model
+
+An effective custody read model is a read model that represents the current operational interpretation of custody data.
+
+It uses the latest correction when present and the original transaction when no correction exists.
+
+It is different from immutable audit or receipt history.
+
 ## Custody Line Consolidation
 
 Custody line consolidation is the application-level normalization that combines duplicate asset lines in the same checkout or return command before the custody transaction is created.

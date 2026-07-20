@@ -24,7 +24,7 @@
 
       {{if .Receipt.HasEdits}}
         <span class="inline-flex w-fit rounded-full border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-extrabold text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
-          Edited {{.Receipt.EditCount}} time{{if ne .Receipt.EditCount 1}}s{{end}}
+          {{.Receipt.EditCountLabel}}
         </span>
 
         <a
