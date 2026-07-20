@@ -19,6 +19,8 @@ type custodyTransactionEditPageData struct {
 	Error                string
 	BaseTitle            string
 	BaseDescription      string
+	CanSubmit            bool
+	BlockedReason        string
 	Receipt              custodyEditReceiptView
 	CorrectionID         string
 	FormAction           string
@@ -189,7 +191,7 @@ func (s *Server) newCustodyTransactionEditPageData(
 
 	personnel, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
 		Limit:        500,
-		StatusFilter: string(ports.RecordStatusFilterAll),
+		StatusFilter: string(ports.RecordStatusFilterActive),
 	})
 	if err != nil {
 		return custodyTransactionEditPageData{}, err
@@ -197,7 +199,7 @@ func (s *Server) newCustodyTransactionEditPageData(
 
 	assets, err := s.services.ListAssets.Execute(r.Context(), app.ListAssetsCommand{
 		Limit:        500,
-		StatusFilter: string(ports.RecordStatusFilterAll),
+		StatusFilter: string(ports.RecordStatusFilterActive),
 	})
 	if err != nil {
 		return custodyTransactionEditPageData{}, err
@@ -238,6 +240,15 @@ func (s *Server) newCustodyTransactionEditPageData(
 		state.LineRows = ensureAtLeastOneCorrectionRow(effectiveLines)
 	}
 
+	activePersonnelIDs := activePersonnelIDSet(personnel)
+	activeAssetIDs := activeAssetIDSet(assets)
+	blockedReason := custodyCorrectionEditBlockedReason(
+		effectivePersonnelID,
+		effectiveLines,
+		activePersonnelIDs,
+		activeAssetIDs,
+	)
+
 	typeLabel := custodyTransactionTypeLabel(receipt.TransactionType)
 
 	data := custodyTransactionEditPageData{
@@ -246,6 +257,8 @@ func (s *Server) newCustodyTransactionEditPageData(
 		Error:                state.Error,
 		BaseTitle:            baseTitle,
 		BaseDescription:      baseDescription,
+		CanSubmit:            blockedReason == "",
+		BlockedReason:        blockedReason,
 		CorrectionID:         state.CorrectionID,
 		FormAction:           "/custody/transactions/" + string(transactionID) + "/corrections",
 		CorrectedPersonnelID: state.CorrectedPersonnelID,
@@ -271,14 +284,9 @@ func newCorrectionPersonnelOptions(
 	options := make([]correctionPersonnelOptionView, 0, len(personnel))
 
 	for _, item := range personnel {
-		label := militaryDisplayName(item.Rank(), item.Alias()) + " - " + item.FullName()
-		if !item.Active() {
-			label += " (Inactive)"
-		}
-
 		options = append(options, correctionPersonnelOptionView{
 			ID:       string(item.ID()),
-			Label:    label,
+			Label:    militaryDisplayName(item.Rank(), item.Alias()) + " - " + item.FullName(),
 			Selected: string(item.ID()) == selectedID,
 		})
 	}
@@ -290,18 +298,56 @@ func newCorrectionAssetOptions(assets []domain.Asset) []correctionAssetOptionVie
 	options := make([]correctionAssetOptionView, 0, len(assets))
 
 	for _, item := range assets {
-		label := item.Name()
-		if !item.Active() {
-			label += " (Inactive)"
-		}
-
 		options = append(options, correctionAssetOptionView{
 			ID:    string(item.ID()),
-			Label: label,
+			Label: item.Name(),
 		})
 	}
 
 	return options
+}
+
+func activePersonnelIDSet(personnel []domain.Personnel) map[string]struct{} {
+	ids := make(map[string]struct{}, len(personnel))
+
+	for _, item := range personnel {
+		ids[string(item.ID())] = struct{}{}
+	}
+
+	return ids
+}
+
+func activeAssetIDSet(assets []domain.Asset) map[string]struct{} {
+	ids := make(map[string]struct{}, len(assets))
+
+	for _, item := range assets {
+		ids[string(item.ID())] = struct{}{}
+	}
+
+	return ids
+}
+
+func custodyCorrectionEditBlockedReason(
+	effectivePersonnelID domain.PersonnelID,
+	effectiveLines []correctionLineRowView,
+	activePersonnelIDs map[string]struct{},
+	activeAssetIDs map[string]struct{},
+) string {
+	if _, ok := activePersonnelIDs[string(effectivePersonnelID)]; !ok {
+		return "This transaction currently references an inactive personnel. Reactivate the personnel before editing this transaction."
+	}
+
+	for _, line := range effectiveLines {
+		if strings.TrimSpace(line.AssetID) == "" {
+			continue
+		}
+
+		if _, ok := activeAssetIDs[line.AssetID]; !ok {
+			return "This transaction currently references an inactive asset. Reactivate the asset before editing this transaction."
+		}
+	}
+
+	return ""
 }
 
 func correctionLineRowsFromReceiptLines(lines []app.CustodyReceiptLine) []correctionLineRowView {

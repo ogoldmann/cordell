@@ -154,7 +154,7 @@ func (s *Server) buildReturnFormPageData(
 ) (returnNewPageData, error) {
 	personnelList, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
 		Limit:        100,
-		StatusFilter: string(ports.RecordStatusFilterAll),
+		StatusFilter: string(ports.RecordStatusFilterActive),
 	})
 	if err != nil {
 		return returnNewPageData{}, err
@@ -182,6 +182,9 @@ func (s *Server) buildReturnFormPageData(
 	if err != nil {
 		return returnNewPageData{}, err
 	}
+	if !personnel.Active() {
+		return data, nil
+	}
 
 	data.SelectedPersonnel = personnelReturnView{
 		ID:          string(personnel.ID()),
@@ -200,6 +203,10 @@ func (s *Server) buildReturnFormPageData(
 	data.CurrentItems = make([]returnCurrentCustodyItemView, 0, len(currentItems))
 
 	for _, item := range currentItems {
+		if !item.AssetActive {
+			continue
+		}
+
 		transactionID, err := newFormTransactionID()
 		if err != nil {
 			return returnNewPageData{}, err
