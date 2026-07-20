@@ -167,6 +167,34 @@ func TestListCustodyTransactionSummariesService(t *testing.T) {
 	}
 }
 
+func TestNormalizeCustodyTransactionTypeFilter(t *testing.T) {
+	if got := normalizeCustodyTransactionTypeFilter("checkout"); got != ports.CustodyTransactionTypeFilterCheckout {
+		t.Fatalf("expected checkout, got %s", got)
+	}
+
+	if got := normalizeCustodyTransactionTypeFilter("return"); got != ports.CustodyTransactionTypeFilterReturn {
+		t.Fatalf("expected return, got %s", got)
+	}
+
+	if got := normalizeCustodyTransactionTypeFilter("invalid"); got != ports.CustodyTransactionTypeFilterAll {
+		t.Fatalf("expected all, got %s", got)
+	}
+}
+
+func TestNormalizeCustodyEditStatusFilter(t *testing.T) {
+	if got := normalizeCustodyEditStatusFilter("edited"); got != ports.CustodyEditStatusFilterEdited {
+		t.Fatalf("expected edited, got %s", got)
+	}
+
+	if got := normalizeCustodyEditStatusFilter("unedited"); got != ports.CustodyEditStatusFilterUnedited {
+		t.Fatalf("expected unedited, got %s", got)
+	}
+
+	if got := normalizeCustodyEditStatusFilter("invalid"); got != ports.CustodyEditStatusFilterAll {
+		t.Fatalf("expected all, got %s", got)
+	}
+}
+
 func TestRegisterCheckoutServiceUsesCommandTransactionID(t *testing.T) {
 	personnel := mustBuildPersonnel(t, "personnel-1")
 	asset := mustBuildAsset(t, "asset-1")

@@ -474,7 +474,7 @@ func (r *fakeCustodyRepository) ListHistoryByPersonnel(
 
 func (r *fakeCustodyRepository) ListTransactionSummaries(
 	_ context.Context,
-	_ int,
+	_ ports.CustodyTransactionSummaryFilters,
 ) ([]ports.CustodyTransactionSummary, error) {
 	return r.transactionSummaries, nil
 }

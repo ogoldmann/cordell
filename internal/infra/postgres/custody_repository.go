@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"cordell/internal/domain"
@@ -448,13 +449,35 @@ func (r *CustodyRepository) ListHistoryByPersonnel(
 // ListTransactionSummaries returns custody transaction summaries for the ledger.
 func (r *CustodyRepository) ListTransactionSummaries(
 	ctx context.Context,
-	limit int,
+	filters ports.CustodyTransactionSummaryFilters,
 ) ([]ports.CustodyTransactionSummary, error) {
+	limit := filters.Limit
 	if limit <= 0 {
 		limit = 100
 	}
 
-	rows, err := r.queries.ListCustodyTransactionSummaries(ctx, int32(limit))
+	transactionTypeFilter := filters.TransactionTypeFilter
+	if transactionTypeFilter == "" {
+		transactionTypeFilter = ports.CustodyTransactionTypeFilterAll
+	}
+
+	editStatusFilter := filters.EditStatusFilter
+	if editStatusFilter == "" {
+		editStatusFilter = ports.CustodyEditStatusFilterAll
+	}
+
+	searchPattern := ""
+	searchQuery := strings.TrimSpace(filters.SearchQuery)
+	if searchQuery != "" {
+		searchPattern = "%" + escapeLikePattern(searchQuery) + "%"
+	}
+
+	rows, err := r.queries.ListCustodyTransactionSummaries(ctx, db.ListCustodyTransactionSummariesParams{
+		LimitCount:            int32(limit),
+		SearchPattern:         searchPattern,
+		TransactionTypeFilter: string(transactionTypeFilter),
+		EditStatusFilter:      string(editStatusFilter),
+	})
 	if err != nil {
 		return nil, err
 	}

@@ -206,42 +206,36 @@ effective_transactions AS (
     LEFT JOIN correction_counts cc
         ON cc.corrected_transaction_id = ct.id
 ),
-selected_transactions AS (
-    SELECT *
-    FROM effective_transactions
-    ORDER BY created_at DESC, id DESC
-    LIMIT @limit_count
-),
 effective_lines AS (
     SELECT
-        st.id AS transaction_id,
+        et.id AS transaction_id,
         cl.id AS line_order,
         cl.asset_id,
         a.name AS asset_name,
         a.active AS asset_active,
         cl.quantity
-    FROM selected_transactions st
+    FROM effective_transactions et
     JOIN custody_lines cl
-        ON cl.custody_transaction_id = st.id
+        ON cl.custody_transaction_id = et.id
     JOIN assets a
         ON a.id = cl.asset_id
-    WHERE st.latest_correction_id IS NULL
+    WHERE et.latest_correction_id IS NULL
 
     UNION ALL
 
     SELECT
-        st.id AS transaction_id,
+        et.id AS transaction_id,
         ccl.id AS line_order,
         ccl.asset_id,
         a.name AS asset_name,
         a.active AS asset_active,
         ccl.quantity
-    FROM selected_transactions st
+    FROM effective_transactions et
     JOIN custody_correction_lines ccl
-        ON ccl.custody_correction_id = st.latest_correction_id
+        ON ccl.custody_correction_id = et.latest_correction_id
     JOIN assets a
         ON a.id = ccl.asset_id
-    WHERE st.latest_correction_id IS NOT NULL
+    WHERE et.latest_correction_id IS NOT NULL
 ),
 line_totals AS (
     SELECT
@@ -249,6 +243,54 @@ line_totals AS (
         sum(quantity)::int AS total_quantity
     FROM effective_lines
     GROUP BY transaction_id
+),
+filtered_transactions AS (
+    SELECT et.*
+    FROM effective_transactions et
+    JOIN personnel op
+        ON op.id = et.original_personnel_id
+    JOIN personnel ep
+        ON ep.id = et.effective_personnel_id
+    JOIN operators o
+        ON o.id = et.operator_id
+    WHERE (
+        sqlc.arg(transaction_type_filter)::text = 'all'
+        OR et.transaction_type = sqlc.arg(transaction_type_filter)::text
+    )
+    AND (
+        sqlc.arg(edit_status_filter)::text = 'all'
+        OR (
+            sqlc.arg(edit_status_filter)::text = 'edited'
+            AND et.edit_count > 0
+        )
+        OR (
+            sqlc.arg(edit_status_filter)::text = 'unedited'
+            AND et.edit_count = 0
+        )
+    )
+    AND (
+        sqlc.arg(search_pattern)::text = ''
+        OR et.id ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+        OR ep.full_name ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+        OR ep.alias ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+        OR ep.registration_id ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+        OR op.full_name ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+        OR op.alias ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+        OR op.registration_id ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+        OR o.alias ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+        OR EXISTS (
+            SELECT 1
+            FROM effective_lines el
+            WHERE el.transaction_id = et.id
+              AND el.asset_name ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+        )
+    )
+),
+selected_transactions AS (
+    SELECT *
+    FROM filtered_transactions
+    ORDER BY created_at DESC, id DESC
+    LIMIT @limit_count
 )
 SELECT
     st.id,

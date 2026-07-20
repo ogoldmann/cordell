@@ -360,6 +360,19 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Ledger preserves newest-first ordering.
 - [ ] Ledger sequence number reflects chronological transaction order.
 
+## Custody Ledger Search and Filters
+
+- [ ] Ledger can filter checkout transactions.
+- [ ] Ledger can filter return transactions.
+- [ ] Ledger can filter edited transactions.
+- [ ] Ledger can filter unedited transactions.
+- [ ] Ledger search matches transaction ID.
+- [ ] Ledger search matches effective personnel.
+- [ ] Ledger search matches original personnel.
+- [ ] Ledger search matches operator alias.
+- [ ] Ledger search matches effective asset name.
+- [ ] Ledger empty state distinguishes no data from no filter matches.
+
 ## Correction Effective State Hardening
 
 - [ ] Checkout correction cannot create positive balance for inactive personnel.

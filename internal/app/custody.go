@@ -481,7 +481,10 @@ type CustodyTransactionSummary struct {
 
 // ListCustodyTransactionSummariesCommand contains ledger list parameters.
 type ListCustodyTransactionSummariesCommand struct {
-	Limit int
+	Limit                 int
+	SearchQuery           string
+	TransactionTypeFilter string
+	EditStatusFilter      string
 }
 
 // ListCustodyTransactionSummariesService lists custody transaction summaries.
@@ -503,7 +506,12 @@ func (s *ListCustodyTransactionSummariesService) Execute(
 	ctx context.Context,
 	cmd ListCustodyTransactionSummariesCommand,
 ) ([]CustodyTransactionSummary, error) {
-	items, err := s.custodyRepository.ListTransactionSummaries(ctx, cmd.Limit)
+	items, err := s.custodyRepository.ListTransactionSummaries(ctx, ports.CustodyTransactionSummaryFilters{
+		Limit:                 cmd.Limit,
+		SearchQuery:           cmd.SearchQuery,
+		TransactionTypeFilter: normalizeCustodyTransactionTypeFilter(cmd.TransactionTypeFilter),
+		EditStatusFilter:      normalizeCustodyEditStatusFilter(cmd.EditStatusFilter),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -550,6 +558,28 @@ func (s *ListCustodyTransactionSummariesService) Execute(
 	}
 
 	return summaries, nil
+}
+
+func normalizeCustodyTransactionTypeFilter(value string) ports.CustodyTransactionTypeFilter {
+	switch ports.CustodyTransactionTypeFilter(value) {
+	case ports.CustodyTransactionTypeFilterCheckout:
+		return ports.CustodyTransactionTypeFilterCheckout
+	case ports.CustodyTransactionTypeFilterReturn:
+		return ports.CustodyTransactionTypeFilterReturn
+	default:
+		return ports.CustodyTransactionTypeFilterAll
+	}
+}
+
+func normalizeCustodyEditStatusFilter(value string) ports.CustodyEditStatusFilter {
+	switch ports.CustodyEditStatusFilter(value) {
+	case ports.CustodyEditStatusFilterEdited:
+		return ports.CustodyEditStatusFilterEdited
+	case ports.CustodyEditStatusFilterUnedited:
+		return ports.CustodyEditStatusFilterUnedited
+	default:
+		return ports.CustodyEditStatusFilterAll
+	}
 }
 
 // ListCustodyHistoryCommand contains the input data required to list custody history.

@@ -95,6 +95,32 @@ type CustodyTransactionSummary struct {
 	EditCount                  int
 }
 
+// CustodyTransactionTypeFilter filters custody transaction ledger items by type.
+type CustodyTransactionTypeFilter string
+
+const (
+	CustodyTransactionTypeFilterAll      CustodyTransactionTypeFilter = "all"
+	CustodyTransactionTypeFilterCheckout CustodyTransactionTypeFilter = "checkout"
+	CustodyTransactionTypeFilterReturn   CustodyTransactionTypeFilter = "return"
+)
+
+// CustodyEditStatusFilter filters custody transaction ledger items by edit status.
+type CustodyEditStatusFilter string
+
+const (
+	CustodyEditStatusFilterAll      CustodyEditStatusFilter = "all"
+	CustodyEditStatusFilterEdited   CustodyEditStatusFilter = "edited"
+	CustodyEditStatusFilterUnedited CustodyEditStatusFilter = "unedited"
+)
+
+// CustodyTransactionSummaryFilters contains filters for custody transaction ledger summaries.
+type CustodyTransactionSummaryFilters struct {
+	Limit                 int
+	SearchQuery           string
+	TransactionTypeFilter CustodyTransactionTypeFilter
+	EditStatusFilter      CustodyEditStatusFilter
+}
+
 // CustodyReceiptLine represents one asset line in a custody transaction receipt.
 type CustodyReceiptLine struct {
 	AssetID     domain.AssetID
@@ -207,7 +233,7 @@ type CustodyRepository interface {
 	ListCurrentByPersonnel(ctx context.Context, personnelID domain.PersonnelID) ([]CurrentCustodyItem, error)
 	ListCurrentByAsset(ctx context.Context, assetID domain.AssetID) ([]CurrentAssetHolder, error)
 	ListHistoryByPersonnel(ctx context.Context, personnelID domain.PersonnelID, limit int) ([]CustodyHistoryEntry, error)
-	ListTransactionSummaries(ctx context.Context, limit int) ([]CustodyTransactionSummary, error)
+	ListTransactionSummaries(ctx context.Context, filters CustodyTransactionSummaryFilters) ([]CustodyTransactionSummary, error)
 	FindReceiptByID(ctx context.Context, id domain.CustodyTransactionID) (CustodyReceipt, error)
 	ListCorrectionContextsByTransactionID(ctx context.Context, id domain.CustodyTransactionID) ([]CustodyCorrectionContext, error)
 }

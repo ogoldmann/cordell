@@ -622,42 +622,36 @@ effective_transactions AS (
     LEFT JOIN correction_counts cc
         ON cc.corrected_transaction_id = ct.id
 ),
-selected_transactions AS (
-    SELECT id, sequence_number, transaction_type, original_personnel_id, effective_personnel_id, operator_id, created_at, latest_correction_id, edit_count
-    FROM effective_transactions
-    ORDER BY created_at DESC, id DESC
-    LIMIT $1
-),
 effective_lines AS (
     SELECT
-        st.id AS transaction_id,
+        et.id AS transaction_id,
         cl.id AS line_order,
         cl.asset_id,
         a.name AS asset_name,
         a.active AS asset_active,
         cl.quantity
-    FROM selected_transactions st
+    FROM effective_transactions et
     JOIN custody_lines cl
-        ON cl.custody_transaction_id = st.id
+        ON cl.custody_transaction_id = et.id
     JOIN assets a
         ON a.id = cl.asset_id
-    WHERE st.latest_correction_id IS NULL
+    WHERE et.latest_correction_id IS NULL
 
     UNION ALL
 
     SELECT
-        st.id AS transaction_id,
+        et.id AS transaction_id,
         ccl.id AS line_order,
         ccl.asset_id,
         a.name AS asset_name,
         a.active AS asset_active,
         ccl.quantity
-    FROM selected_transactions st
+    FROM effective_transactions et
     JOIN custody_correction_lines ccl
-        ON ccl.custody_correction_id = st.latest_correction_id
+        ON ccl.custody_correction_id = et.latest_correction_id
     JOIN assets a
         ON a.id = ccl.asset_id
-    WHERE st.latest_correction_id IS NOT NULL
+    WHERE et.latest_correction_id IS NOT NULL
 ),
 line_totals AS (
     SELECT
@@ -665,6 +659,54 @@ line_totals AS (
         sum(quantity)::int AS total_quantity
     FROM effective_lines
     GROUP BY transaction_id
+),
+filtered_transactions AS (
+    SELECT et.id, et.sequence_number, et.transaction_type, et.original_personnel_id, et.effective_personnel_id, et.operator_id, et.created_at, et.latest_correction_id, et.edit_count
+    FROM effective_transactions et
+    JOIN personnel op
+        ON op.id = et.original_personnel_id
+    JOIN personnel ep
+        ON ep.id = et.effective_personnel_id
+    JOIN operators o
+        ON o.id = et.operator_id
+    WHERE (
+        $1::text = 'all'
+        OR et.transaction_type = $1::text
+    )
+    AND (
+        $2::text = 'all'
+        OR (
+            $2::text = 'edited'
+            AND et.edit_count > 0
+        )
+        OR (
+            $2::text = 'unedited'
+            AND et.edit_count = 0
+        )
+    )
+    AND (
+        $3::text = ''
+        OR et.id ILIKE $3::text ESCAPE '\'
+        OR ep.full_name ILIKE $3::text ESCAPE '\'
+        OR ep.alias ILIKE $3::text ESCAPE '\'
+        OR ep.registration_id ILIKE $3::text ESCAPE '\'
+        OR op.full_name ILIKE $3::text ESCAPE '\'
+        OR op.alias ILIKE $3::text ESCAPE '\'
+        OR op.registration_id ILIKE $3::text ESCAPE '\'
+        OR o.alias ILIKE $3::text ESCAPE '\'
+        OR EXISTS (
+            SELECT 1
+            FROM effective_lines el
+            WHERE el.transaction_id = et.id
+              AND el.asset_name ILIKE $3::text ESCAPE '\'
+        )
+    )
+),
+selected_transactions AS (
+    SELECT id, sequence_number, transaction_type, original_personnel_id, effective_personnel_id, operator_id, created_at, latest_correction_id, edit_count
+    FROM filtered_transactions
+    ORDER BY created_at DESC, id DESC
+    LIMIT $4
 )
 SELECT
     st.id,
@@ -707,6 +749,13 @@ LEFT JOIN effective_lines el ON el.transaction_id = st.id
 ORDER BY st.created_at DESC, st.id DESC, el.asset_name ASC, el.line_order ASC
 `
 
+type ListCustodyTransactionSummariesParams struct {
+	TransactionTypeFilter string `json:"transaction_type_filter"`
+	EditStatusFilter      string `json:"edit_status_filter"`
+	SearchPattern         string `json:"search_pattern"`
+	LimitCount            int32  `json:"limit_count"`
+}
+
 type ListCustodyTransactionSummariesRow struct {
 	ID                         string             `json:"id"`
 	SequenceNumber             int32              `json:"sequence_number"`
@@ -736,8 +785,13 @@ type ListCustodyTransactionSummariesRow struct {
 	Quantity                   pgtype.Int4        `json:"quantity"`
 }
 
-func (q *Queries) ListCustodyTransactionSummaries(ctx context.Context, limitCount int32) ([]ListCustodyTransactionSummariesRow, error) {
-	rows, err := q.db.Query(ctx, listCustodyTransactionSummaries, limitCount)
+func (q *Queries) ListCustodyTransactionSummaries(ctx context.Context, arg ListCustodyTransactionSummariesParams) ([]ListCustodyTransactionSummariesRow, error) {
+	rows, err := q.db.Query(ctx, listCustodyTransactionSummaries,
+		arg.TransactionTypeFilter,
+		arg.EditStatusFilter,
+		arg.SearchPattern,
+		arg.LimitCount,
+	)
 	if err != nil {
 		return nil, err
 	}

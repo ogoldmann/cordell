@@ -1253,6 +1253,25 @@ The sequence number represents the chronological order of custody transactions.
 
 The ledger is displayed newest first, while the sequence number preserves the transaction's original chronological position.
 
+## Custody Ledger Search and Filters
+
+The custody transaction ledger supports search and filters.
+
+Ledger filters include:
+
+- transaction type: all, checkout, return
+- edit status: all, edited, unedited
+
+Ledger search can match:
+
+- transaction ID
+- effective personnel name, alias, or registration ID
+- original personnel name, alias, or registration ID
+- operator alias
+- effective asset name
+
+The ledger search uses the current effective transaction state when corrections exist.
+
 ## Custody Correction Line Editing
 
 The custody transaction edit form supports adding and removing corrected lines.

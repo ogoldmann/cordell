@@ -3,6 +3,7 @@ package web
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"cordell/internal/app"
@@ -11,8 +12,12 @@ import (
 
 type custodyTransactionLedgerPageData struct {
 	privateLayoutData
-	Title        string
-	Transactions []custodyTransactionSummaryView
+	Title            string
+	Query            string
+	TypeFilter       string
+	EditStatusFilter string
+	HasFilters       bool
+	Transactions     []custodyTransactionSummaryView
 }
 
 type custodyTransactionSummaryView struct {
@@ -49,8 +54,15 @@ type custodyTransactionSummaryLineView struct {
 }
 
 func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.Request) {
+	query := strings.TrimSpace(r.URL.Query().Get("q"))
+	typeFilter := normalizedLedgerTypeFilter(r.URL.Query().Get("type"))
+	editStatusFilter := normalizedLedgerEditStatusFilter(r.URL.Query().Get("edited"))
+
 	transactions, err := s.services.ListCustodyTransactionSummaries.Execute(r.Context(), app.ListCustodyTransactionSummariesCommand{
-		Limit: 100,
+		Limit:                 100,
+		SearchQuery:           query,
+		TransactionTypeFilter: typeFilter,
+		EditStatusFilter:      editStatusFilter,
 	})
 	if err != nil {
 		s.logger.Error("failed to list custody transaction summaries", "error", err)
@@ -61,11 +73,33 @@ func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.R
 	data := custodyTransactionLedgerPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Custody transactions",
+		Query:             query,
+		TypeFilter:        typeFilter,
+		EditStatusFilter:  editStatusFilter,
+		HasFilters:        query != "" || typeFilter != "all" || editStatusFilter != "all",
 		Transactions:      newCustodyTransactionSummaryViews(transactions),
 	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "custody_transactions_index.html", data); err != nil {
 		s.handleRenderError(w, err)
+	}
+}
+
+func normalizedLedgerTypeFilter(value string) string {
+	switch value {
+	case "checkout", "return":
+		return value
+	default:
+		return "all"
+	}
+}
+
+func normalizedLedgerEditStatusFilter(value string) string {
+	switch value {
+	case "edited", "unedited":
+		return value
+	default:
+		return "all"
 	}
 }
 

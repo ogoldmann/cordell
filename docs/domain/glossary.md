@@ -146,6 +146,12 @@ The first recorded custody transaction is sequence number 1.
 
 The ledger may display newest transactions first while still preserving the original sequence number.
 
+## Ledger Filter
+
+A ledger filter narrows the custody transaction ledger by transaction type, edit status, or search query.
+
+Ledger filters operate on the effective transaction state.
+
 ## Current Custody Balance
 
 Current custody balance is the current quantity of a given asset under the responsibility of a given personnel record.

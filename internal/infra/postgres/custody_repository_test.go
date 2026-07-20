@@ -8,6 +8,7 @@ import (
 	"cordell/internal/app"
 	"cordell/internal/domain"
 	"cordell/internal/infra/postgres"
+	"cordell/internal/ports"
 )
 
 func TestPostgresCustodyRepositoryRegisterCheckout(t *testing.T) {
@@ -2102,7 +2103,9 @@ func TestPostgresCustodyRepositoryListTransactionSummariesUsesEffectiveCorrectio
 		t.Fatal("expected correction to be created")
 	}
 
-	summaries, err := custodyRepository.ListTransactionSummaries(context.Background(), 10)
+	summaries, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
+		Limit: 10,
+	})
 	if err != nil {
 		t.Fatalf("expected no error listing transaction summaries, got %v", err)
 	}
@@ -2151,5 +2154,310 @@ func TestPostgresCustodyRepositoryListTransactionSummariesUsesEffectiveCorrectio
 
 	if summary.Lines[0].Quantity != 2 {
 		t.Fatalf("expected effective line quantity 2, got %d", summary.Lines[0].Quantity)
+	}
+}
+
+func TestPostgresCustodyRepositoryListTransactionSummariesFiltersByTransactionType(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(t, "operator-1", "93541134780", "silva", domain.RankSergeant, domain.OperatorRoleOperator)
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	line, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid line, got %v", err)
+	}
+
+	checkout, err := domain.NewCustodyTransaction(
+		"transaction-checkout",
+		domain.CustodyTransactionTypeCheckout,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{line},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid checkout, got %v", err)
+	}
+
+	created, err := custodyRepository.SaveTransaction(context.Background(), checkout)
+	if err != nil {
+		t.Fatalf("expected no error saving checkout, got %v", err)
+	}
+	if !created {
+		t.Fatal("expected checkout to be created")
+	}
+
+	returnTransaction, err := domain.NewCustodyTransaction(
+		"transaction-return",
+		domain.CustodyTransactionTypeReturn,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{line},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid return, got %v", err)
+	}
+
+	created, err = custodyRepository.SaveTransaction(context.Background(), returnTransaction)
+	if err != nil {
+		t.Fatalf("expected no error saving return, got %v", err)
+	}
+	if !created {
+		t.Fatal("expected return to be created")
+	}
+
+	summaries, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
+		Limit:                 10,
+		TransactionTypeFilter: ports.CustodyTransactionTypeFilterCheckout,
+	})
+	if err != nil {
+		t.Fatalf("expected no error listing summaries, got %v", err)
+	}
+
+	if len(summaries) != 1 {
+		t.Fatalf("expected 1 checkout summary, got %d", len(summaries))
+	}
+
+	if summaries[0].TransactionType != domain.CustodyTransactionTypeCheckout {
+		t.Fatalf("expected checkout, got %s", summaries[0].TransactionType)
+	}
+}
+
+func TestPostgresCustodyRepositoryListTransactionSummariesFiltersEditedTransactions(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(t, "operator-1", "93541134780", "silva", domain.RankSergeant, domain.OperatorRoleOperator)
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	line, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid line, got %v", err)
+	}
+
+	transaction, err := domain.NewCustodyTransaction(
+		"transaction-1",
+		domain.CustodyTransactionTypeCheckout,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{line},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid transaction, got %v", err)
+	}
+
+	created, err := custodyRepository.SaveTransaction(context.Background(), transaction)
+	if err != nil {
+		t.Fatalf("expected no error saving transaction, got %v", err)
+	}
+	if !created {
+		t.Fatal("expected transaction to be created")
+	}
+
+	correctedLine, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(2))
+	if err != nil {
+		t.Fatalf("expected valid corrected line, got %v", err)
+	}
+
+	correction, err := domain.NewCustodyCorrection(
+		"correction-1",
+		transaction.ID(),
+		operator.ID(),
+		personnel.ID(),
+		[]domain.CustodyLine{correctedLine},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid correction, got %v", err)
+	}
+
+	created, err = custodyRepository.SaveCorrection(
+		context.Background(),
+		correction,
+		transaction.Type(),
+		transaction.PersonnelID(),
+		transaction.Lines(),
+	)
+	if err != nil {
+		t.Fatalf("expected no error saving correction, got %v", err)
+	}
+	if !created {
+		t.Fatal("expected correction to be created")
+	}
+
+	summaries, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
+		Limit:            10,
+		EditStatusFilter: ports.CustodyEditStatusFilterEdited,
+	})
+	if err != nil {
+		t.Fatalf("expected no error listing edited summaries, got %v", err)
+	}
+
+	if len(summaries) != 1 {
+		t.Fatalf("expected 1 edited summary, got %d", len(summaries))
+	}
+
+	if !summaries[0].HasCorrection {
+		t.Fatal("expected summary to be edited")
+	}
+}
+
+func TestPostgresCustodyRepositoryListTransactionSummariesSearchesEffectiveAssetName(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	radio, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid radio, got %v", err)
+	}
+
+	helmet, err := domain.NewAsset("asset-2", "Helmet")
+	if err != nil {
+		t.Fatalf("expected valid helmet, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), radio); err != nil {
+		t.Fatalf("expected no error saving radio, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), helmet); err != nil {
+		t.Fatalf("expected no error saving helmet, got %v", err)
+	}
+
+	operator := mustNewTestOperator(t, "operator-1", "93541134780", "silva", domain.RankSergeant, domain.OperatorRoleOperator)
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	line, err := domain.NewCustodyLine(radio.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid line, got %v", err)
+	}
+
+	transaction, err := domain.NewCustodyTransaction(
+		"transaction-1",
+		domain.CustodyTransactionTypeCheckout,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{line},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid transaction, got %v", err)
+	}
+
+	created, err := custodyRepository.SaveTransaction(context.Background(), transaction)
+	if err != nil {
+		t.Fatalf("expected no error saving transaction, got %v", err)
+	}
+	if !created {
+		t.Fatal("expected transaction to be created")
+	}
+
+	correctedLine, err := domain.NewCustodyLine(helmet.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid corrected line, got %v", err)
+	}
+
+	correction, err := domain.NewCustodyCorrection(
+		"correction-1",
+		transaction.ID(),
+		operator.ID(),
+		personnel.ID(),
+		[]domain.CustodyLine{correctedLine},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid correction, got %v", err)
+	}
+
+	created, err = custodyRepository.SaveCorrection(
+		context.Background(),
+		correction,
+		transaction.Type(),
+		transaction.PersonnelID(),
+		transaction.Lines(),
+	)
+	if err != nil {
+		t.Fatalf("expected no error saving correction, got %v", err)
+	}
+	if !created {
+		t.Fatal("expected correction to be created")
+	}
+
+	summaries, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
+		Limit:       10,
+		SearchQuery: "Helmet",
+	})
+	if err != nil {
+		t.Fatalf("expected no error searching summaries, got %v", err)
+	}
+
+	if len(summaries) != 1 {
+		t.Fatalf("expected 1 summary, got %d", len(summaries))
+	}
+
+	if len(summaries[0].Lines) != 1 {
+		t.Fatalf("expected 1 effective line, got %d", len(summaries[0].Lines))
+	}
+
+	if summaries[0].Lines[0].AssetID != helmet.ID() {
+		t.Fatalf("expected effective asset %s, got %s", helmet.ID(), summaries[0].Lines[0].AssetID)
 	}
 }
