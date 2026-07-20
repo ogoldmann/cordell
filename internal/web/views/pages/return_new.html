@@ -35,8 +35,8 @@
     >
       <option value="">Select personnel</option>
       {{range .PersonnelOptions}}
-        <option value="{{.ID}}" {{if eq $.SelectedPersonnelID .ID}}selected{{end}}>
-          {{.DisplayName}} — {{.FullName}}
+        <option value="{{.ID}}" {{if .Selected}}selected{{end}}>
+          {{.Label}}
         </option>
       {{end}}
     </select>
@@ -83,7 +83,14 @@
 
             <div class="grid gap-4 md:grid-cols-[1fr_160px_auto] md:items-end">
               <div>
-                <p class="m-0 text-lg font-extrabold">{{.AssetName}}</p>
+                <p class="m-0 text-lg font-extrabold">
+                  {{.AssetName}}
+                  {{if not .AssetActive}}
+                    <span class="ml-2 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                      Inactive
+                    </span>
+                  {{end}}
+                </p>
                 <p class="mt-1 font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.AssetID}}</p>
                 <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
                   Available quantity: <strong>{{.Quantity}}</strong>

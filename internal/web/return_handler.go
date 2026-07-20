@@ -14,7 +14,7 @@ type returnNewPageData struct {
 	privateLayoutData
 	Title                string
 	Error                string
-	PersonnelOptions     []personnelOptionView
+	PersonnelOptions     []returnPersonnelOptionView
 	SelectedPersonnelID  string
 	SelectedPersonnel    personnelReturnView
 	HasSelectedPersonnel bool
@@ -32,7 +32,14 @@ type returnCurrentCustodyItemView struct {
 	TransactionID string
 	AssetID       string
 	AssetName     string
+	AssetActive   bool
 	Quantity      int
+}
+
+type returnPersonnelOptionView struct {
+	ID       string
+	Label    string
+	Selected bool
 }
 
 func (s *Server) handleNewReturnForm(w http.ResponseWriter, r *http.Request) {
@@ -152,10 +159,7 @@ func (s *Server) buildReturnFormPageData(
 	selectedPersonnelID domain.PersonnelID,
 	errorMessage string,
 ) (returnNewPageData, error) {
-	personnelList, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
-		Limit:        100,
-		StatusFilter: string(ports.RecordStatusFilterActive),
-	})
+	personnelList, err := s.services.ListPersonnelWithCurrentCustody.Execute(r.Context())
 	if err != nil {
 		return returnNewPageData{}, err
 	}
@@ -164,12 +168,8 @@ func (s *Server) buildReturnFormPageData(
 		privateLayoutData:   newPrivateLayoutData(r),
 		Title:               "Register return",
 		Error:               errorMessage,
-		PersonnelOptions:    make([]personnelOptionView, 0, len(personnelList)),
+		PersonnelOptions:    newReturnPersonnelOptions(personnelList, string(selectedPersonnelID)),
 		SelectedPersonnelID: string(selectedPersonnelID),
-	}
-
-	for _, personnel := range personnelList {
-		data.PersonnelOptions = append(data.PersonnelOptions, newPersonnelOptionView(personnel))
 	}
 
 	if selectedPersonnelID == "" {
@@ -181,9 +181,6 @@ func (s *Server) buildReturnFormPageData(
 	})
 	if err != nil {
 		return returnNewPageData{}, err
-	}
-	if !personnel.Active() {
-		return data, nil
 	}
 
 	data.SelectedPersonnel = personnelReturnView{
@@ -203,10 +200,6 @@ func (s *Server) buildReturnFormPageData(
 	data.CurrentItems = make([]returnCurrentCustodyItemView, 0, len(currentItems))
 
 	for _, item := range currentItems {
-		if !item.AssetActive {
-			continue
-		}
-
 		transactionID, err := newFormTransactionID()
 		if err != nil {
 			return returnNewPageData{}, err
@@ -216,6 +209,7 @@ func (s *Server) buildReturnFormPageData(
 			TransactionID: string(transactionID),
 			AssetID:       string(item.AssetID),
 			AssetName:     item.AssetName,
+			AssetActive:   item.AssetActive,
 			Quantity:      item.Quantity,
 		})
 	}
@@ -223,6 +217,30 @@ func (s *Server) buildReturnFormPageData(
 	data.HasCurrentItems = len(data.CurrentItems) > 0
 
 	return data, nil
+}
+
+func newReturnPersonnelOptions(
+	personnel []app.PersonnelWithCurrentCustody,
+	selectedID string,
+) []returnPersonnelOptionView {
+	options := make([]returnPersonnelOptionView, 0, len(personnel))
+
+	for _, item := range personnel {
+		label := militaryDisplayName(item.Rank, item.Alias) + " - " + item.FullName
+		label += " - " + strconv.Itoa(item.TotalQuantity) + " item(s)"
+
+		if !item.Active {
+			label += " - Inactive"
+		}
+
+		options = append(options, returnPersonnelOptionView{
+			ID:       string(item.ID),
+			Label:    label,
+			Selected: string(item.ID) == selectedID,
+		})
+	}
+
+	return options
 }
 
 func humanizeReturnWebError(err error) string {

@@ -72,6 +72,14 @@ A business event where assets are assigned to personnel.
 
 A business event where assets previously assigned to personnel are returned.
 
+## Return-eligible Record
+
+A return-eligible record is a personnel or asset that appears in a return workflow because it currently has custody balance.
+
+Return eligibility is based on current custody, not active status.
+
+Inactive records with current custody remain return-eligible so custody can be cleared.
+
 ## Custody Transaction
 
 An immutable business event representing either a checkout, a return, or a future correction/adjustment.

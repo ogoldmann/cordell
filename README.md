@@ -222,6 +222,37 @@ The return flow subtracts an asset quantity from a personnel custody balance.
 
 Cordell prevents returns greater than the current custody quantity.
 
+## Operational Form Eligibility
+
+Cordell uses different eligibility rules depending on the operation.
+
+Checkout forms list active personnel and active assets only.
+
+Correction forms list active personnel and active assets as selectable replacement options.
+
+If the current effective correction base references inactive records, the edit form shows those inactive records as read-only context but does not auto-select a replacement. The operator must manually select active replacements or reactivate the inactive records.
+
+Return forms are different.
+
+Return forms must list current custody records, even when the personnel or asset is inactive, because return is a custody-clearing operation.
+
+This prevents inactive assets or inactive personnel from becoming impossible to return.
+
+## Operational Form Eligibility Checklist
+
+- [ ] Checkout personnel selector lists active personnel only.
+- [ ] Checkout asset selector lists active assets only.
+- [ ] Correction selectors list active replacement records only.
+- [ ] Correction form does not auto-select a replacement for inactive effective personnel.
+- [ ] Correction form does not auto-select a replacement for inactive effective asset.
+- [ ] Correction form shows inactive effective records as read-only context.
+- [ ] Correction form allows manual selection of active replacements.
+- [ ] Return personnel selector lists personnel with current custody.
+- [ ] Return personnel selector includes inactive personnel with current custody.
+- [ ] Return asset selector/list uses current custody items.
+- [ ] Return asset selector/list includes inactive assets under current custody.
+- [ ] Return service continues to allow safe custody-clearing returns for inactive records.
+
 ## Custody History
 
 Personnel detail pages display:

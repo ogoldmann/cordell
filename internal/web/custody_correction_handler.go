@@ -15,20 +15,22 @@ import (
 
 type custodyTransactionEditPageData struct {
 	privateLayoutData
-	Title                string
-	Error                string
-	BaseTitle            string
-	BaseDescription      string
-	CanSubmit            bool
-	BlockedReason        string
-	Receipt              custodyEditReceiptView
-	CorrectionID         string
-	FormAction           string
-	CorrectedPersonnelID string
-	CorrectedNotes       string
-	PersonnelOptions     []correctionPersonnelOptionView
-	AssetOptions         []correctionAssetOptionView
-	LineRows             []correctionLineRowView
+	Title                       string
+	Error                       string
+	BaseTitle                   string
+	BaseDescription             string
+	EffectivePersonnelLabel     string
+	EffectivePersonnelIsActive  bool
+	HasInactiveEffectiveRecords bool
+	InactiveEffectiveWarning    string
+	Receipt                     custodyEditReceiptView
+	CorrectionID                string
+	FormAction                  string
+	CorrectedPersonnelID        string
+	CorrectedNotes              string
+	PersonnelOptions            []correctionPersonnelOptionView
+	AssetOptions                []correctionAssetOptionView
+	LineRows                    []correctionLineRowView
 }
 
 type custodyEditReceiptView struct {
@@ -50,8 +52,11 @@ type correctionAssetOptionView struct {
 }
 
 type correctionLineRowView struct {
-	AssetID  string
-	Quantity string
+	AssetID              string
+	Quantity             string
+	CurrentAssetLabel    string
+	CurrentAssetIsActive bool
+	NeedsReplacement     bool
 }
 
 type custodyTransactionEditFormState struct {
@@ -228,41 +233,57 @@ func (s *Server) newCustodyTransactionEditPageData(
 		state.CorrectionID = string(correctionID)
 	}
 
-	if state.CorrectedPersonnelID == "" {
-		state.CorrectedPersonnelID = string(effectivePersonnelID)
-	}
-
 	if state.CorrectedNotes == "" {
 		state.CorrectedNotes = effectiveNotes
 	}
 
-	if len(state.LineRows) == 0 {
-		state.LineRows = ensureAtLeastOneCorrectionRow(effectiveLines)
-	}
-
 	activePersonnelIDs := activePersonnelIDSet(personnel)
 	activeAssetIDs := activeAssetIDSet(assets)
-	blockedReason := custodyCorrectionEditBlockedReason(
+	effectivePersonnelLabel, effectivePersonnelIsActive := effectivePersonnelLabelFromReceipt(receipt)
+
+	state.CorrectedPersonnelID = correctionSelectedPersonnelID(
 		effectivePersonnelID,
-		effectiveLines,
 		activePersonnelIDs,
-		activeAssetIDs,
+		state.CorrectedPersonnelID,
 	)
+	state.LineRows = correctionLineRowsForForm(effectiveLines, activeAssetIDs, state.LineRows)
+
+	hasInactiveEffectiveAsset := false
+	for _, row := range state.LineRows {
+		if row.NeedsReplacement {
+			hasInactiveEffectiveAsset = true
+			break
+		}
+	}
+
+	hasInactiveEffectiveRecords := !effectivePersonnelIsActive || hasInactiveEffectiveAsset
+	inactiveEffectiveWarning := ""
+
+	switch {
+	case !effectivePersonnelIsActive && hasInactiveEffectiveAsset:
+		inactiveEffectiveWarning = "This transaction currently references inactive personnel and inactive assets. Choose active replacements to save this edit, or reactivate the inactive records first."
+	case !effectivePersonnelIsActive:
+		inactiveEffectiveWarning = "This transaction currently references an inactive personnel. Choose an active personnel to save this edit, or reactivate the current personnel first."
+	case hasInactiveEffectiveAsset:
+		inactiveEffectiveWarning = "This transaction currently references inactive assets. Choose active asset replacements to save this edit, or reactivate the inactive assets first."
+	}
 
 	typeLabel := custodyTransactionTypeLabel(receipt.TransactionType)
 
 	data := custodyTransactionEditPageData{
-		privateLayoutData:    newPrivateLayoutData(r),
-		Title:                "Edit " + strings.ToLower(typeLabel),
-		Error:                state.Error,
-		BaseTitle:            baseTitle,
-		BaseDescription:      baseDescription,
-		CanSubmit:            blockedReason == "",
-		BlockedReason:        blockedReason,
-		CorrectionID:         state.CorrectionID,
-		FormAction:           "/custody/transactions/" + string(transactionID) + "/corrections",
-		CorrectedPersonnelID: state.CorrectedPersonnelID,
-		CorrectedNotes:       state.CorrectedNotes,
+		privateLayoutData:           newPrivateLayoutData(r),
+		Title:                       "Edit " + strings.ToLower(typeLabel),
+		Error:                       state.Error,
+		BaseTitle:                   baseTitle,
+		BaseDescription:             baseDescription,
+		EffectivePersonnelLabel:     effectivePersonnelLabel,
+		EffectivePersonnelIsActive:  effectivePersonnelIsActive,
+		HasInactiveEffectiveRecords: hasInactiveEffectiveRecords,
+		InactiveEffectiveWarning:    inactiveEffectiveWarning,
+		CorrectionID:                state.CorrectionID,
+		FormAction:                  "/custody/transactions/" + string(transactionID) + "/corrections",
+		CorrectedPersonnelID:        state.CorrectedPersonnelID,
+		CorrectedNotes:              state.CorrectedNotes,
 		Receipt: custodyEditReceiptView{
 			ID:        string(receipt.ID),
 			TypeLabel: typeLabel,
@@ -327,27 +348,36 @@ func activeAssetIDSet(assets []domain.Asset) map[string]struct{} {
 	return ids
 }
 
-func custodyCorrectionEditBlockedReason(
+func correctionSelectedPersonnelID(
 	effectivePersonnelID domain.PersonnelID,
-	effectiveLines []correctionLineRowView,
 	activePersonnelIDs map[string]struct{},
-	activeAssetIDs map[string]struct{},
+	stateSelectedPersonnelID string,
 ) string {
+	if strings.TrimSpace(stateSelectedPersonnelID) != "" {
+		return stateSelectedPersonnelID
+	}
+
 	if _, ok := activePersonnelIDs[string(effectivePersonnelID)]; !ok {
-		return "This transaction currently references an inactive personnel. Reactivate the personnel before editing this transaction."
+		return ""
 	}
 
-	for _, line := range effectiveLines {
-		if strings.TrimSpace(line.AssetID) == "" {
-			continue
-		}
+	return string(effectivePersonnelID)
+}
 
-		if _, ok := activeAssetIDs[line.AssetID]; !ok {
-			return "This transaction currently references an inactive asset. Reactivate the asset before editing this transaction."
-		}
+func effectivePersonnelLabelFromReceipt(receipt app.CustodyReceipt) (string, bool) {
+	if receipt.HasCorrection {
+		return militaryDisplayName(
+				receipt.Correction.CorrectedPersonnelRank,
+				receipt.Correction.CorrectedPersonnelAlias,
+			) + " - " + receipt.Correction.CorrectedPersonnelFullName,
+			receipt.Correction.CorrectedPersonnelActive
 	}
 
-	return ""
+	return militaryDisplayName(
+			receipt.PersonnelRank,
+			receipt.PersonnelAlias,
+		) + " - " + receipt.PersonnelFullName,
+		receipt.PersonnelActive
 }
 
 func correctionLineRowsFromReceiptLines(lines []app.CustodyReceiptLine) []correctionLineRowView {
@@ -355,8 +385,11 @@ func correctionLineRowsFromReceiptLines(lines []app.CustodyReceiptLine) []correc
 
 	for _, line := range lines {
 		rows = append(rows, correctionLineRowView{
-			AssetID:  string(line.AssetID),
-			Quantity: strconv.Itoa(line.Quantity),
+			AssetID:              string(line.AssetID),
+			Quantity:             strconv.Itoa(line.Quantity),
+			CurrentAssetLabel:    line.AssetName,
+			CurrentAssetIsActive: line.AssetActive,
+			NeedsReplacement:     !line.AssetActive,
 		})
 	}
 
@@ -368,12 +401,44 @@ func correctionLineRowsFromCorrectionLines(lines []app.CustodyCorrectionContextL
 
 	for _, line := range lines {
 		rows = append(rows, correctionLineRowView{
-			AssetID:  string(line.AssetID),
-			Quantity: strconv.Itoa(line.Quantity),
+			AssetID:              string(line.AssetID),
+			Quantity:             strconv.Itoa(line.Quantity),
+			CurrentAssetLabel:    line.AssetName,
+			CurrentAssetIsActive: line.AssetActive,
+			NeedsReplacement:     !line.AssetActive,
 		})
 	}
 
 	return rows
+}
+
+func correctionLineRowsForForm(
+	effectiveLines []correctionLineRowView,
+	activeAssetIDs map[string]struct{},
+	stateRows []correctionLineRowView,
+) []correctionLineRowView {
+	if len(stateRows) > 0 {
+		return ensureAtLeastOneCorrectionRow(stateRows)
+	}
+
+	rows := make([]correctionLineRowView, 0, len(effectiveLines))
+
+	for _, line := range effectiveLines {
+		_, isActive := activeAssetIDs[line.AssetID]
+
+		row := line
+		row.CurrentAssetLabel = line.CurrentAssetLabel
+		row.CurrentAssetIsActive = isActive
+
+		if !isActive {
+			row.AssetID = ""
+			row.NeedsReplacement = true
+		}
+
+		rows = append(rows, row)
+	}
+
+	return ensureAtLeastOneCorrectionRow(rows)
 }
 
 func ensureAtLeastOneCorrectionRow(rows []correctionLineRowView) []correctionLineRowView {

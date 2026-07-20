@@ -311,6 +311,57 @@ type CurrentCustodyItem struct {
 	Quantity    int
 }
 
+// PersonnelWithCurrentCustody contains personnel display data for return eligibility.
+type PersonnelWithCurrentCustody struct {
+	ID             domain.PersonnelID
+	FullName       string
+	Alias          string
+	Rank           domain.Rank
+	RegistrationID domain.RegistrationID
+	Active         bool
+	TotalQuantity  int
+}
+
+// ListPersonnelWithCurrentCustodyService handles return-eligible personnel listing.
+type ListPersonnelWithCurrentCustodyService struct {
+	custodyRepository ports.CustodyRepository
+}
+
+// NewListPersonnelWithCurrentCustodyService creates a ListPersonnelWithCurrentCustodyService.
+func NewListPersonnelWithCurrentCustodyService(
+	custodyRepository ports.CustodyRepository,
+) *ListPersonnelWithCurrentCustodyService {
+	return &ListPersonnelWithCurrentCustodyService{
+		custodyRepository: custodyRepository,
+	}
+}
+
+// Execute retrieves personnel that currently hold custody balances.
+func (s *ListPersonnelWithCurrentCustodyService) Execute(
+	ctx context.Context,
+) ([]PersonnelWithCurrentCustody, error) {
+	items, err := s.custodyRepository.ListPersonnelWithCurrentCustody(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]PersonnelWithCurrentCustody, 0, len(items))
+
+	for _, item := range items {
+		result = append(result, PersonnelWithCurrentCustody{
+			ID:             item.ID,
+			FullName:       item.FullName,
+			Alias:          item.Alias,
+			Rank:           item.Rank,
+			RegistrationID: item.RegistrationID,
+			Active:         item.Active,
+			TotalQuantity:  item.TotalQuantity,
+		})
+	}
+
+	return result, nil
+}
+
 // ListCurrentCustodyCommand contains the input data required to list current custody.
 type ListCurrentCustodyCommand struct {
 	PersonnelID domain.PersonnelID

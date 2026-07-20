@@ -639,6 +639,41 @@ func TestListCurrentCustodyServicePreservesAssetActiveState(t *testing.T) {
 	}
 }
 
+func TestListPersonnelWithCurrentCustodyServicePreservesInactivePersonnel(t *testing.T) {
+	custodyRepository := &fakeCustodyRepository{
+		personnelWithCurrentCustody: []ports.PersonnelWithCurrentCustody{
+			{
+				ID:             "personnel-1",
+				FullName:       "John Doe",
+				Alias:          "Doe",
+				Rank:           domain.PersonnelRankSergeant,
+				RegistrationID: mustRegistrationID(t, "52998224725"),
+				Active:         false,
+				TotalQuantity:  1,
+			},
+		},
+	}
+
+	service := NewListPersonnelWithCurrentCustodyService(custodyRepository)
+
+	items, err := service.Execute(context.Background())
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(items) != 1 {
+		t.Fatalf("expected 1 item, got %d", len(items))
+	}
+
+	if items[0].Active {
+		t.Fatal("expected inactive personnel state to be preserved")
+	}
+
+	if items[0].TotalQuantity != 1 {
+		t.Fatalf("expected total quantity 1, got %d", items[0].TotalQuantity)
+	}
+}
+
 func TestListCustodyHistoryServiceExecute(t *testing.T) {
 	personnel := mustBuildPersonnel(t, "personnel-1")
 

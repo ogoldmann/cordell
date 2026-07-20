@@ -37,44 +37,95 @@ func TestNewCorrectionOptionsDoNotMarkInactiveRecords(t *testing.T) {
 	}
 }
 
-func TestCustodyCorrectionEditBlockedReasonRequiresActivePersonnel(t *testing.T) {
-	reason := custodyCorrectionEditBlockedReason(
+func TestCorrectionSelectedPersonnelIDClearsInactiveEffectivePersonnel(t *testing.T) {
+	selectedID := correctionSelectedPersonnelID(
 		"personnel-1",
-		[]correctionLineRowView{{AssetID: "asset-1", Quantity: "1"}},
 		map[string]struct{}{"personnel-2": {}},
-		map[string]struct{}{"asset-1": {}},
+		"",
 	)
 
-	expected := "This transaction currently references an inactive personnel. Reactivate the personnel before editing this transaction."
-	if reason != expected {
-		t.Fatalf("expected inactive personnel reason, got %q", reason)
+	if selectedID != "" {
+		t.Fatalf("expected blank selection for inactive effective personnel, got %q", selectedID)
 	}
 }
 
-func TestCustodyCorrectionEditBlockedReasonRequiresActiveAssets(t *testing.T) {
-	reason := custodyCorrectionEditBlockedReason(
+func TestCorrectionSelectedPersonnelIDKeepsActiveEffectivePersonnel(t *testing.T) {
+	selectedID := correctionSelectedPersonnelID(
 		"personnel-1",
-		[]correctionLineRowView{{AssetID: "asset-1", Quantity: "1"}},
 		map[string]struct{}{"personnel-1": {}},
+		"",
+	)
+
+	if selectedID != "personnel-1" {
+		t.Fatalf("expected active effective personnel to remain selected, got %q", selectedID)
+	}
+}
+
+func TestCorrectionSelectedPersonnelIDKeepsStateSelection(t *testing.T) {
+	selectedID := correctionSelectedPersonnelID(
+		"personnel-1",
+		map[string]struct{}{"personnel-1": {}},
+		"personnel-2",
+	)
+
+	if selectedID != "personnel-2" {
+		t.Fatalf("expected state selection to be preserved, got %q", selectedID)
+	}
+}
+
+func TestCorrectionLineRowsForFormClearsInactiveEffectiveAsset(t *testing.T) {
+	rows := correctionLineRowsForForm(
+		[]correctionLineRowView{
+			{
+				AssetID:           "asset-1",
+				Quantity:          "1",
+				CurrentAssetLabel: "Radio",
+			},
+		},
 		map[string]struct{}{"asset-2": {}},
+		nil,
 	)
 
-	expected := "This transaction currently references an inactive asset. Reactivate the asset before editing this transaction."
-	if reason != expected {
-		t.Fatalf("expected inactive asset reason, got %q", reason)
+	if len(rows) != 1 {
+		t.Fatalf("expected 1 row, got %d", len(rows))
+	}
+
+	if rows[0].AssetID != "" {
+		t.Fatalf("expected blank asset selection, got %q", rows[0].AssetID)
+	}
+
+	if !rows[0].NeedsReplacement {
+		t.Fatal("expected inactive effective asset to need replacement")
+	}
+
+	if rows[0].CurrentAssetLabel != "Radio" {
+		t.Fatalf("expected current asset label to be preserved, got %q", rows[0].CurrentAssetLabel)
 	}
 }
 
-func TestCustodyCorrectionEditBlockedReasonAllowsActiveRecords(t *testing.T) {
-	reason := custodyCorrectionEditBlockedReason(
-		"personnel-1",
-		[]correctionLineRowView{{AssetID: "asset-1", Quantity: "1"}},
-		map[string]struct{}{"personnel-1": {}},
+func TestCorrectionLineRowsForFormKeepsActiveEffectiveAsset(t *testing.T) {
+	rows := correctionLineRowsForForm(
+		[]correctionLineRowView{
+			{
+				AssetID:           "asset-1",
+				Quantity:          "1",
+				CurrentAssetLabel: "Radio",
+			},
+		},
 		map[string]struct{}{"asset-1": {}},
+		nil,
 	)
 
-	if reason != "" {
-		t.Fatalf("expected no blocked reason, got %q", reason)
+	if len(rows) != 1 {
+		t.Fatalf("expected 1 row, got %d", len(rows))
+	}
+
+	if rows[0].AssetID != "asset-1" {
+		t.Fatalf("expected active effective asset to remain selected, got %q", rows[0].AssetID)
+	}
+
+	if rows[0].NeedsReplacement {
+		t.Fatal("expected active effective asset not to need replacement")
 	}
 }
 

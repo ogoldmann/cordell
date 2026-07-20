@@ -312,6 +312,32 @@ func (r *CustodyRepository) CurrentQuantity(
 
 var _ ports.CustodyRepository = (*CustodyRepository)(nil)
 
+// ListPersonnelWithCurrentCustody returns personnel that currently hold at least one asset.
+func (r *CustodyRepository) ListPersonnelWithCurrentCustody(
+	ctx context.Context,
+) ([]ports.PersonnelWithCurrentCustody, error) {
+	rows, err := r.queries.ListPersonnelWithCurrentCustody(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	personnel := make([]ports.PersonnelWithCurrentCustody, 0, len(rows))
+
+	for _, row := range rows {
+		personnel = append(personnel, ports.PersonnelWithCurrentCustody{
+			ID:             domain.PersonnelID(row.ID),
+			FullName:       row.FullName,
+			Alias:          row.Alias,
+			Rank:           domain.Rank(row.Rank),
+			RegistrationID: domain.RegistrationID(row.RegistrationID),
+			Active:         row.Active,
+			TotalQuantity:  int(row.TotalQuantity),
+		})
+	}
+
+	return personnel, nil
+}
+
 // ListCurrentByPersonnel retrieves current custody balances for a personnel record.
 func (r *CustodyRepository) ListCurrentByPersonnel(
 	ctx context.Context,

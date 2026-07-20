@@ -588,3 +588,63 @@ func (q *Queries) ListCustodyHistoryByPersonnel(ctx context.Context, arg ListCus
 	}
 	return items, nil
 }
+
+const listPersonnelWithCurrentCustody = `-- name: ListPersonnelWithCurrentCustody :many
+SELECT
+    p.id,
+    p.full_name,
+    p.alias,
+    p.rank,
+    p.registration_id,
+    p.active,
+    sum(cb.quantity)::int AS total_quantity
+FROM custody_balances cb
+JOIN personnel p ON p.id = cb.personnel_id
+WHERE cb.quantity > 0
+GROUP BY
+    p.id,
+    p.full_name,
+    p.alias,
+    p.rank,
+    p.registration_id,
+    p.active
+ORDER BY p.active DESC, p.rank ASC, p.alias ASC, p.full_name ASC
+`
+
+type ListPersonnelWithCurrentCustodyRow struct {
+	ID             string `json:"id"`
+	FullName       string `json:"full_name"`
+	Alias          string `json:"alias"`
+	Rank           string `json:"rank"`
+	RegistrationID string `json:"registration_id"`
+	Active         bool   `json:"active"`
+	TotalQuantity  int32  `json:"total_quantity"`
+}
+
+func (q *Queries) ListPersonnelWithCurrentCustody(ctx context.Context) ([]ListPersonnelWithCurrentCustodyRow, error) {
+	rows, err := q.db.Query(ctx, listPersonnelWithCurrentCustody)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPersonnelWithCurrentCustodyRow{}
+	for rows.Next() {
+		var i ListPersonnelWithCurrentCustodyRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FullName,
+			&i.Alias,
+			&i.Rank,
+			&i.RegistrationID,
+			&i.Active,
+			&i.TotalQuantity,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

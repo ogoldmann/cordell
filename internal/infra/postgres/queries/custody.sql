@@ -73,6 +73,27 @@ WHERE cb.personnel_id = @personnel_id
   AND cb.quantity > 0
 ORDER BY a.name ASC, cb.asset_id ASC;
 
+-- name: ListPersonnelWithCurrentCustody :many
+SELECT
+    p.id,
+    p.full_name,
+    p.alias,
+    p.rank,
+    p.registration_id,
+    p.active,
+    sum(cb.quantity)::int AS total_quantity
+FROM custody_balances cb
+JOIN personnel p ON p.id = cb.personnel_id
+WHERE cb.quantity > 0
+GROUP BY
+    p.id,
+    p.full_name,
+    p.alias,
+    p.rank,
+    p.registration_id,
+    p.active
+ORDER BY p.active DESC, p.rank ASC, p.alias ASC, p.full_name ASC;
+
 -- name: ListCustodyHistoryByPersonnel :many
 WITH correction_counts AS (
     SELECT

@@ -349,16 +349,17 @@ func recordMatchesStatusFilter(active bool, statusFilter ports.RecordStatusFilte
 }
 
 type fakeCustodyRepository struct {
-	saved                      []domain.CustodyTransaction
-	corrections                []domain.CustodyCorrection
-	saveErr                    error
-	currentQuantity            map[string]int
-	currentByPerson            map[domain.PersonnelID][]ports.CurrentCustodyItem
-	currentByAsset             map[domain.AssetID][]ports.CurrentAssetHolder
-	historyByPerson            map[domain.PersonnelID][]ports.CustodyHistoryEntry
-	receipts                   map[domain.CustodyTransactionID]ports.CustodyReceipt
-	correctionByTransactionID  map[domain.CustodyTransactionID]ports.CustodyCorrectionContext
-	correctionsByTransactionID map[domain.CustodyTransactionID][]ports.CustodyCorrectionContext
+	saved                       []domain.CustodyTransaction
+	corrections                 []domain.CustodyCorrection
+	saveErr                     error
+	currentQuantity             map[string]int
+	currentByPerson             map[domain.PersonnelID][]ports.CurrentCustodyItem
+	currentByAsset              map[domain.AssetID][]ports.CurrentAssetHolder
+	personnelWithCurrentCustody []ports.PersonnelWithCurrentCustody
+	historyByPerson             map[domain.PersonnelID][]ports.CustodyHistoryEntry
+	receipts                    map[domain.CustodyTransactionID]ports.CustodyReceipt
+	correctionByTransactionID   map[domain.CustodyTransactionID]ports.CustodyCorrectionContext
+	correctionsByTransactionID  map[domain.CustodyTransactionID][]ports.CustodyCorrectionContext
 }
 
 func (r *fakeCustodyRepository) SaveTransaction(_ context.Context, transaction domain.CustodyTransaction) (bool, error) {
@@ -409,6 +410,15 @@ func (r *fakeCustodyRepository) CurrentQuantity(
 	}
 
 	return r.currentQuantity[custodyBalanceKey(personnelID, assetID)], nil
+}
+
+func (r *fakeCustodyRepository) ListPersonnelWithCurrentCustody(
+	_ context.Context,
+) ([]ports.PersonnelWithCurrentCustody, error) {
+	items := make([]ports.PersonnelWithCurrentCustody, len(r.personnelWithCurrentCustody))
+	copy(items, r.personnelWithCurrentCustody)
+
+	return items, nil
 }
 
 func (r *fakeCustodyRepository) ListCurrentByPersonnel(
