@@ -1076,3 +1076,31 @@ If a reason is added later, it should preferably be selected from a controlled l
 Inactive assets with current custody should remain visible in current custody and detail views with clear warnings.
 
 Inactive asset names remain reserved. Deactivation does not allow another asset with the same name to be created.
+
+## Custody Transaction Edit Form
+
+Cordell exposes custody corrections through a user-facing edit workflow.
+
+Operators see actions such as:
+
+```txt
+Edit checkout
+Edit return
+```
+
+Internally, these actions create append-only custody corrections.
+
+The edit form:
+
+- loads the current effective transaction interpretation
+- uses the latest correction as the base when one exists
+- allows corrected personnel
+- allows corrected asset lines
+- allows corrected quantities
+- allows corrected notes
+- submits a generated correction ID
+- calls the custody correction registration service
+- records audit only when a new correction is created
+- redirects back to the original transaction receipt
+
+The original custody transaction is not overwritten.

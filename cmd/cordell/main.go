@@ -157,6 +157,12 @@ func main() {
 			custodyRepository,
 			idGenerator,
 		),
+		RegisterCustodyCorrection: app.NewRegisterCustodyCorrectionService(
+			personnelRepository,
+			assetRepository,
+			operatorRepository,
+			custodyRepository,
+		),
 		GetCustodyReceipt: app.NewGetCustodyReceiptService(custodyRepository),
 		ListCurrentCustody: app.NewListCurrentCustodyService(
 			personnelRepository,

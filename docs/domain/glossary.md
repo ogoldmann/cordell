@@ -225,3 +225,11 @@ If a reason is added later, it should preferably be selected from a controlled l
 Inactive assets with current custody should remain visible in current custody and detail views with clear warnings.
 
 Inactive asset names remain reserved. Deactivation does not allow another asset with the same name to be created.
+
+## Custody Transaction Edit Form
+
+The custody transaction edit form is the user-facing workflow for creating a custody correction.
+
+It allows operators to edit the effective interpretation of a checkout or return without mutating the original transaction.
+
+The submitted edit creates an append-only correction.

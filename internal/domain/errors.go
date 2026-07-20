@@ -15,6 +15,8 @@ var (
 	ErrEmptyAssetID = errors.New("asset id cannot be empty")
 	// ErrEmptyTransactionID is returned when a custody transaction identifier is required but empty.
 	ErrEmptyTransactionID = errors.New("custody transaction id cannot be empty")
+	// ErrEmptyCustodyCorrectionID is returned when a custody correction identifier is required but empty.
+	ErrEmptyCustodyCorrectionID = errors.New("custody correction id cannot be empty")
 	// ErrInvalidTransactionType is returned when a custody transaction type is unsupported.
 	ErrInvalidTransactionType = errors.New("invalid custody transaction type")
 	// ErrEmptyTransactionLines is returned when a custody transaction has no lines.
@@ -27,6 +29,8 @@ var (
 	ErrInactivePersonnel = errors.New("inactive personnel")
 	// ErrInactiveAsset is returned when an operation requires an active asset record.
 	ErrInactiveAsset = errors.New("inactive asset")
+	// ErrInactiveOperator is returned when an operation requires an active operator record.
+	ErrInactiveOperator = errors.New("inactive operator")
 
 	// ErrEmptyPersonnelAlias is returned when a personnel alias is required but empty.
 	ErrEmptyPersonnelAlias = errors.New("empty personnel alias")

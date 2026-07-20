@@ -55,6 +55,34 @@ type CustodyReceiptLine struct {
 	Quantity    int
 }
 
+// CustodyCorrectionContextLine represents one line in the latest correction context.
+type CustodyCorrectionContextLine struct {
+	AssetID     domain.AssetID
+	AssetName   string
+	AssetActive bool
+	Quantity    int
+}
+
+// CustodyCorrectionContext represents the latest correction attached to a receipt.
+type CustodyCorrectionContext struct {
+	ID                               domain.CustodyCorrectionID
+	CorrectedTransactionID           domain.CustodyTransactionID
+	OperatorID                       domain.OperatorID
+	OperatorAlias                    string
+	OperatorRank                     domain.Rank
+	OperatorRole                     domain.OperatorRole
+	OperatorActive                   bool
+	CorrectedPersonnelID             domain.PersonnelID
+	CorrectedPersonnelFullName       string
+	CorrectedPersonnelAlias          string
+	CorrectedPersonnelRank           domain.Rank
+	CorrectedPersonnelRegistrationID domain.RegistrationID
+	CorrectedPersonnelActive         bool
+	CorrectedNotes                   string
+	CreatedAt                        time.Time
+	Lines                            []CustodyCorrectionContextLine
+}
+
 // CustodyReceipt represents a complete custody transaction receipt read model.
 type CustodyReceipt struct {
 	ID                      domain.CustodyTransactionID
@@ -73,6 +101,8 @@ type CustodyReceipt struct {
 	Notes                   string
 	CreatedAt               time.Time
 	Lines                   []CustodyReceiptLine
+	HasCorrection           bool
+	Correction              CustodyCorrectionContext
 }
 
 // RecordStatusFilter controls active/inactive list filtering.
@@ -123,6 +153,7 @@ type AssetRepository interface {
 // CustodyRepository persists custody transactions and reads current custody state.
 type CustodyRepository interface {
 	SaveTransaction(ctx context.Context, transaction domain.CustodyTransaction) (bool, error)
+	SaveCorrection(ctx context.Context, correction domain.CustodyCorrection, transactionType domain.CustodyTransactionType, previousPersonnelID domain.PersonnelID, previousLines []domain.CustodyLine) (bool, error)
 	CurrentQuantity(ctx context.Context, personnelID domain.PersonnelID, assetID domain.AssetID) (int, error)
 	ListCurrentByPersonnel(ctx context.Context, personnelID domain.PersonnelID) ([]CurrentCustodyItem, error)
 	ListCurrentByAsset(ctx context.Context, assetID domain.AssetID) ([]CurrentAssetHolder, error)

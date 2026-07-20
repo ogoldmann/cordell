@@ -292,3 +292,19 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Personnel search results show Active/Inactive badge.
 - [ ] Asset search results show Active/Inactive badge.
 - [ ] Inactive records are not hidden when explicitly requested.
+
+## Custody Transaction Edit Form
+
+- [ ] Receipt exposes Edit checkout/Edit return action.
+- [ ] Edit form loads original transaction.
+- [ ] Edit form uses latest correction as current effective base.
+- [ ] Edit form includes generated correction ID.
+- [ ] Edit form allows corrected personnel.
+- [ ] Edit form allows corrected asset lines.
+- [ ] Edit form allows corrected quantities.
+- [ ] Edit form allows corrected notes.
+- [ ] POST creates append-only correction.
+- [ ] POST does not mutate original custody transaction.
+- [ ] POST applies balance deltas through correction service.
+- [ ] POST records audit only when correction is newly created.
+- [ ] POST redirects to original receipt.

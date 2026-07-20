@@ -203,6 +203,143 @@ func TestCustodyTransactionLinesReturnsCopy(t *testing.T) {
 	}
 }
 
+func TestNewCustodyCorrection(t *testing.T) {
+	line := mustBuildCustodyLine(t)
+
+	correction, err := NewCustodyCorrection(
+		"correction-1",
+		"transaction-1",
+		"operator-1",
+		"personnel-2",
+		[]CustodyLine{line},
+		"  Corrected notes  ",
+	)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if correction.ID() != "correction-1" {
+		t.Fatalf("expected correction id correction-1, got %s", correction.ID())
+	}
+
+	if correction.CorrectedTransactionID() != "transaction-1" {
+		t.Fatalf("expected corrected transaction id transaction-1, got %s", correction.CorrectedTransactionID())
+	}
+
+	if correction.OperatorID() != "operator-1" {
+		t.Fatalf("expected operator id operator-1, got %s", correction.OperatorID())
+	}
+
+	if correction.CorrectedPersonnelID() != "personnel-2" {
+		t.Fatalf("expected corrected personnel id personnel-2, got %s", correction.CorrectedPersonnelID())
+	}
+
+	if correction.CorrectedNotes() != "Corrected notes" {
+		t.Fatalf("expected trimmed corrected notes, got %s", correction.CorrectedNotes())
+	}
+}
+
+func TestNewCustodyCorrectionRejectsEmptyID(t *testing.T) {
+	line := mustBuildCustodyLine(t)
+
+	_, err := NewCustodyCorrection(
+		"",
+		"transaction-1",
+		"operator-1",
+		"personnel-2",
+		[]CustodyLine{line},
+		"",
+	)
+	if err != ErrEmptyCustodyCorrectionID {
+		t.Fatalf("expected ErrEmptyCustodyCorrectionID, got %v", err)
+	}
+}
+
+func TestNewCustodyCorrectionRejectsEmptyTransactionID(t *testing.T) {
+	line := mustBuildCustodyLine(t)
+
+	_, err := NewCustodyCorrection(
+		"correction-1",
+		"",
+		"operator-1",
+		"personnel-2",
+		[]CustodyLine{line},
+		"",
+	)
+	if err != ErrEmptyTransactionID {
+		t.Fatalf("expected ErrEmptyTransactionID, got %v", err)
+	}
+}
+
+func TestNewCustodyCorrectionRejectsEmptyOperatorID(t *testing.T) {
+	line := mustBuildCustodyLine(t)
+
+	_, err := NewCustodyCorrection(
+		"correction-1",
+		"transaction-1",
+		"",
+		"personnel-2",
+		[]CustodyLine{line},
+		"",
+	)
+	if err != ErrEmptyOperatorID {
+		t.Fatalf("expected ErrEmptyOperatorID, got %v", err)
+	}
+}
+
+func TestNewCustodyCorrectionRejectsEmptyPersonnelID(t *testing.T) {
+	line := mustBuildCustodyLine(t)
+
+	_, err := NewCustodyCorrection(
+		"correction-1",
+		"transaction-1",
+		"operator-1",
+		"",
+		[]CustodyLine{line},
+		"",
+	)
+	if err != ErrEmptyPersonnelID {
+		t.Fatalf("expected ErrEmptyPersonnelID, got %v", err)
+	}
+}
+
+func TestNewCustodyCorrectionRejectsEmptyLines(t *testing.T) {
+	_, err := NewCustodyCorrection(
+		"correction-1",
+		"transaction-1",
+		"operator-1",
+		"personnel-2",
+		nil,
+		"",
+	)
+	if err != ErrEmptyTransactionLines {
+		t.Fatalf("expected ErrEmptyTransactionLines, got %v", err)
+	}
+}
+
+func TestCustodyCorrectionLinesReturnsCopy(t *testing.T) {
+	line := mustBuildCustodyLine(t)
+
+	correction, err := NewCustodyCorrection(
+		"correction-1",
+		"transaction-1",
+		"operator-1",
+		"personnel-2",
+		[]CustodyLine{line},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	lines := correction.Lines()
+	lines[0] = CustodyLine{}
+
+	if correction.Lines()[0].AssetID() != "asset-1" {
+		t.Fatal("expected correction lines to be protected from external mutation")
+	}
+}
+
 func mustBuildCustodyLine(t *testing.T) CustodyLine {
 	t.Helper()
 

@@ -5,6 +5,9 @@ import "strings"
 // CustodyTransactionID uniquely identifies a custody transaction.
 type CustodyTransactionID string
 
+// CustodyCorrectionID uniquely identifies a custody correction.
+type CustodyCorrectionID string
+
 // CustodyTransactionType identifies the business meaning of a custody transaction.
 type CustodyTransactionType string
 
@@ -136,4 +139,89 @@ func (t CustodyTransaction) Lines() []CustodyLine {
 // Notes returns the optional transaction notes.
 func (t CustodyTransaction) Notes() string {
 	return t.notes
+}
+
+// CustodyCorrection represents an append-only correction for a custody transaction.
+type CustodyCorrection struct {
+	id                     CustodyCorrectionID
+	correctedTransactionID CustodyTransactionID
+	operatorID             OperatorID
+	correctedPersonnelID   PersonnelID
+	lines                  []CustodyLine
+	correctedNotes         string
+}
+
+// NewCustodyCorrection creates a custody correction with validated required fields.
+func NewCustodyCorrection(
+	id CustodyCorrectionID,
+	correctedTransactionID CustodyTransactionID,
+	operatorID OperatorID,
+	correctedPersonnelID PersonnelID,
+	lines []CustodyLine,
+	correctedNotes string,
+) (CustodyCorrection, error) {
+	if id == "" {
+		return CustodyCorrection{}, ErrEmptyCustodyCorrectionID
+	}
+
+	if correctedTransactionID == "" {
+		return CustodyCorrection{}, ErrEmptyTransactionID
+	}
+
+	if operatorID == "" {
+		return CustodyCorrection{}, ErrEmptyOperatorID
+	}
+
+	if correctedPersonnelID == "" {
+		return CustodyCorrection{}, ErrEmptyPersonnelID
+	}
+
+	if len(lines) == 0 {
+		return CustodyCorrection{}, ErrEmptyTransactionLines
+	}
+
+	copiedLines := make([]CustodyLine, len(lines))
+	copy(copiedLines, lines)
+
+	return CustodyCorrection{
+		id:                     id,
+		correctedTransactionID: correctedTransactionID,
+		operatorID:             operatorID,
+		correctedPersonnelID:   correctedPersonnelID,
+		lines:                  copiedLines,
+		correctedNotes:         strings.TrimSpace(correctedNotes),
+	}, nil
+}
+
+// ID returns the custody correction identifier.
+func (c CustodyCorrection) ID() CustodyCorrectionID {
+	return c.id
+}
+
+// CorrectedTransactionID returns the original transaction identifier.
+func (c CustodyCorrection) CorrectedTransactionID() CustodyTransactionID {
+	return c.correctedTransactionID
+}
+
+// OperatorID returns the operator that registered the correction.
+func (c CustodyCorrection) OperatorID() OperatorID {
+	return c.operatorID
+}
+
+// CorrectedPersonnelID returns the corrected personnel identifier.
+func (c CustodyCorrection) CorrectedPersonnelID() PersonnelID {
+	return c.correctedPersonnelID
+}
+
+// Lines returns a defensive copy of the corrected custody lines.
+func (c CustodyCorrection) Lines() []CustodyLine {
+	copiedLines := make([]CustodyLine, len(c.lines))
+	copy(copiedLines, c.lines)
+
+	return copiedLines
+}
+
+// CorrectedNotes returns the corrected transaction notes.
+func (c CustodyCorrection) CorrectedNotes() string {
+	return c.correctedNotes
 }

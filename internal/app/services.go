@@ -16,25 +16,26 @@ type Services struct {
 	DeleteOperatorSession         *DeleteOperatorSessionService
 	DeleteExpiredOperatorSessions *DeleteExpiredOperatorSessionsService
 
-	CreatePersonnel         *CreatePersonnelService
-	GetPersonnel            *GetPersonnelService
-	ListPersonnel           *ListPersonnelService
-	DeactivatePersonnel     *DeactivatePersonnelService
-	ReactivatePersonnel     *ReactivatePersonnelService
-	SearchPersonnel         *SearchPersonnelService
-	CreateAsset             *CreateAssetService
-	GetAsset                *GetAssetService
-	ListAssets              *ListAssetsService
-	DeactivateAsset         *DeactivateAssetService
-	ReactivateAsset         *ReactivateAssetService
-	SearchAssets            *SearchAssetsService
-	GlobalSearch            *GlobalSearchService
-	RegisterCheckout        *RegisterCheckoutService
-	RegisterReturn          *RegisterReturnService
-	GetCustodyReceipt       *GetCustodyReceiptService
-	ListCurrentCustody      *ListCurrentCustodyService
-	ListCurrentAssetHolders *ListCurrentAssetHoldersService
-	ListCustodyHistory      *ListCustodyHistoryService
+	CreatePersonnel           *CreatePersonnelService
+	GetPersonnel              *GetPersonnelService
+	ListPersonnel             *ListPersonnelService
+	DeactivatePersonnel       *DeactivatePersonnelService
+	ReactivatePersonnel       *ReactivatePersonnelService
+	SearchPersonnel           *SearchPersonnelService
+	CreateAsset               *CreateAssetService
+	GetAsset                  *GetAssetService
+	ListAssets                *ListAssetsService
+	DeactivateAsset           *DeactivateAssetService
+	ReactivateAsset           *ReactivateAssetService
+	SearchAssets              *SearchAssetsService
+	GlobalSearch              *GlobalSearchService
+	RegisterCheckout          *RegisterCheckoutService
+	RegisterReturn            *RegisterReturnService
+	RegisterCustodyCorrection *RegisterCustodyCorrectionService
+	GetCustodyReceipt         *GetCustodyReceiptService
+	ListCurrentCustody        *ListCurrentCustodyService
+	ListCurrentAssetHolders   *ListCurrentAssetHoldersService
+	ListCustodyHistory        *ListCustodyHistoryService
 
 	RecordAuditEvent *RecordAuditEventService
 	ListAuditEvents  *ListAuditEventsService

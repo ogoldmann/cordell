@@ -478,6 +478,34 @@ type CustodyReceiptLine struct {
 	Quantity    int
 }
 
+// CustodyCorrectionContextLine contains one line in the latest correction context.
+type CustodyCorrectionContextLine struct {
+	AssetID     domain.AssetID
+	AssetName   string
+	AssetActive bool
+	Quantity    int
+}
+
+// CustodyCorrectionContext contains the latest correction attached to a receipt.
+type CustodyCorrectionContext struct {
+	ID                               domain.CustodyCorrectionID
+	CorrectedTransactionID           domain.CustodyTransactionID
+	OperatorID                       domain.OperatorID
+	OperatorAlias                    string
+	OperatorRank                     domain.Rank
+	OperatorRole                     domain.OperatorRole
+	OperatorActive                   bool
+	CorrectedPersonnelID             domain.PersonnelID
+	CorrectedPersonnelFullName       string
+	CorrectedPersonnelAlias          string
+	CorrectedPersonnelRank           domain.Rank
+	CorrectedPersonnelRegistrationID domain.RegistrationID
+	CorrectedPersonnelActive         bool
+	CorrectedNotes                   string
+	CreatedAt                        time.Time
+	Lines                            []CustodyCorrectionContextLine
+}
+
 // CustodyReceipt contains a complete custody transaction receipt.
 type CustodyReceipt struct {
 	ID                      domain.CustodyTransactionID
@@ -496,6 +524,8 @@ type CustodyReceipt struct {
 	Notes                   string
 	CreatedAt               time.Time
 	Lines                   []CustodyReceiptLine
+	HasCorrection           bool
+	Correction              CustodyCorrectionContext
 }
 
 // GetCustodyReceiptCommand contains the input data required to retrieve a custody receipt.
@@ -557,7 +587,274 @@ func (s *GetCustodyReceiptService) Execute(
 		})
 	}
 
+	if receipt.HasCorrection {
+		result.HasCorrection = true
+		result.Correction = CustodyCorrectionContext{
+			ID:                               receipt.Correction.ID,
+			CorrectedTransactionID:           receipt.Correction.CorrectedTransactionID,
+			OperatorID:                       receipt.Correction.OperatorID,
+			OperatorAlias:                    receipt.Correction.OperatorAlias,
+			OperatorRank:                     receipt.Correction.OperatorRank,
+			OperatorRole:                     receipt.Correction.OperatorRole,
+			OperatorActive:                   receipt.Correction.OperatorActive,
+			CorrectedPersonnelID:             receipt.Correction.CorrectedPersonnelID,
+			CorrectedPersonnelFullName:       receipt.Correction.CorrectedPersonnelFullName,
+			CorrectedPersonnelAlias:          receipt.Correction.CorrectedPersonnelAlias,
+			CorrectedPersonnelRank:           receipt.Correction.CorrectedPersonnelRank,
+			CorrectedPersonnelRegistrationID: receipt.Correction.CorrectedPersonnelRegistrationID,
+			CorrectedPersonnelActive:         receipt.Correction.CorrectedPersonnelActive,
+			CorrectedNotes:                   receipt.Correction.CorrectedNotes,
+			CreatedAt:                        receipt.Correction.CreatedAt,
+			Lines:                            make([]CustodyCorrectionContextLine, 0, len(receipt.Correction.Lines)),
+		}
+
+		for _, line := range receipt.Correction.Lines {
+			result.Correction.Lines = append(result.Correction.Lines, CustodyCorrectionContextLine{
+				AssetID:     line.AssetID,
+				AssetName:   line.AssetName,
+				AssetActive: line.AssetActive,
+				Quantity:    line.Quantity,
+			})
+		}
+	}
+
 	return result, nil
+}
+
+// RegisterCustodyCorrectionCommand contains the input data required to register a custody correction.
+type RegisterCustodyCorrectionCommand struct {
+	CorrectionID           domain.CustodyCorrectionID
+	CorrectedTransactionID domain.CustodyTransactionID
+	OperatorID             domain.OperatorID
+	CorrectedPersonnelID   domain.PersonnelID
+	Lines                  []CustodyLineCommand
+	CorrectedNotes         string
+}
+
+// RegisterCustodyCorrectionResult is returned after registering a custody correction.
+type RegisterCustodyCorrectionResult struct {
+	Correction domain.CustodyCorrection
+	Created    bool
+}
+
+// RegisterCustodyCorrectionService handles the append-only custody correction use case.
+type RegisterCustodyCorrectionService struct {
+	personnelRepository ports.PersonnelRepository
+	assetRepository     ports.AssetRepository
+	operatorRepository  ports.OperatorRepository
+	custodyRepository   ports.CustodyRepository
+}
+
+// NewRegisterCustodyCorrectionService creates a RegisterCustodyCorrectionService with its dependencies.
+func NewRegisterCustodyCorrectionService(
+	personnelRepository ports.PersonnelRepository,
+	assetRepository ports.AssetRepository,
+	operatorRepository ports.OperatorRepository,
+	custodyRepository ports.CustodyRepository,
+) *RegisterCustodyCorrectionService {
+	return &RegisterCustodyCorrectionService{
+		personnelRepository: personnelRepository,
+		assetRepository:     assetRepository,
+		operatorRepository:  operatorRepository,
+		custodyRepository:   custodyRepository,
+	}
+}
+
+// Execute registers an append-only correction and applies custody balance deltas.
+func (s *RegisterCustodyCorrectionService) Execute(
+	ctx context.Context,
+	cmd RegisterCustodyCorrectionCommand,
+) (RegisterCustodyCorrectionResult, error) {
+	if cmd.CorrectionID == "" {
+		return RegisterCustodyCorrectionResult{}, domain.ErrEmptyCustodyCorrectionID
+	}
+
+	receipt, err := s.GetCorrectionBaseReceipt(ctx, cmd.CorrectedTransactionID)
+	if err != nil {
+		return RegisterCustodyCorrectionResult{}, err
+	}
+
+	if cmd.OperatorID == "" {
+		return RegisterCustodyCorrectionResult{}, domain.ErrEmptyOperatorID
+	}
+
+	operator, err := s.operatorRepository.FindByID(ctx, cmd.OperatorID)
+	if err != nil {
+		return RegisterCustodyCorrectionResult{}, err
+	}
+
+	if !operator.Active() {
+		return RegisterCustodyCorrectionResult{}, domain.ErrInactiveOperator
+	}
+
+	if cmd.CorrectedPersonnelID == "" {
+		return RegisterCustodyCorrectionResult{}, domain.ErrEmptyPersonnelID
+	}
+
+	if _, err := s.personnelRepository.FindByID(ctx, cmd.CorrectedPersonnelID); err != nil {
+		return RegisterCustodyCorrectionResult{}, err
+	}
+
+	lines, err := buildCustodyLines(ctx, s.assetRepository, cmd.Lines, false)
+	if err != nil {
+		return RegisterCustodyCorrectionResult{}, err
+	}
+
+	correction, err := domain.NewCustodyCorrection(
+		cmd.CorrectionID,
+		cmd.CorrectedTransactionID,
+		cmd.OperatorID,
+		cmd.CorrectedPersonnelID,
+		lines,
+		cmd.CorrectedNotes,
+	)
+	if err != nil {
+		return RegisterCustodyCorrectionResult{}, err
+	}
+
+	previousPersonnelID := receipt.PersonnelID
+	previousLines := custodyReceiptLinesToDomainLines(receipt.Lines)
+
+	if receipt.HasCorrection {
+		previousPersonnelID = receipt.Correction.CorrectedPersonnelID
+		previousLines = custodyCorrectionContextLinesToDomainLines(receipt.Correction.Lines)
+	}
+
+	created, err := s.custodyRepository.SaveCorrection(
+		ctx,
+		correction,
+		receipt.TransactionType,
+		previousPersonnelID,
+		previousLines,
+	)
+	if err != nil {
+		return RegisterCustodyCorrectionResult{}, err
+	}
+
+	return RegisterCustodyCorrectionResult{
+		Correction: correction,
+		Created:    created,
+	}, nil
+}
+
+// GetCorrectionBaseReceipt retrieves the receipt used as correction base.
+func (s *RegisterCustodyCorrectionService) GetCorrectionBaseReceipt(
+	ctx context.Context,
+	transactionID domain.CustodyTransactionID,
+) (CustodyReceipt, error) {
+	if transactionID == "" {
+		return CustodyReceipt{}, domain.ErrEmptyTransactionID
+	}
+
+	receipt, err := s.custodyRepository.FindReceiptByID(ctx, transactionID)
+	if err != nil {
+		return CustodyReceipt{}, err
+	}
+
+	return portCustodyReceiptToAppReceipt(receipt), nil
+}
+
+func portCustodyReceiptToAppReceipt(receipt ports.CustodyReceipt) CustodyReceipt {
+	result := CustodyReceipt{
+		ID:                      receipt.ID,
+		TransactionType:         receipt.TransactionType,
+		PersonnelID:             receipt.PersonnelID,
+		PersonnelFullName:       receipt.PersonnelFullName,
+		PersonnelAlias:          receipt.PersonnelAlias,
+		PersonnelRank:           receipt.PersonnelRank,
+		PersonnelRegistrationID: receipt.PersonnelRegistrationID,
+		PersonnelActive:         receipt.PersonnelActive,
+		OperatorID:              receipt.OperatorID,
+		OperatorAlias:           receipt.OperatorAlias,
+		OperatorRank:            receipt.OperatorRank,
+		OperatorRole:            receipt.OperatorRole,
+		OperatorActive:          receipt.OperatorActive,
+		Notes:                   receipt.Notes,
+		CreatedAt:               receipt.CreatedAt,
+		Lines:                   make([]CustodyReceiptLine, 0, len(receipt.Lines)),
+	}
+
+	for _, line := range receipt.Lines {
+		result.Lines = append(result.Lines, CustodyReceiptLine{
+			AssetID:     line.AssetID,
+			AssetName:   line.AssetName,
+			AssetActive: line.AssetActive,
+			Quantity:    line.Quantity,
+		})
+	}
+
+	if receipt.HasCorrection {
+		result.HasCorrection = true
+		result.Correction = CustodyCorrectionContext{
+			ID:                               receipt.Correction.ID,
+			CorrectedTransactionID:           receipt.Correction.CorrectedTransactionID,
+			OperatorID:                       receipt.Correction.OperatorID,
+			OperatorAlias:                    receipt.Correction.OperatorAlias,
+			OperatorRank:                     receipt.Correction.OperatorRank,
+			OperatorRole:                     receipt.Correction.OperatorRole,
+			OperatorActive:                   receipt.Correction.OperatorActive,
+			CorrectedPersonnelID:             receipt.Correction.CorrectedPersonnelID,
+			CorrectedPersonnelFullName:       receipt.Correction.CorrectedPersonnelFullName,
+			CorrectedPersonnelAlias:          receipt.Correction.CorrectedPersonnelAlias,
+			CorrectedPersonnelRank:           receipt.Correction.CorrectedPersonnelRank,
+			CorrectedPersonnelRegistrationID: receipt.Correction.CorrectedPersonnelRegistrationID,
+			CorrectedPersonnelActive:         receipt.Correction.CorrectedPersonnelActive,
+			CorrectedNotes:                   receipt.Correction.CorrectedNotes,
+			CreatedAt:                        receipt.Correction.CreatedAt,
+			Lines:                            make([]CustodyCorrectionContextLine, 0, len(receipt.Correction.Lines)),
+		}
+
+		for _, line := range receipt.Correction.Lines {
+			result.Correction.Lines = append(result.Correction.Lines, CustodyCorrectionContextLine{
+				AssetID:     line.AssetID,
+				AssetName:   line.AssetName,
+				AssetActive: line.AssetActive,
+				Quantity:    line.Quantity,
+			})
+		}
+	}
+
+	return result
+}
+
+func custodyReceiptLinesToDomainLines(lines []CustodyReceiptLine) []domain.CustodyLine {
+	result := make([]domain.CustodyLine, 0, len(lines))
+
+	for _, line := range lines {
+		quantity, err := domain.NewQuantity(line.Quantity)
+		if err != nil {
+			continue
+		}
+
+		custodyLine, err := domain.NewCustodyLine(line.AssetID, quantity)
+		if err != nil {
+			continue
+		}
+
+		result = append(result, custodyLine)
+	}
+
+	return result
+}
+
+func custodyCorrectionContextLinesToDomainLines(lines []CustodyCorrectionContextLine) []domain.CustodyLine {
+	result := make([]domain.CustodyLine, 0, len(lines))
+
+	for _, line := range lines {
+		quantity, err := domain.NewQuantity(line.Quantity)
+		if err != nil {
+			continue
+		}
+
+		custodyLine, err := domain.NewCustodyLine(line.AssetID, quantity)
+		if err != nil {
+			continue
+		}
+
+		result = append(result, custodyLine)
+	}
+
+	return result
 }
 
 // CurrentAssetHolder contains current holder display data for an asset.

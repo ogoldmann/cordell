@@ -111,6 +111,184 @@ func applyCustodyBalanceChange(
 	}
 }
 
+// SaveCorrection persists a custody correction and updates balances atomically.
+func (r *CustodyRepository) SaveCorrection(
+	ctx context.Context,
+	correction domain.CustodyCorrection,
+	transactionType domain.CustodyTransactionType,
+	previousPersonnelID domain.PersonnelID,
+	previousLines []domain.CustodyLine,
+) (bool, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback(ctx)
+
+	_, err = tx.Exec(
+		ctx,
+		`
+INSERT INTO custody_corrections (
+    id,
+    corrected_transaction_id,
+    operator_id,
+    corrected_personnel_id,
+    corrected_notes
+) VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5
+)`,
+		string(correction.ID()),
+		string(correction.CorrectedTransactionID()),
+		string(correction.OperatorID()),
+		string(correction.CorrectedPersonnelID()),
+		correction.CorrectedNotes(),
+	)
+	if err != nil {
+		if isUniqueViolation(err, "custody_corrections_pkey") {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	for _, line := range correction.Lines() {
+		_, err := tx.Exec(
+			ctx,
+			`
+INSERT INTO custody_correction_lines (
+    custody_correction_id,
+    asset_id,
+    quantity
+) VALUES (
+    $1,
+    $2,
+    $3
+)`,
+			string(correction.ID()),
+			string(line.AssetID()),
+			line.Quantity().Int(),
+		)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	qtx := r.queries.WithTx(tx)
+	for _, delta := range custodyCorrectionBalanceDeltas(
+		transactionType,
+		previousPersonnelID,
+		previousLines,
+		correction.CorrectedPersonnelID(),
+		correction.Lines(),
+	) {
+		if err := applyCustodyBalanceDelta(ctx, qtx, delta); err != nil {
+			return false, err
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+type custodyBalanceDelta struct {
+	personnelID domain.PersonnelID
+	assetID     domain.AssetID
+	quantity    int
+}
+
+type custodyBalanceDeltaKey struct {
+	personnelID domain.PersonnelID
+	assetID     domain.AssetID
+}
+
+func custodyCorrectionBalanceDeltas(
+	transactionType domain.CustodyTransactionType,
+	previousPersonnelID domain.PersonnelID,
+	previousLines []domain.CustodyLine,
+	correctedPersonnelID domain.PersonnelID,
+	correctedLines []domain.CustodyLine,
+) []custodyBalanceDelta {
+	multiplier := custodyTransactionBalanceMultiplier(transactionType)
+	totals := make(map[custodyBalanceDeltaKey]int)
+	orderedKeys := make([]custodyBalanceDeltaKey, 0, len(previousLines)+len(correctedLines))
+
+	addDelta := func(personnelID domain.PersonnelID, assetID domain.AssetID, quantity int) {
+		key := custodyBalanceDeltaKey{
+			personnelID: personnelID,
+			assetID:     assetID,
+		}
+		if _, ok := totals[key]; !ok {
+			orderedKeys = append(orderedKeys, key)
+		}
+
+		totals[key] += quantity
+	}
+
+	for _, line := range previousLines {
+		addDelta(previousPersonnelID, line.AssetID(), -multiplier*line.Quantity().Int())
+	}
+
+	for _, line := range correctedLines {
+		addDelta(correctedPersonnelID, line.AssetID(), multiplier*line.Quantity().Int())
+	}
+
+	deltas := make([]custodyBalanceDelta, 0, len(orderedKeys))
+	for _, key := range orderedKeys {
+		quantity := totals[key]
+		if quantity == 0 {
+			continue
+		}
+
+		deltas = append(deltas, custodyBalanceDelta{
+			personnelID: key.personnelID,
+			assetID:     key.assetID,
+			quantity:    quantity,
+		})
+	}
+
+	return deltas
+}
+
+func custodyTransactionBalanceMultiplier(transactionType domain.CustodyTransactionType) int {
+	if transactionType == domain.CustodyTransactionTypeReturn {
+		return -1
+	}
+
+	return 1
+}
+
+func applyCustodyBalanceDelta(ctx context.Context, queries *db.Queries, delta custodyBalanceDelta) error {
+	if delta.quantity > 0 {
+		return queries.IncreaseCustodyBalance(ctx, db.IncreaseCustodyBalanceParams{
+			PersonnelID: string(delta.personnelID),
+			AssetID:     string(delta.assetID),
+			Quantity:    int32(delta.quantity),
+		})
+	}
+
+	_, err := queries.DecreaseCustodyBalanceIfAvailable(ctx, db.DecreaseCustodyBalanceIfAvailableParams{
+		PersonnelID: string(delta.personnelID),
+		AssetID:     string(delta.assetID),
+		Quantity:    int32(-delta.quantity),
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.ErrInsufficientCustodyBalance
+		}
+
+		return err
+	}
+
+	return nil
+}
+
 // CurrentQuantity returns the current custody quantity for a personnel and asset pair.
 func (r *CustodyRepository) CurrentQuantity(
 	ctx context.Context,
@@ -288,7 +466,123 @@ func (r *CustodyRepository) FindReceiptByID(
 		})
 	}
 
+	if err := r.attachLatestCorrection(ctx, &receipt); err != nil {
+		return ports.CustodyReceipt{}, err
+	}
+
 	return receipt, nil
+}
+
+func (r *CustodyRepository) attachLatestCorrection(ctx context.Context, receipt *ports.CustodyReceipt) error {
+	var correctionID string
+	var correctedTransactionID string
+	var operatorID string
+	var operatorRank string
+	var operatorRole string
+	var correctedPersonnelID string
+	var correctedPersonnelRank string
+	var correctedPersonnelRegistrationID string
+	var correctionCreatedAt pgtype.Timestamptz
+
+	err := r.pool.QueryRow(
+		ctx,
+		`
+SELECT
+    cc.id,
+    cc.corrected_transaction_id,
+    cc.operator_id,
+    o.alias AS operator_alias,
+    o.rank AS operator_rank,
+    o.role AS operator_role,
+    o.active AS operator_active,
+    cc.corrected_personnel_id,
+    p.full_name AS corrected_personnel_full_name,
+    p.alias AS corrected_personnel_alias,
+    p.rank AS corrected_personnel_rank,
+    p.registration_id AS corrected_personnel_registration_id,
+    p.active AS corrected_personnel_active,
+    cc.corrected_notes,
+    cc.created_at
+FROM custody_corrections cc
+JOIN operators o ON o.id = cc.operator_id
+JOIN personnel p ON p.id = cc.corrected_personnel_id
+WHERE cc.corrected_transaction_id = $1
+ORDER BY cc.created_at DESC, cc.id DESC
+LIMIT 1`,
+		string(receipt.ID),
+	).Scan(
+		&correctionID,
+		&correctedTransactionID,
+		&operatorID,
+		&receipt.Correction.OperatorAlias,
+		&operatorRank,
+		&operatorRole,
+		&receipt.Correction.OperatorActive,
+		&correctedPersonnelID,
+		&receipt.Correction.CorrectedPersonnelFullName,
+		&receipt.Correction.CorrectedPersonnelAlias,
+		&correctedPersonnelRank,
+		&correctedPersonnelRegistrationID,
+		&receipt.Correction.CorrectedPersonnelActive,
+		&receipt.Correction.CorrectedNotes,
+		&correctionCreatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil
+		}
+
+		return err
+	}
+
+	createdAt, err := timestamptzToTime(correctionCreatedAt)
+	if err != nil {
+		return err
+	}
+
+	receipt.HasCorrection = true
+	receipt.Correction.ID = domain.CustodyCorrectionID(correctionID)
+	receipt.Correction.CorrectedTransactionID = domain.CustodyTransactionID(correctedTransactionID)
+	receipt.Correction.OperatorID = domain.OperatorID(operatorID)
+	receipt.Correction.OperatorRank = domain.Rank(operatorRank)
+	receipt.Correction.OperatorRole = domain.OperatorRole(operatorRole)
+	receipt.Correction.CorrectedPersonnelID = domain.PersonnelID(correctedPersonnelID)
+	receipt.Correction.CorrectedPersonnelRank = domain.Rank(correctedPersonnelRank)
+	receipt.Correction.CorrectedPersonnelRegistrationID = domain.RegistrationID(correctedPersonnelRegistrationID)
+	receipt.Correction.CreatedAt = createdAt
+
+	rows, err := r.pool.Query(
+		ctx,
+		`
+SELECT
+    ccl.asset_id,
+    a.name AS asset_name,
+    a.active AS asset_active,
+    ccl.quantity
+FROM custody_correction_lines ccl
+JOIN assets a ON a.id = ccl.asset_id
+WHERE ccl.custody_correction_id = $1
+ORDER BY a.name ASC, ccl.id ASC`,
+		string(receipt.Correction.ID),
+	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	receipt.Correction.Lines = make([]ports.CustodyCorrectionContextLine, 0)
+	for rows.Next() {
+		var assetID string
+		var line ports.CustodyCorrectionContextLine
+		if err := rows.Scan(&assetID, &line.AssetName, &line.AssetActive, &line.Quantity); err != nil {
+			return err
+		}
+
+		line.AssetID = domain.AssetID(assetID)
+		receipt.Correction.Lines = append(receipt.Correction.Lines, line)
+	}
+
+	return rows.Err()
 }
 
 func timestamptzToTime(value pgtype.Timestamptz) (time.Time, error) {

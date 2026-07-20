@@ -95,6 +95,8 @@ func (s *Server) Routes() http.Handler {
 		private.Post("/assets/{id}/reactivate", s.handleReactivateAsset)
 
 		private.Get("/custody/transactions/{id}", s.handleShowCustodyReceipt)
+		private.Get("/custody/transactions/{id}/edit", s.handleEditCustodyTransactionForm)
+		private.Post("/custody/transactions/{id}/corrections", s.handleCreateCustodyCorrection)
 
 		private.Get("/custody/checkouts/new", s.handleNewCheckoutForm)
 		private.Post("/custody/checkouts", s.handleCreateCheckout)

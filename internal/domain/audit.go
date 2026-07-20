@@ -7,17 +7,18 @@ type AuditEventID string
 type AuditEventType string
 
 const (
-	AuditEventOperatorCreated        AuditEventType = "operator.created"
-	AuditEventOperatorDeactivated    AuditEventType = "operator.deactivated"
-	AuditEventOperatorReactivated    AuditEventType = "operator.reactivated"
-	AuditEventOperatorRoleChanged    AuditEventType = "operator.role_changed"
-	AuditEventOperatorPasswordReset  AuditEventType = "operator.password_reset"
-	AuditEventPersonnelDeactivated   AuditEventType = "personnel.deactivated"
-	AuditEventPersonnelReactivated   AuditEventType = "personnel.reactivated"
-	AuditEventAssetDeactivated       AuditEventType = "asset.deactivated"
-	AuditEventAssetReactivated       AuditEventType = "asset.reactivated"
-	AuditEventCustodyCheckoutCreated AuditEventType = "custody.checkout_created"
-	AuditEventCustodyReturnCreated   AuditEventType = "custody.return_created"
+	AuditEventOperatorCreated          AuditEventType = "operator.created"
+	AuditEventOperatorDeactivated      AuditEventType = "operator.deactivated"
+	AuditEventOperatorReactivated      AuditEventType = "operator.reactivated"
+	AuditEventOperatorRoleChanged      AuditEventType = "operator.role_changed"
+	AuditEventOperatorPasswordReset    AuditEventType = "operator.password_reset"
+	AuditEventPersonnelDeactivated     AuditEventType = "personnel.deactivated"
+	AuditEventPersonnelReactivated     AuditEventType = "personnel.reactivated"
+	AuditEventAssetDeactivated         AuditEventType = "asset.deactivated"
+	AuditEventAssetReactivated         AuditEventType = "asset.reactivated"
+	AuditEventCustodyCheckoutCreated   AuditEventType = "custody.checkout_created"
+	AuditEventCustodyReturnCreated     AuditEventType = "custody.return_created"
+	AuditEventCustodyCorrectionCreated AuditEventType = "custody.correction_created"
 )
 
 type AuditEntityType string

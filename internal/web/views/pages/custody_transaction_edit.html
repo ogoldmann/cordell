@@ -1,0 +1,136 @@
+{{define "custody_transaction_edit.html"}}
+{{template "layout_start" .}}
+
+<section class="mb-8">
+  <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+    Custody transaction
+  </p>
+
+  <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <div>
+      <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
+        {{.Receipt.EditLabel}}
+      </h1>
+
+      <p class="mt-3 font-mono text-sm text-cordell-muted dark:text-cordell-dark-muted">
+        {{.Receipt.ID}}
+      </p>
+
+      <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+        Created at {{.Receipt.CreatedAt}}
+      </p>
+    </div>
+
+    <span class="inline-flex w-fit rounded-full bg-cordell-primary px-4 py-2 text-sm font-extrabold text-white dark:bg-cordell-dark-primary dark:text-cordell-dark-background">
+      {{.Receipt.TypeLabel}}
+    </span>
+  </div>
+</section>
+
+<div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
+  This edit will not overwrite the original transaction. Cordell will store an append-only correction and update custody balances safely.
+</div>
+
+{{if .Error}}
+  <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+    {{.Error}}
+  </div>
+{{end}}
+
+<form method="post" action="{{.FormAction}}">
+  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+  <input type="hidden" name="correction_id" value="{{.CorrectionID}}">
+
+  <section class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+    <h2 class="m-0 text-xl font-extrabold">Corrected personnel</h2>
+
+    <label class="mt-5 block">
+      <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Personnel</span>
+
+      <select
+        class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+        name="corrected_personnel_id"
+        required
+      >
+        {{range .PersonnelOptions}}
+          <option value="{{.ID}}" {{if .Selected}}selected{{end}}>{{.Label}}</option>
+        {{end}}
+      </select>
+    </label>
+  </section>
+
+  <section class="mt-6 rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+    <div>
+      <h2 class="m-0 text-xl font-extrabold">Corrected lines</h2>
+      <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+        Leave extra blank rows empty. Duplicate assets will be consolidated by the application service.
+      </p>
+    </div>
+
+    <div class="mt-5 grid gap-4">
+      {{range .LineRows}}
+        <div class="grid gap-3 rounded-2xl border border-cordell-border bg-cordell-background p-4 dark:border-cordell-dark-border dark:bg-cordell-dark-background md:grid-cols-[1fr_10rem]">
+          <label>
+            <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Asset</span>
+
+            <select
+              class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+              name="asset_id"
+            >
+              <option value="">Select asset</option>
+              {{$selectedAssetID := .AssetID}}
+              {{range $.AssetOptions}}
+                <option value="{{.ID}}" {{if eq .ID $selectedAssetID}}selected{{end}}>{{.Label}}</option>
+              {{end}}
+            </select>
+          </label>
+
+          <label>
+            <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Quantity</span>
+
+            <input
+              class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+              type="number"
+              name="quantity"
+              min="1"
+              step="1"
+              value="{{.Quantity}}"
+            >
+          </label>
+        </div>
+      {{end}}
+    </div>
+  </section>
+
+  <section class="mt-6 rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+    <h2 class="m-0 text-xl font-extrabold">Corrected notes</h2>
+
+    <label class="mt-5 block">
+      <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Notes</span>
+
+      <textarea
+        class="mt-2 min-h-32 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+        name="corrected_notes"
+      >{{.CorrectedNotes}}</textarea>
+    </label>
+  </section>
+
+  <div class="mt-6 flex flex-wrap gap-3">
+    <button
+      class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+      type="submit"
+    >
+      Save edit
+    </button>
+
+    <a
+      class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-5 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+      href="/custody/transactions/{{.Receipt.ID}}"
+    >
+      Cancel
+    </a>
+  </div>
+</form>
+
+{{template "layout_end" .}}
+{{end}}

@@ -163,7 +163,132 @@
   </div>
 </section>
 
+{{if .Receipt.HasCorrection}}
+  <section class="mt-6 rounded-3xl border border-amber-300 bg-amber-50 p-6 shadow-xl shadow-slate-900/5 dark:border-amber-900/60 dark:bg-amber-950/40">
+    <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+      <div>
+        <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-amber-800 dark:text-amber-200">
+          Edited
+        </p>
+
+        <h2 class="m-0 text-xl font-extrabold text-amber-950 dark:text-amber-100">Latest correction</h2>
+
+        <p class="mt-3 font-mono text-sm text-amber-800 dark:text-amber-200">
+          {{.Receipt.Correction.ID}}
+        </p>
+      </div>
+
+      <p class="m-0 font-mono text-sm text-amber-800 dark:text-amber-200">
+        {{.Receipt.Correction.CreatedAt}}
+      </p>
+    </div>
+
+    <div class="mt-5 grid gap-4 lg:grid-cols-2">
+      <article class="rounded-2xl border border-amber-200 bg-white/70 p-4 dark:border-amber-900/60 dark:bg-cordell-dark-background/60">
+        <h3 class="m-0 text-lg font-extrabold">Corrected personnel</h3>
+
+        <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <a
+              class="text-xl font-extrabold text-cordell-text no-underline hover:text-cordell-primary dark:text-cordell-dark-text dark:hover:text-cordell-dark-primary"
+              href="/personnel/{{.Receipt.Correction.CorrectedPersonnelID}}"
+            >
+              {{.Receipt.Correction.CorrectedPersonnelDisplay}}
+            </a>
+
+            <p class="mt-1 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+              {{.Receipt.Correction.CorrectedPersonnelFullName}}
+            </p>
+
+            <p class="mt-2 font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">
+              {{.Receipt.Correction.CorrectedPersonnelRegistrationID}}
+            </p>
+          </div>
+
+          <span class="inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold {{if .Receipt.Correction.CorrectedPersonnelActive}}bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200{{else}}bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300{{end}}">
+            {{.Receipt.Correction.CorrectedPersonnelStatusLabel}}
+          </span>
+        </div>
+      </article>
+
+      <article class="rounded-2xl border border-amber-200 bg-white/70 p-4 dark:border-amber-900/60 dark:bg-cordell-dark-background/60">
+        <h3 class="m-0 text-lg font-extrabold">Correction operator</h3>
+
+        <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p class="m-0 text-xl font-extrabold">
+              {{.Receipt.Correction.OperatorDisplay}}
+            </p>
+
+            <p class="mt-1 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+              {{.Receipt.Correction.OperatorRoleLabel}}
+            </p>
+
+            <p class="mt-2 font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">
+              {{.Receipt.Correction.OperatorID}}
+            </p>
+          </div>
+
+          <span class="inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold {{if .Receipt.Correction.OperatorActive}}bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200{{else}}bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300{{end}}">
+            {{.Receipt.Correction.OperatorStatusLabel}}
+          </span>
+        </div>
+      </article>
+    </div>
+
+    <div class="mt-5 rounded-2xl border border-amber-200 bg-white/70 p-4 dark:border-amber-900/60 dark:bg-cordell-dark-background/60">
+      <h3 class="m-0 text-lg font-extrabold">Corrected lines</h3>
+
+      <div class="mt-4 grid gap-3">
+        {{range .Receipt.Correction.Lines}}
+          <div class="flex flex-col gap-3 rounded-xl border border-cordell-border bg-cordell-background p-4 dark:border-cordell-dark-border dark:bg-cordell-dark-surface sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <a
+                class="text-lg font-extrabold text-cordell-text no-underline hover:text-cordell-primary dark:text-cordell-dark-text dark:hover:text-cordell-dark-primary"
+                href="/assets/{{.AssetID}}"
+              >
+                {{.AssetName}}
+              </a>
+
+              <p class="mt-1 font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">
+                {{.AssetID}}
+              </p>
+            </div>
+
+            <div class="flex flex-col items-start gap-2 sm:items-end">
+              <span class="inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold {{if .AssetActive}}bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200{{else}}bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300{{end}}">
+                {{.StatusLabel}}
+              </span>
+
+              <p class="m-0 text-2xl font-extrabold">
+                &times;{{.Quantity}}
+              </p>
+            </div>
+          </div>
+        {{end}}
+      </div>
+    </div>
+
+    <div class="mt-5 rounded-2xl border border-amber-200 bg-white/70 p-4 dark:border-amber-900/60 dark:bg-cordell-dark-background/60">
+      <h3 class="m-0 text-lg font-extrabold">Corrected notes</h3>
+
+      {{if .Receipt.Correction.HasCorrectedNotes}}
+        <p class="mt-4 whitespace-pre-wrap text-cordell-text dark:text-cordell-dark-text">{{.Receipt.Correction.CorrectedNotes}}</p>
+      {{else}}
+        <p class="mt-4 text-cordell-muted dark:text-cordell-dark-muted">No notes were recorded.</p>
+      {{end}}
+    </div>
+  </section>
+{{end}}
+
 <div class="mt-6 flex flex-wrap gap-3">
+  <a
+    class="inline-flex items-center justify-center rounded-xl border border-amber-300 bg-amber-50 px-5 py-3 font-bold text-amber-800 no-underline transition hover:border-amber-400 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200"
+    href="{{.Receipt.EditURL}}"
+  >
+    {{.Receipt.EditLabel}}
+  </a>
+
   <a
     class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-5 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
     href="/personnel/{{.Receipt.PersonnelID}}"
