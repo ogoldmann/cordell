@@ -239,3 +239,17 @@ The submitted edit creates an append-only correction.
 Latest edit is the most recent custody correction linked to a custody transaction.
 
 When a transaction already has an edit, the next edit uses the latest edit as its starting point instead of editing directly from the original transaction.
+
+## Effective Receipt State
+
+Effective receipt state is the current interpreted state of a custody transaction.
+
+It is the original transaction when no edit exists.
+
+It is the latest correction when one or more edits exist.
+
+## Transaction Edit History
+
+Transaction edit history is the chronological list of the original transaction and every correction linked to it.
+
+It shows what changed in each edit without rendering every correction as a full receipt snapshot.

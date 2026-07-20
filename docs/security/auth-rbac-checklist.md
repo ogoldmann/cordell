@@ -320,3 +320,24 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Receipt distinguishes original transaction from latest edit.
 - [ ] Edit form explains whether base is original transaction or latest edit.
 - [ ] Insufficient balance error explains possible later custody activity.
+
+## Custody Receipt Effective State
+
+- [ ] Receipt main cards show latest effective state.
+- [ ] Original transaction remains visible in edit history.
+- [ ] Receipt shows edit count.
+- [ ] Receipt links to edit history.
+- [ ] Edit history lists original transaction.
+- [ ] Edit history lists all corrections chronologically.
+- [ ] Edit history shows only changed fields.
+- [ ] Edit metadata is visually separated from changed content.
+- [ ] Latest correction is not rendered as a full duplicate receipt snapshot.
+
+## Custody Correction Line UX
+
+- [ ] Edit form does not render arbitrary blank line rows.
+- [ ] Add line button appends one empty line.
+- [ ] Remove button removes a line.
+- [ ] At least one line remains required.
+- [ ] Each visible line requires asset and quantity.
+- [ ] Backend validates all submitted lines.

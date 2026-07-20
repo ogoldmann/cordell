@@ -34,6 +34,23 @@ type CustodyBalance struct {
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
+type CustodyCorrection struct {
+	ID                     string             `json:"id"`
+	CorrectedTransactionID string             `json:"corrected_transaction_id"`
+	OperatorID             string             `json:"operator_id"`
+	CorrectedPersonnelID   string             `json:"corrected_personnel_id"`
+	CorrectedNotes         string             `json:"corrected_notes"`
+	CreatedAt              pgtype.Timestamptz `json:"created_at"`
+}
+
+type CustodyCorrectionLine struct {
+	ID                  int64              `json:"id"`
+	CustodyCorrectionID string             `json:"custody_correction_id"`
+	AssetID             string             `json:"asset_id"`
+	Quantity            int32              `json:"quantity"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+}
+
 type CustodyLine struct {
 	ID                   int64              `json:"id"`
 	CustodyTransactionID string             `json:"custody_transaction_id"`

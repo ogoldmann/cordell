@@ -1123,3 +1123,39 @@ This preserves all submitted fields:
 The receipt distinguishes the immutable original transaction from the latest edit.
 
 The edit form explains whether the operator is editing the original transaction or the latest edit.
+
+## Custody Receipt Effective State
+
+Custody receipts show the current effective transaction state as the main receipt content.
+
+If a transaction has no edits, the effective state is the original transaction.
+
+If a transaction has edits, the effective state is the latest correction.
+
+The original transaction remains immutable and appears in the edit history.
+
+Receipts show an edit count and link to the transaction edit history.
+
+The edit history lists:
+
+- original transaction
+- each correction in chronological order
+- the operator that created each edit
+- the timestamp of each edit
+- only the fields changed by each edit
+
+The edit history does not render every correction as a full receipt snapshot.
+
+## Custody Correction Line Editing
+
+The custody transaction edit form supports adding and removing corrected lines.
+
+The form renders the current effective lines by default.
+
+Operators can add a new line with the Add line button.
+
+Each visible line requires both asset and quantity.
+
+Each line can be removed with a remove button, while at least one line remains required.
+
+The backend still validates submitted lines and consolidates duplicate assets.

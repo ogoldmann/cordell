@@ -809,6 +809,81 @@ func TestGetCustodyReceiptServicePreservesCurrentStatusFields(t *testing.T) {
 	}
 }
 
+func TestGetCustodyReceiptServiceIncludesCorrectionCountAndCorrections(t *testing.T) {
+	custodyRepository := &fakeCustodyRepository{
+		receipts: map[domain.CustodyTransactionID]ports.CustodyReceipt{
+			"transaction-1": {
+				ID:              "transaction-1",
+				TransactionType: domain.CustodyTransactionTypeCheckout,
+				PersonnelID:     "personnel-1",
+				Lines: []ports.CustodyReceiptLine{
+					{
+						AssetID:  "asset-1",
+						Quantity: 1,
+					},
+				},
+			},
+		},
+		correctionsByTransactionID: map[domain.CustodyTransactionID][]ports.CustodyCorrectionContext{
+			"transaction-1": {
+				{
+					ID:                         "correction-1",
+					CorrectedTransactionID:     "transaction-1",
+					CorrectedPersonnelID:       "personnel-1",
+					CorrectedPersonnelFullName: "John One",
+					CorrectedPersonnelAlias:    "one",
+					CorrectedPersonnelRank:     domain.RankSergeant,
+					Lines: []ports.CustodyCorrectionContextLine{
+						{
+							AssetID:  "asset-1",
+							Quantity: 2,
+						},
+					},
+				},
+				{
+					ID:                         "correction-2",
+					CorrectedTransactionID:     "transaction-1",
+					CorrectedPersonnelID:       "personnel-1",
+					CorrectedPersonnelFullName: "John One",
+					CorrectedPersonnelAlias:    "one",
+					CorrectedPersonnelRank:     domain.RankSergeant,
+					Lines: []ports.CustodyCorrectionContextLine{
+						{
+							AssetID:  "asset-1",
+							Quantity: 3,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	service := NewGetCustodyReceiptService(custodyRepository)
+
+	receipt, err := service.Execute(context.Background(), GetCustodyReceiptCommand{
+		ID: "transaction-1",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if receipt.EditCount != 2 {
+		t.Fatalf("expected edit count 2, got %d", receipt.EditCount)
+	}
+
+	if !receipt.HasCorrection {
+		t.Fatal("expected receipt to have correction")
+	}
+
+	if receipt.Correction.ID != "correction-2" {
+		t.Fatalf("expected latest correction-2, got %s", receipt.Correction.ID)
+	}
+
+	if len(receipt.Corrections) != 2 {
+		t.Fatalf("expected 2 corrections, got %d", len(receipt.Corrections))
+	}
+}
+
 func TestGetCustodyReceiptServiceRejectsEmptyID(t *testing.T) {
 	service := NewGetCustodyReceiptService(&fakeCustodyRepository{})
 

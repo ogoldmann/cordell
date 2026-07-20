@@ -159,6 +159,7 @@ type CustodyRepository interface {
 	ListCurrentByAsset(ctx context.Context, assetID domain.AssetID) ([]CurrentAssetHolder, error)
 	ListHistoryByPersonnel(ctx context.Context, personnelID domain.PersonnelID, limit int) ([]CustodyHistoryEntry, error)
 	FindReceiptByID(ctx context.Context, id domain.CustodyTransactionID) (CustodyReceipt, error)
+	ListCorrectionContextsByTransactionID(ctx context.Context, id domain.CustodyTransactionID) ([]CustodyCorrectionContext, error)
 }
 
 // OperatorRepository persists operator records.

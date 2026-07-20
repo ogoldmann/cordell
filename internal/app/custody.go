@@ -526,6 +526,8 @@ type CustodyReceipt struct {
 	Lines                   []CustodyReceiptLine
 	HasCorrection           bool
 	Correction              CustodyCorrectionContext
+	EditCount               int
+	Corrections             []CustodyCorrectionContext
 }
 
 // GetCustodyReceiptCommand contains the input data required to retrieve a custody receipt.
@@ -559,6 +561,11 @@ func (s *GetCustodyReceiptService) Execute(
 		return CustodyReceipt{}, err
 	}
 
+	corrections, err := s.custodyRepository.ListCorrectionContextsByTransactionID(ctx, cmd.ID)
+	if err != nil {
+		return CustodyReceipt{}, err
+	}
+
 	result := CustodyReceipt{
 		ID:                      receipt.ID,
 		TransactionType:         receipt.TransactionType,
@@ -576,6 +583,7 @@ func (s *GetCustodyReceiptService) Execute(
 		Notes:                   receipt.Notes,
 		CreatedAt:               receipt.CreatedAt,
 		Lines:                   make([]CustodyReceiptLine, 0, len(receipt.Lines)),
+		Corrections:             make([]CustodyCorrectionContext, 0, len(corrections)),
 	}
 
 	for _, line := range receipt.Lines {
@@ -587,38 +595,50 @@ func (s *GetCustodyReceiptService) Execute(
 		})
 	}
 
-	if receipt.HasCorrection {
-		result.HasCorrection = true
-		result.Correction = CustodyCorrectionContext{
-			ID:                               receipt.Correction.ID,
-			CorrectedTransactionID:           receipt.Correction.CorrectedTransactionID,
-			OperatorID:                       receipt.Correction.OperatorID,
-			OperatorAlias:                    receipt.Correction.OperatorAlias,
-			OperatorRank:                     receipt.Correction.OperatorRank,
-			OperatorRole:                     receipt.Correction.OperatorRole,
-			OperatorActive:                   receipt.Correction.OperatorActive,
-			CorrectedPersonnelID:             receipt.Correction.CorrectedPersonnelID,
-			CorrectedPersonnelFullName:       receipt.Correction.CorrectedPersonnelFullName,
-			CorrectedPersonnelAlias:          receipt.Correction.CorrectedPersonnelAlias,
-			CorrectedPersonnelRank:           receipt.Correction.CorrectedPersonnelRank,
-			CorrectedPersonnelRegistrationID: receipt.Correction.CorrectedPersonnelRegistrationID,
-			CorrectedPersonnelActive:         receipt.Correction.CorrectedPersonnelActive,
-			CorrectedNotes:                   receipt.Correction.CorrectedNotes,
-			CreatedAt:                        receipt.Correction.CreatedAt,
-			Lines:                            make([]CustodyCorrectionContextLine, 0, len(receipt.Correction.Lines)),
-		}
+	for _, correction := range corrections {
+		result.Corrections = append(result.Corrections, mapCustodyCorrectionContext(correction))
+	}
 
-		for _, line := range receipt.Correction.Lines {
-			result.Correction.Lines = append(result.Correction.Lines, CustodyCorrectionContextLine{
-				AssetID:     line.AssetID,
-				AssetName:   line.AssetName,
-				AssetActive: line.AssetActive,
-				Quantity:    line.Quantity,
-			})
-		}
+	result.EditCount = len(result.Corrections)
+
+	if result.EditCount > 0 {
+		result.HasCorrection = true
+		result.Correction = result.Corrections[result.EditCount-1]
 	}
 
 	return result, nil
+}
+
+func mapCustodyCorrectionContext(correction ports.CustodyCorrectionContext) CustodyCorrectionContext {
+	result := CustodyCorrectionContext{
+		ID:                               correction.ID,
+		CorrectedTransactionID:           correction.CorrectedTransactionID,
+		OperatorID:                       correction.OperatorID,
+		OperatorAlias:                    correction.OperatorAlias,
+		OperatorRank:                     correction.OperatorRank,
+		OperatorRole:                     correction.OperatorRole,
+		OperatorActive:                   correction.OperatorActive,
+		CorrectedPersonnelID:             correction.CorrectedPersonnelID,
+		CorrectedPersonnelFullName:       correction.CorrectedPersonnelFullName,
+		CorrectedPersonnelAlias:          correction.CorrectedPersonnelAlias,
+		CorrectedPersonnelRank:           correction.CorrectedPersonnelRank,
+		CorrectedPersonnelRegistrationID: correction.CorrectedPersonnelRegistrationID,
+		CorrectedPersonnelActive:         correction.CorrectedPersonnelActive,
+		CorrectedNotes:                   correction.CorrectedNotes,
+		CreatedAt:                        correction.CreatedAt,
+		Lines:                            make([]CustodyCorrectionContextLine, 0, len(correction.Lines)),
+	}
+
+	for _, line := range correction.Lines {
+		result.Lines = append(result.Lines, CustodyCorrectionContextLine{
+			AssetID:     line.AssetID,
+			AssetName:   line.AssetName,
+			AssetActive: line.AssetActive,
+			Quantity:    line.Quantity,
+		})
+	}
+
+	return result
 }
 
 // RegisterCustodyCorrectionCommand contains the input data required to register a custody correction.

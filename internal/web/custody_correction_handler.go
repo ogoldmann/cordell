@@ -13,8 +13,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-const extraCorrectionLineRows = 5
-
 type custodyTransactionEditPageData struct {
 	privateLayoutData
 	Title                string
@@ -237,7 +235,7 @@ func (s *Server) newCustodyTransactionEditPageData(
 	}
 
 	if len(state.LineRows) == 0 {
-		state.LineRows = withExtraBlankCorrectionRows(effectiveLines)
+		state.LineRows = ensureAtLeastOneCorrectionRow(effectiveLines)
 	}
 
 	typeLabel := custodyTransactionTypeLabel(receipt.TransactionType)
@@ -332,15 +330,12 @@ func correctionLineRowsFromCorrectionLines(lines []app.CustodyCorrectionContextL
 	return rows
 }
 
-func withExtraBlankCorrectionRows(rows []correctionLineRowView) []correctionLineRowView {
-	result := make([]correctionLineRowView, 0, len(rows)+extraCorrectionLineRows)
-	result = append(result, rows...)
-
-	for i := 0; i < extraCorrectionLineRows; i++ {
-		result = append(result, correctionLineRowView{})
+func ensureAtLeastOneCorrectionRow(rows []correctionLineRowView) []correctionLineRowView {
+	if len(rows) > 0 {
+		return rows
 	}
 
-	return result
+	return []correctionLineRowView{{}}
 }
 
 func correctionLineRowsFromRequest(r *http.Request) []correctionLineRowView {

@@ -131,6 +131,98 @@ func (q *Queries) GetCustodyBalanceQuantity(ctx context.Context, arg GetCustodyB
 	return quantity, err
 }
 
+const getCustodyCorrectionContextsByTransactionID = `-- name: GetCustodyCorrectionContextsByTransactionID :many
+SELECT
+    cc.id,
+    cc.corrected_transaction_id,
+    cc.operator_id,
+    o.alias AS operator_alias,
+    o.rank AS operator_rank,
+    o.role AS operator_role,
+    o.active AS operator_active,
+    cc.corrected_personnel_id,
+    p.full_name AS corrected_personnel_full_name,
+    p.alias AS corrected_personnel_alias,
+    p.rank AS corrected_personnel_rank,
+    p.registration_id AS corrected_personnel_registration_id,
+    p.active AS corrected_personnel_active,
+    cc.corrected_notes,
+    cc.created_at,
+    ccl.asset_id,
+    a.name AS asset_name,
+    a.active AS asset_active,
+    ccl.quantity
+FROM custody_corrections cc
+JOIN operators o ON o.id = cc.operator_id
+JOIN personnel p ON p.id = cc.corrected_personnel_id
+JOIN custody_correction_lines ccl ON ccl.custody_correction_id = cc.id
+JOIN assets a ON a.id = ccl.asset_id
+WHERE cc.corrected_transaction_id = $1
+ORDER BY cc.created_at ASC, cc.id ASC, a.name ASC, ccl.id ASC
+`
+
+type GetCustodyCorrectionContextsByTransactionIDRow struct {
+	ID                               string             `json:"id"`
+	CorrectedTransactionID           string             `json:"corrected_transaction_id"`
+	OperatorID                       string             `json:"operator_id"`
+	OperatorAlias                    string             `json:"operator_alias"`
+	OperatorRank                     string             `json:"operator_rank"`
+	OperatorRole                     string             `json:"operator_role"`
+	OperatorActive                   bool               `json:"operator_active"`
+	CorrectedPersonnelID             string             `json:"corrected_personnel_id"`
+	CorrectedPersonnelFullName       string             `json:"corrected_personnel_full_name"`
+	CorrectedPersonnelAlias          string             `json:"corrected_personnel_alias"`
+	CorrectedPersonnelRank           string             `json:"corrected_personnel_rank"`
+	CorrectedPersonnelRegistrationID string             `json:"corrected_personnel_registration_id"`
+	CorrectedPersonnelActive         bool               `json:"corrected_personnel_active"`
+	CorrectedNotes                   string             `json:"corrected_notes"`
+	CreatedAt                        pgtype.Timestamptz `json:"created_at"`
+	AssetID                          string             `json:"asset_id"`
+	AssetName                        string             `json:"asset_name"`
+	AssetActive                      bool               `json:"asset_active"`
+	Quantity                         int32              `json:"quantity"`
+}
+
+func (q *Queries) GetCustodyCorrectionContextsByTransactionID(ctx context.Context, correctedTransactionID string) ([]GetCustodyCorrectionContextsByTransactionIDRow, error) {
+	rows, err := q.db.Query(ctx, getCustodyCorrectionContextsByTransactionID, correctedTransactionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCustodyCorrectionContextsByTransactionIDRow{}
+	for rows.Next() {
+		var i GetCustodyCorrectionContextsByTransactionIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CorrectedTransactionID,
+			&i.OperatorID,
+			&i.OperatorAlias,
+			&i.OperatorRank,
+			&i.OperatorRole,
+			&i.OperatorActive,
+			&i.CorrectedPersonnelID,
+			&i.CorrectedPersonnelFullName,
+			&i.CorrectedPersonnelAlias,
+			&i.CorrectedPersonnelRank,
+			&i.CorrectedPersonnelRegistrationID,
+			&i.CorrectedPersonnelActive,
+			&i.CorrectedNotes,
+			&i.CreatedAt,
+			&i.AssetID,
+			&i.AssetName,
+			&i.AssetActive,
+			&i.Quantity,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCustodyTransactionReceiptByID = `-- name: GetCustodyTransactionReceiptByID :many
 SELECT
     ct.id,

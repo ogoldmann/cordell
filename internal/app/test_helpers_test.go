@@ -349,14 +349,16 @@ func recordMatchesStatusFilter(active bool, statusFilter ports.RecordStatusFilte
 }
 
 type fakeCustodyRepository struct {
-	saved           []domain.CustodyTransaction
-	corrections     []domain.CustodyCorrection
-	saveErr         error
-	currentQuantity map[string]int
-	currentByPerson map[domain.PersonnelID][]ports.CurrentCustodyItem
-	currentByAsset  map[domain.AssetID][]ports.CurrentAssetHolder
-	historyByPerson map[domain.PersonnelID][]ports.CustodyHistoryEntry
-	receipts        map[domain.CustodyTransactionID]ports.CustodyReceipt
+	saved                      []domain.CustodyTransaction
+	corrections                []domain.CustodyCorrection
+	saveErr                    error
+	currentQuantity            map[string]int
+	currentByPerson            map[domain.PersonnelID][]ports.CurrentCustodyItem
+	currentByAsset             map[domain.AssetID][]ports.CurrentAssetHolder
+	historyByPerson            map[domain.PersonnelID][]ports.CustodyHistoryEntry
+	receipts                   map[domain.CustodyTransactionID]ports.CustodyReceipt
+	correctionByTransactionID  map[domain.CustodyTransactionID]ports.CustodyCorrectionContext
+	correctionsByTransactionID map[domain.CustodyTransactionID][]ports.CustodyCorrectionContext
 }
 
 func (r *fakeCustodyRepository) SaveTransaction(_ context.Context, transaction domain.CustodyTransaction) (bool, error) {
@@ -473,6 +475,31 @@ func (r *fakeCustodyRepository) FindReceiptByID(
 	}
 
 	return receipt, nil
+}
+
+func (r *fakeCustodyRepository) ListCorrectionContextsByTransactionID(
+	_ context.Context,
+	id domain.CustodyTransactionID,
+) ([]ports.CustodyCorrectionContext, error) {
+	if r.correctionsByTransactionID != nil {
+		return r.correctionsByTransactionID[id], nil
+	}
+
+	if r.correctionByTransactionID != nil {
+		correction, ok := r.correctionByTransactionID[id]
+		if !ok {
+			return nil, nil
+		}
+
+		return []ports.CustodyCorrectionContext{correction}, nil
+	}
+
+	receipt, ok := r.receipts[id]
+	if ok && receipt.HasCorrection {
+		return []ports.CustodyCorrectionContext{receipt.Correction}, nil
+	}
+
+	return nil, nil
 }
 
 func custodyBalanceKey(personnelID domain.PersonnelID, assetID domain.AssetID) string {

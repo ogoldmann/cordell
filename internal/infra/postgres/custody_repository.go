@@ -473,116 +473,83 @@ func (r *CustodyRepository) FindReceiptByID(
 	return receipt, nil
 }
 
-func (r *CustodyRepository) attachLatestCorrection(ctx context.Context, receipt *ports.CustodyReceipt) error {
-	var correctionID string
-	var correctedTransactionID string
-	var operatorID string
-	var operatorRank string
-	var operatorRole string
-	var correctedPersonnelID string
-	var correctedPersonnelRank string
-	var correctedPersonnelRegistrationID string
-	var correctionCreatedAt pgtype.Timestamptz
-
-	err := r.pool.QueryRow(
-		ctx,
-		`
-SELECT
-    cc.id,
-    cc.corrected_transaction_id,
-    cc.operator_id,
-    o.alias AS operator_alias,
-    o.rank AS operator_rank,
-    o.role AS operator_role,
-    o.active AS operator_active,
-    cc.corrected_personnel_id,
-    p.full_name AS corrected_personnel_full_name,
-    p.alias AS corrected_personnel_alias,
-    p.rank AS corrected_personnel_rank,
-    p.registration_id AS corrected_personnel_registration_id,
-    p.active AS corrected_personnel_active,
-    cc.corrected_notes,
-    cc.created_at
-FROM custody_corrections cc
-JOIN operators o ON o.id = cc.operator_id
-JOIN personnel p ON p.id = cc.corrected_personnel_id
-WHERE cc.corrected_transaction_id = $1
-ORDER BY cc.created_at DESC, cc.id DESC
-LIMIT 1`,
-		string(receipt.ID),
-	).Scan(
-		&correctionID,
-		&correctedTransactionID,
-		&operatorID,
-		&receipt.Correction.OperatorAlias,
-		&operatorRank,
-		&operatorRole,
-		&receipt.Correction.OperatorActive,
-		&correctedPersonnelID,
-		&receipt.Correction.CorrectedPersonnelFullName,
-		&receipt.Correction.CorrectedPersonnelAlias,
-		&correctedPersonnelRank,
-		&correctedPersonnelRegistrationID,
-		&receipt.Correction.CorrectedPersonnelActive,
-		&receipt.Correction.CorrectedNotes,
-		&correctionCreatedAt,
-	)
+// ListCorrectionContextsByTransactionID returns all correction contexts for a transaction in chronological order.
+func (r *CustodyRepository) ListCorrectionContextsByTransactionID(
+	ctx context.Context,
+	id domain.CustodyTransactionID,
+) ([]ports.CustodyCorrectionContext, error) {
+	rows, err := r.queries.GetCustodyCorrectionContextsByTransactionID(ctx, string(id))
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil
+		return nil, err
+	}
+
+	contextsByID := make(map[domain.CustodyCorrectionID]*ports.CustodyCorrectionContext)
+	orderedIDs := make([]domain.CustodyCorrectionID, 0)
+
+	for _, row := range rows {
+		correctionID := domain.CustodyCorrectionID(row.ID)
+
+		context, ok := contextsByID[correctionID]
+		if !ok {
+			createdAt, err := timestamptzToTime(row.CreatedAt)
+			if err != nil {
+				return nil, err
+			}
+
+			context = &ports.CustodyCorrectionContext{
+				ID:                               correctionID,
+				CorrectedTransactionID:           domain.CustodyTransactionID(row.CorrectedTransactionID),
+				OperatorID:                       domain.OperatorID(row.OperatorID),
+				OperatorAlias:                    row.OperatorAlias,
+				OperatorRank:                     domain.Rank(row.OperatorRank),
+				OperatorRole:                     domain.OperatorRole(row.OperatorRole),
+				OperatorActive:                   row.OperatorActive,
+				CorrectedPersonnelID:             domain.PersonnelID(row.CorrectedPersonnelID),
+				CorrectedPersonnelFullName:       row.CorrectedPersonnelFullName,
+				CorrectedPersonnelAlias:          row.CorrectedPersonnelAlias,
+				CorrectedPersonnelRank:           domain.Rank(row.CorrectedPersonnelRank),
+				CorrectedPersonnelRegistrationID: domain.RegistrationID(row.CorrectedPersonnelRegistrationID),
+				CorrectedPersonnelActive:         row.CorrectedPersonnelActive,
+				CorrectedNotes:                   row.CorrectedNotes,
+				CreatedAt:                        createdAt,
+				Lines:                            make([]ports.CustodyCorrectionContextLine, 0),
+			}
+
+			contextsByID[correctionID] = context
+			orderedIDs = append(orderedIDs, correctionID)
 		}
 
+		context.Lines = append(context.Lines, ports.CustodyCorrectionContextLine{
+			AssetID:     domain.AssetID(row.AssetID),
+			AssetName:   row.AssetName,
+			AssetActive: row.AssetActive,
+			Quantity:    int(row.Quantity),
+		})
+	}
+
+	contexts := make([]ports.CustodyCorrectionContext, 0, len(orderedIDs))
+
+	for _, correctionID := range orderedIDs {
+		contexts = append(contexts, *contextsByID[correctionID])
+	}
+
+	return contexts, nil
+}
+
+func (r *CustodyRepository) attachLatestCorrection(ctx context.Context, receipt *ports.CustodyReceipt) error {
+	contexts, err := r.ListCorrectionContextsByTransactionID(ctx, receipt.ID)
+	if err != nil {
 		return err
 	}
 
-	createdAt, err := timestamptzToTime(correctionCreatedAt)
-	if err != nil {
-		return err
+	if len(contexts) == 0 {
+		return nil
 	}
 
 	receipt.HasCorrection = true
-	receipt.Correction.ID = domain.CustodyCorrectionID(correctionID)
-	receipt.Correction.CorrectedTransactionID = domain.CustodyTransactionID(correctedTransactionID)
-	receipt.Correction.OperatorID = domain.OperatorID(operatorID)
-	receipt.Correction.OperatorRank = domain.Rank(operatorRank)
-	receipt.Correction.OperatorRole = domain.OperatorRole(operatorRole)
-	receipt.Correction.CorrectedPersonnelID = domain.PersonnelID(correctedPersonnelID)
-	receipt.Correction.CorrectedPersonnelRank = domain.Rank(correctedPersonnelRank)
-	receipt.Correction.CorrectedPersonnelRegistrationID = domain.RegistrationID(correctedPersonnelRegistrationID)
-	receipt.Correction.CreatedAt = createdAt
+	receipt.Correction = contexts[len(contexts)-1]
 
-	rows, err := r.pool.Query(
-		ctx,
-		`
-SELECT
-    ccl.asset_id,
-    a.name AS asset_name,
-    a.active AS asset_active,
-    ccl.quantity
-FROM custody_correction_lines ccl
-JOIN assets a ON a.id = ccl.asset_id
-WHERE ccl.custody_correction_id = $1
-ORDER BY a.name ASC, ccl.id ASC`,
-		string(receipt.Correction.ID),
-	)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	receipt.Correction.Lines = make([]ports.CustodyCorrectionContextLine, 0)
-	for rows.Next() {
-		var assetID string
-		var line ports.CustodyCorrectionContextLine
-		if err := rows.Scan(&assetID, &line.AssetName, &line.AssetActive, &line.Quantity); err != nil {
-			return err
-		}
-
-		line.AssetID = domain.AssetID(assetID)
-		receipt.Correction.Lines = append(receipt.Correction.Lines, line)
-	}
-
-	return rows.Err()
+	return nil
 }
 
 func timestamptzToTime(value pgtype.Timestamptz) (time.Time, error) {

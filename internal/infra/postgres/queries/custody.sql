@@ -149,3 +149,32 @@ JOIN custody_lines cl ON cl.custody_transaction_id = ct.id
 JOIN assets a ON a.id = cl.asset_id
 WHERE ct.id = @id
 ORDER BY a.name ASC, cl.id ASC;
+
+-- name: GetCustodyCorrectionContextsByTransactionID :many
+SELECT
+    cc.id,
+    cc.corrected_transaction_id,
+    cc.operator_id,
+    o.alias AS operator_alias,
+    o.rank AS operator_rank,
+    o.role AS operator_role,
+    o.active AS operator_active,
+    cc.corrected_personnel_id,
+    p.full_name AS corrected_personnel_full_name,
+    p.alias AS corrected_personnel_alias,
+    p.rank AS corrected_personnel_rank,
+    p.registration_id AS corrected_personnel_registration_id,
+    p.active AS corrected_personnel_active,
+    cc.corrected_notes,
+    cc.created_at,
+    ccl.asset_id,
+    a.name AS asset_name,
+    a.active AS asset_active,
+    ccl.quantity
+FROM custody_corrections cc
+JOIN operators o ON o.id = cc.operator_id
+JOIN personnel p ON p.id = cc.corrected_personnel_id
+JOIN custody_correction_lines ccl ON ccl.custody_correction_id = cc.id
+JOIN assets a ON a.id = ccl.asset_id
+WHERE cc.corrected_transaction_id = @corrected_transaction_id
+ORDER BY cc.created_at ASC, cc.id ASC, a.name ASC, ccl.id ASC;
