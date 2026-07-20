@@ -245,6 +245,10 @@ func newCustodyReceiptCurrentView(interpretation custodyReceiptInterpretationVie
 }
 
 func newCustodyReceiptEditHistory(receipt app.CustodyReceipt) []custodyReceiptEditHistoryEntryView {
+	if len(receipt.Corrections) == 0 {
+		return nil
+	}
+
 	original := originalReceiptInterpretationView(receipt)
 
 	history := []custodyReceiptEditHistoryEntryView{
@@ -297,7 +301,7 @@ func custodyReceiptChanges(
 
 	if previous.PersonnelID != current.PersonnelID {
 		changes = append(changes, custodyReceiptEditChangeView{
-			Label: "Personnel",
+			Label: "Personnel changed",
 			From:  previous.PersonnelDisplay,
 			To:    current.PersonnelDisplay,
 		})
@@ -305,7 +309,7 @@ func custodyReceiptChanges(
 
 	if strings.TrimSpace(previous.Notes) != strings.TrimSpace(current.Notes) {
 		changes = append(changes, custodyReceiptEditChangeView{
-			Label: "Notes",
+			Label: "Notes changed",
 			From:  custodyNotesChangeLabel(previous.Notes),
 			To:    custodyNotesChangeLabel(current.Notes),
 		})
@@ -317,11 +321,12 @@ func custodyReceiptChanges(
 }
 
 func custodyNotesChangeLabel(notes string) string {
-	if strings.TrimSpace(notes) == "" {
+	trimmed := strings.TrimSpace(notes)
+	if trimmed == "" {
 		return "No notes"
 	}
 
-	return "Notes recorded"
+	return trimmed
 }
 
 func custodyReceiptLineChanges(

@@ -389,6 +389,8 @@ type CustodyHistoryEntry struct {
 	Notes         string
 	CreatedAt     time.Time
 	Lines         []CustodyHistoryLine
+	HasCorrection bool
+	EditCount     int
 }
 
 // ListCustodyHistoryCommand contains the input data required to list custody history.
@@ -454,6 +456,8 @@ func (s *ListCustodyHistoryService) Execute(
 			Notes:         entry.Notes,
 			CreatedAt:     entry.CreatedAt,
 			Lines:         make([]CustodyHistoryLine, 0, len(entry.Lines)),
+			HasCorrection: entry.HasCorrection,
+			EditCount:     entry.EditCount,
 		}
 
 		for _, line := range entry.Lines {
@@ -657,6 +661,20 @@ type RegisterCustodyCorrectionResult struct {
 	Created    bool
 }
 
+// CustodyBalanceDelta represents one effective balance change caused by a correction.
+type CustodyBalanceDelta struct {
+	PersonnelID   domain.PersonnelID
+	AssetID       domain.AssetID
+	QuantityDelta int
+}
+
+// CustodyCorrectionBalanceInterpretation represents a transaction interpretation for balance comparison.
+type CustodyCorrectionBalanceInterpretation struct {
+	TransactionType domain.CustodyTransactionType
+	PersonnelID     domain.PersonnelID
+	Lines           []domain.CustodyLine
+}
+
 // RegisterCustodyCorrectionService handles the append-only custody correction use case.
 type RegisterCustodyCorrectionService struct {
 	personnelRepository ports.PersonnelRepository
@@ -740,6 +758,26 @@ func (s *RegisterCustodyCorrectionService) Execute(
 		previousLines = custodyCorrectionContextLinesToDomainLines(receipt.Correction.Lines)
 	}
 
+	previousInterpretation := CustodyCorrectionBalanceInterpretation{
+		TransactionType: receipt.TransactionType,
+		PersonnelID:     previousPersonnelID,
+		Lines:           previousLines,
+	}
+	correctedInterpretation := CustodyCorrectionBalanceInterpretation{
+		TransactionType: receipt.TransactionType,
+		PersonnelID:     correction.CorrectedPersonnelID(),
+		Lines:           correction.Lines(),
+	}
+
+	deltas, err := ComputeCustodyCorrectionBalanceDeltas(previousInterpretation, correctedInterpretation)
+	if err != nil {
+		return RegisterCustodyCorrectionResult{}, err
+	}
+
+	if err := s.validateCheckoutCorrectionPositiveDeltas(ctx, receipt.TransactionType, deltas); err != nil {
+		return RegisterCustodyCorrectionResult{}, err
+	}
+
 	created, err := s.custodyRepository.SaveCorrection(
 		ctx,
 		correction,
@@ -755,6 +793,113 @@ func (s *RegisterCustodyCorrectionService) Execute(
 		Correction: correction,
 		Created:    created,
 	}, nil
+}
+
+func (s *RegisterCustodyCorrectionService) validateCheckoutCorrectionPositiveDeltas(
+	ctx context.Context,
+	transactionType domain.CustodyTransactionType,
+	deltas []CustodyBalanceDelta,
+) error {
+	if transactionType != domain.CustodyTransactionTypeCheckout {
+		return nil
+	}
+
+	for _, delta := range deltas {
+		if delta.QuantityDelta <= 0 {
+			continue
+		}
+
+		personnel, err := s.personnelRepository.FindByID(ctx, delta.PersonnelID)
+		if err != nil {
+			return err
+		}
+
+		if !personnel.Active() {
+			return domain.ErrInactivePersonnel
+		}
+
+		asset, err := s.assetRepository.FindByID(ctx, delta.AssetID)
+		if err != nil {
+			return err
+		}
+
+		if !asset.Active() {
+			return domain.ErrInactiveAsset
+		}
+	}
+
+	return nil
+}
+
+// ComputeCustodyCorrectionBalanceDeltas computes effective balance deltas between two interpretations.
+func ComputeCustodyCorrectionBalanceDeltas(
+	previousInterpretation CustodyCorrectionBalanceInterpretation,
+	correctedInterpretation CustodyCorrectionBalanceInterpretation,
+) ([]CustodyBalanceDelta, error) {
+	if previousInterpretation.TransactionType != correctedInterpretation.TransactionType {
+		return nil, domain.ErrInvalidTransactionType
+	}
+
+	multiplier, err := custodyTransactionBalanceMultiplier(previousInterpretation.TransactionType)
+	if err != nil {
+		return nil, err
+	}
+
+	type custodyBalanceDeltaKey struct {
+		personnelID domain.PersonnelID
+		assetID     domain.AssetID
+	}
+
+	totals := make(map[custodyBalanceDeltaKey]int)
+	orderedKeys := make([]custodyBalanceDeltaKey, 0, len(previousInterpretation.Lines)+len(correctedInterpretation.Lines))
+
+	addDelta := func(personnelID domain.PersonnelID, assetID domain.AssetID, quantity int) {
+		key := custodyBalanceDeltaKey{
+			personnelID: personnelID,
+			assetID:     assetID,
+		}
+		if _, ok := totals[key]; !ok {
+			orderedKeys = append(orderedKeys, key)
+		}
+
+		totals[key] += quantity
+	}
+
+	for _, line := range previousInterpretation.Lines {
+		addDelta(previousInterpretation.PersonnelID, line.AssetID(), -multiplier*line.Quantity().Int())
+	}
+
+	for _, line := range correctedInterpretation.Lines {
+		addDelta(correctedInterpretation.PersonnelID, line.AssetID(), multiplier*line.Quantity().Int())
+	}
+
+	deltas := make([]CustodyBalanceDelta, 0, len(orderedKeys))
+	for _, key := range orderedKeys {
+		quantity := totals[key]
+		if quantity == 0 {
+			continue
+		}
+
+		deltas = append(deltas, CustodyBalanceDelta{
+			PersonnelID:   key.personnelID,
+			AssetID:       key.assetID,
+			QuantityDelta: quantity,
+		})
+	}
+
+	return deltas, nil
+}
+
+func custodyTransactionBalanceMultiplier(transactionType domain.CustodyTransactionType) (int, error) {
+	if transactionType == domain.CustodyTransactionTypeReturn {
+		return -1, nil
+	}
+
+	if transactionType == domain.CustodyTransactionTypeCheckout {
+		return 1, nil
+	}
+
+	return 0, domain.ErrInvalidTransactionType
 }
 
 // GetCorrectionBaseReceipt retrieves the receipt used as correction base.

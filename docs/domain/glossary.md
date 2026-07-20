@@ -253,3 +253,11 @@ It is the latest correction when one or more edits exist.
 Transaction edit history is the chronological list of the original transaction and every correction linked to it.
 
 It shows what changed in each edit without rendering every correction as a full receipt snapshot.
+
+## Effective Personnel History
+
+Effective personnel history lists custody transactions according to their current effective interpretation.
+
+If a custody transaction was corrected to another personnel, it appears in the corrected personnel history.
+
+The original personnel relationship remains preserved in the immutable receipt edit history.

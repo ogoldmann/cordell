@@ -699,6 +699,219 @@ func TestListCustodyHistoryServiceExecute(t *testing.T) {
 	}
 }
 
+func TestRegisterCustodyCorrectionServiceRejectsCheckoutCorrectionPositiveDeltaToInactivePersonnel(t *testing.T) {
+	personnelA := mustBuildPersonnel(t, "personnel-1")
+	personnelB := mustBuildPersonnel(t, "personnel-2")
+	inactivePersonnelB, err := domain.ReconstitutePersonnel(
+		personnelB.ID(),
+		personnelB.FullName(),
+		personnelB.Alias(),
+		personnelB.Rank(),
+		personnelB.RegistrationID(),
+		personnelB.Section(),
+		personnelB.OrganizationUnit(),
+		false,
+	)
+	if err != nil {
+		t.Fatalf("expected valid inactive personnel, got %v", err)
+	}
+
+	asset := mustBuildAsset(t, "asset-1")
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleOperator)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnelA.ID():         personnelA,
+			inactivePersonnelB.ID(): inactivePersonnelB,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
+	custodyRepository := &fakeCustodyRepository{
+		receipts: map[domain.CustodyTransactionID]ports.CustodyReceipt{
+			"transaction-1": {
+				ID:              "transaction-1",
+				TransactionType: domain.CustodyTransactionTypeCheckout,
+				PersonnelID:     personnelA.ID(),
+				Lines: []ports.CustodyReceiptLine{
+					{
+						AssetID:  asset.ID(),
+						Quantity: 1,
+					},
+				},
+			},
+		},
+		currentQuantity: map[string]int{
+			custodyBalanceKey(personnelA.ID(), asset.ID()): 1,
+		},
+	}
+
+	service := NewRegisterCustodyCorrectionService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+	)
+
+	_, err = service.Execute(context.Background(), RegisterCustodyCorrectionCommand{
+		CorrectionID:           "correction-1",
+		CorrectedTransactionID: "transaction-1",
+		OperatorID:             operator.ID(),
+		CorrectedPersonnelID:   inactivePersonnelB.ID(),
+		Lines: []CustodyLineCommand{
+			{AssetID: asset.ID(), Quantity: 1},
+		},
+	})
+
+	if err != domain.ErrInactivePersonnel {
+		t.Fatalf("expected ErrInactivePersonnel, got %v", err)
+	}
+
+	if len(custodyRepository.corrections) != 0 {
+		t.Fatalf("expected no saved corrections, got %d", len(custodyRepository.corrections))
+	}
+}
+
+func TestRegisterCustodyCorrectionServiceRejectsCheckoutCorrectionPositiveDeltaToInactiveAsset(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+	assetA := mustBuildAsset(t, "asset-1")
+	assetB := mustBuildAsset(t, "asset-2")
+
+	inactiveAssetB, err := domain.ReconstituteAsset(assetB.ID(), assetB.Name(), false)
+	if err != nil {
+		t.Fatalf("expected valid inactive asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleOperator)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			assetA.ID():         assetA,
+			inactiveAssetB.ID(): inactiveAssetB,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
+	custodyRepository := &fakeCustodyRepository{
+		receipts: map[domain.CustodyTransactionID]ports.CustodyReceipt{
+			"transaction-1": {
+				ID:              "transaction-1",
+				TransactionType: domain.CustodyTransactionTypeCheckout,
+				PersonnelID:     personnel.ID(),
+				Lines: []ports.CustodyReceiptLine{
+					{
+						AssetID:  assetA.ID(),
+						Quantity: 1,
+					},
+				},
+			},
+		},
+		currentQuantity: map[string]int{
+			custodyBalanceKey(personnel.ID(), assetA.ID()): 1,
+		},
+	}
+
+	service := NewRegisterCustodyCorrectionService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+	)
+
+	_, err = service.Execute(context.Background(), RegisterCustodyCorrectionCommand{
+		CorrectionID:           "correction-1",
+		CorrectedTransactionID: "transaction-1",
+		OperatorID:             operator.ID(),
+		CorrectedPersonnelID:   personnel.ID(),
+		Lines: []CustodyLineCommand{
+			{AssetID: inactiveAssetB.ID(), Quantity: 1},
+		},
+	})
+
+	if err != domain.ErrInactiveAsset {
+		t.Fatalf("expected ErrInactiveAsset, got %v", err)
+	}
+
+	if len(custodyRepository.corrections) != 0 {
+		t.Fatalf("expected no saved corrections, got %d", len(custodyRepository.corrections))
+	}
+}
+
+func TestRegisterCustodyCorrectionServiceAllowsCheckoutCorrectionNegativeDeltaForInactiveAsset(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+	asset := mustBuildAsset(t, "asset-1")
+
+	inactiveAsset, err := domain.ReconstituteAsset(asset.ID(), asset.Name(), false)
+	if err != nil {
+		t.Fatalf("expected valid inactive asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleOperator)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			inactiveAsset.ID(): inactiveAsset,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
+	custodyRepository := &fakeCustodyRepository{
+		receipts: map[domain.CustodyTransactionID]ports.CustodyReceipt{
+			"transaction-1": {
+				ID:              "transaction-1",
+				TransactionType: domain.CustodyTransactionTypeCheckout,
+				PersonnelID:     personnel.ID(),
+				Lines: []ports.CustodyReceiptLine{
+					{
+						AssetID:  inactiveAsset.ID(),
+						Quantity: 2,
+					},
+				},
+			},
+		},
+		currentQuantity: map[string]int{
+			custodyBalanceKey(personnel.ID(), inactiveAsset.ID()): 2,
+		},
+	}
+
+	service := NewRegisterCustodyCorrectionService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+	)
+
+	result, err := service.Execute(context.Background(), RegisterCustodyCorrectionCommand{
+		CorrectionID:           "correction-1",
+		CorrectedTransactionID: "transaction-1",
+		OperatorID:             operator.ID(),
+		CorrectedPersonnelID:   personnel.ID(),
+		Lines: []CustodyLineCommand{
+			{AssetID: inactiveAsset.ID(), Quantity: 1},
+		},
+	})
+
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if !result.Created {
+		t.Fatal("expected correction to be created")
+	}
+}
+
 func TestGetCustodyReceiptServiceExecute(t *testing.T) {
 	createdAt := time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)
 

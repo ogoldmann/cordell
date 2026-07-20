@@ -45,6 +45,8 @@ type CustodyHistoryEntry struct {
 	Notes         string
 	CreatedAt     time.Time
 	Lines         []CustodyHistoryLine
+	HasCorrection bool
+	EditCount     int
 }
 
 // CustodyReceiptLine represents one asset line in a custody transaction receipt.

@@ -450,6 +450,133 @@ func TestPostgresCustodyRepositoryListHistoryByPersonnel(t *testing.T) {
 	}
 }
 
+func TestPostgresCustodyRepositoryListHistoryByPersonnelUsesEffectiveCorrectedPersonnel(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnelA := mustNewTestPersonnel(t, "personnel-1", "John A", "alpha", domain.RankSergeant, "52998224725")
+	personnelB := mustNewTestPersonnel(t, "personnel-2", "John B", "bravo", domain.RankCorporal, "11144477735")
+
+	if err := personnelRepository.Save(context.Background(), personnelA); err != nil {
+		t.Fatalf("expected no error saving personnel A, got %v", err)
+	}
+
+	if err := personnelRepository.Save(context.Background(), personnelB); err != nil {
+		t.Fatalf("expected no error saving personnel B, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"29109142088",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleOperator,
+	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	line, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid line, got %v", err)
+	}
+
+	transaction, err := domain.NewCustodyTransaction(
+		"transaction-1",
+		domain.CustodyTransactionTypeCheckout,
+		personnelA.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{line},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid transaction, got %v", err)
+	}
+
+	created, err := custodyRepository.SaveTransaction(context.Background(), transaction)
+	if err != nil {
+		t.Fatalf("expected no error saving transaction, got %v", err)
+	}
+
+	if !created {
+		t.Fatal("expected transaction to be created")
+	}
+
+	correctionLine, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid correction line, got %v", err)
+	}
+
+	correction, err := domain.NewCustodyCorrection(
+		"correction-1",
+		transaction.ID(),
+		operator.ID(),
+		personnelB.ID(),
+		[]domain.CustodyLine{correctionLine},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid correction, got %v", err)
+	}
+
+	created, err = custodyRepository.SaveCorrection(
+		context.Background(),
+		correction,
+		transaction.Type(),
+		transaction.PersonnelID(),
+		transaction.Lines(),
+	)
+	if err != nil {
+		t.Fatalf("expected no error saving correction, got %v", err)
+	}
+
+	if !created {
+		t.Fatal("expected correction to be created")
+	}
+
+	historyA, err := custodyRepository.ListHistoryByPersonnel(context.Background(), personnelA.ID(), 10)
+	if err != nil {
+		t.Fatalf("expected no error listing personnel A history, got %v", err)
+	}
+
+	if len(historyA) != 0 {
+		t.Fatalf("expected personnel A history to be empty after correction, got %d", len(historyA))
+	}
+
+	historyB, err := custodyRepository.ListHistoryByPersonnel(context.Background(), personnelB.ID(), 10)
+	if err != nil {
+		t.Fatalf("expected no error listing personnel B history, got %v", err)
+	}
+
+	if len(historyB) != 1 {
+		t.Fatalf("expected personnel B history to contain corrected transaction, got %d", len(historyB))
+	}
+
+	if !historyB[0].HasCorrection {
+		t.Fatal("expected corrected history item to be marked as edited")
+	}
+
+	if historyB[0].EditCount != 1 {
+		t.Fatalf("expected edit count 1, got %d", historyB[0].EditCount)
+	}
+}
+
 func TestPostgresCustodyRepositoryListCurrentByAsset(t *testing.T) {
 	pool := openTestPool(t)
 	queries := newTestQueries(pool)

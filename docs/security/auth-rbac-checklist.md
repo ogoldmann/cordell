@@ -333,6 +333,18 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Edit metadata is visually separated from changed content.
 - [ ] Latest correction is not rendered as a full duplicate receipt snapshot.
 
+## Correction Effective State Hardening
+
+- [ ] Checkout correction cannot create positive balance for inactive personnel.
+- [ ] Checkout correction cannot create positive balance for inactive asset.
+- [ ] Checkout correction may reduce existing inactive asset balance when safe.
+- [ ] Personnel history uses effective corrected personnel.
+- [ ] Corrected transaction appears in new personnel history.
+- [ ] Corrected transaction no longer appears in old personnel effective history.
+- [ ] Receipt edit history shows notes before and after.
+- [ ] Receipt edit history separates correction metadata from changed content.
+- [ ] Receipt edit history shows empty state when no correction exists.
+
 ## Custody Correction Line UX
 
 - [ ] Edit form does not render arbitrary blank line rows.

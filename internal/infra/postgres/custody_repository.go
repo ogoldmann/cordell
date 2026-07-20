@@ -401,6 +401,8 @@ func (r *CustodyRepository) ListHistoryByPersonnel(
 				Notes:         row.Notes,
 				CreatedAt:     createdAt,
 				Lines:         make([]ports.CustodyHistoryLine, 0),
+				HasCorrection: row.HasCorrection,
+				EditCount:     int(row.EditCount),
 			})
 
 			entryIndex = len(entries) - 1

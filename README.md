@@ -1159,3 +1159,25 @@ Each visible line requires both asset and quantity.
 Each line can be removed with a remove button, while at least one line remains required.
 
 The backend still validates submitted lines and consolidates duplicate assets.
+
+## Correction Effective State Hardening
+
+Custody correction cannot be used to bypass checkout active-record rules.
+
+For checkout corrections, any positive custody balance delta must target active personnel and active assets.
+
+This prevents operators from indirectly checking out assets to inactive personnel or assigning inactive assets through correction.
+
+Negative checkout correction deltas remain allowed for inactive records when they reduce or clear existing effective custody.
+
+Personnel custody history uses the current effective transaction state.
+
+If a transaction is edited from one personnel to another, it appears in the corrected personnel history and no longer appears in the previous personnel history as an effective transaction.
+
+The original transaction remains preserved in the receipt edit history.
+
+Edit history shows before/after values for changed fields.
+
+Notes changes show the note content before and after the edit.
+
+When no correction exists, the edit history section shows an empty state instead of listing the original transaction as a correction history entry.

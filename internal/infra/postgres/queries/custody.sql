@@ -74,36 +74,83 @@ WHERE cb.personnel_id = @personnel_id
 ORDER BY a.name ASC, cb.asset_id ASC;
 
 -- name: ListCustodyHistoryByPersonnel :many
-WITH recent_transactions AS (
+WITH correction_counts AS (
     SELECT
+        corrected_transaction_id,
+        count(*)::int AS edit_count
+    FROM custody_corrections
+    GROUP BY corrected_transaction_id
+),
+latest_corrections AS (
+    SELECT DISTINCT ON (corrected_transaction_id)
         id,
-        transaction_type,
-        personnel_id,
-        operator_id,
-        notes,
-        created_at
-    FROM custody_transactions
-    WHERE personnel_id = @personnel_id
-    ORDER BY created_at DESC, id DESC
-    LIMIT sqlc.arg(limit_count)
+        corrected_transaction_id,
+        corrected_personnel_id,
+        corrected_notes
+    FROM custody_corrections
+    ORDER BY corrected_transaction_id, created_at DESC, id DESC
+),
+effective_transactions AS (
+    SELECT
+        ct.id,
+        ct.transaction_type,
+        COALESCE(lc.corrected_personnel_id, ct.personnel_id) AS effective_personnel_id,
+        ct.personnel_id AS original_personnel_id,
+        ct.operator_id,
+        COALESCE(lc.corrected_notes, ct.notes) AS effective_notes,
+        ct.created_at,
+        lc.id AS latest_correction_id,
+        COALESCE(cc.edit_count, 0)::int AS edit_count
+    FROM custody_transactions ct
+    LEFT JOIN latest_corrections lc
+        ON lc.corrected_transaction_id = ct.id
+    LEFT JOIN correction_counts cc
+        ON cc.corrected_transaction_id = ct.id
 )
 SELECT
-    rt.id AS transaction_id,
-    rt.transaction_type,
-    rt.personnel_id,
-    rt.operator_id,
-    o.alias AS operator_alias,
-    o.rank AS operator_rank,
-    rt.notes,
-    rt.created_at AS transaction_created_at,
-    cl.asset_id,
-    a.name AS asset_name,
-    cl.quantity
-FROM recent_transactions rt
-JOIN custody_lines cl ON cl.custody_transaction_id = rt.id
-JOIN assets a ON a.id = cl.asset_id
-JOIN operators o ON o.id = rt.operator_id
-ORDER BY rt.created_at DESC, rt.id DESC, cl.id ASC;
+    history.transaction_id,
+    history.transaction_type,
+    history.personnel_id,
+    history.operator_id,
+    history.operator_alias,
+    history.operator_rank,
+    history.notes,
+    history.transaction_created_at,
+    history.asset_id,
+    history.asset_name,
+    history.asset_active,
+    history.quantity,
+    history.has_correction,
+    history.edit_count
+FROM (
+    SELECT
+        et.id AS transaction_id,
+        et.transaction_type,
+        et.effective_personnel_id AS personnel_id,
+        et.operator_id,
+        o.alias AS operator_alias,
+        o.rank AS operator_rank,
+        et.effective_notes AS notes,
+        et.created_at AS transaction_created_at,
+        COALESCE(ccl.asset_id, cl.asset_id) AS asset_id,
+        a.name AS asset_name,
+        a.active AS asset_active,
+        COALESCE(ccl.quantity, cl.quantity) AS quantity,
+        (et.edit_count > 0) AS has_correction,
+        et.edit_count
+    FROM effective_transactions et
+    LEFT JOIN custody_lines cl
+        ON cl.custody_transaction_id = et.id
+        AND et.latest_correction_id IS NULL
+    LEFT JOIN custody_correction_lines ccl
+        ON ccl.custody_correction_id = et.latest_correction_id
+        AND et.latest_correction_id IS NOT NULL
+    JOIN assets a ON a.id = COALESCE(ccl.asset_id, cl.asset_id)
+    JOIN operators o ON o.id = et.operator_id
+) history
+WHERE personnel_id = sqlc.arg(personnel_id)
+ORDER BY transaction_created_at DESC, transaction_id DESC, asset_name ASC
+LIMIT sqlc.arg(limit_count);
 
 -- name: ListCurrentCustodyByAsset :many
 SELECT

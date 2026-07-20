@@ -439,6 +439,10 @@ func humanizeCustodyCorrectionError(err error) string {
 		return "The transaction, personnel, asset, or operator could not be found."
 	case errors.Is(err, domain.ErrInactiveOperator):
 		return "Inactive operators cannot register custody corrections."
+	case errors.Is(err, domain.ErrInactivePersonnel):
+		return "This edit would assign checkout custody to an inactive personnel. Reactivate the personnel first or choose an active personnel."
+	case errors.Is(err, domain.ErrInactiveAsset):
+		return "This edit would assign checkout custody to an inactive asset. Reactivate the asset first or choose an active asset."
 	case errors.Is(err, domain.ErrInsufficientCustodyBalance):
 		return "This edit cannot be applied because it would make a custody balance negative. This can happen when later custody activity already consumed part of the balance affected by the edit."
 	case errors.Is(err, domain.ErrEmptyPersonnelID):

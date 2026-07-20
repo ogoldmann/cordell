@@ -212,55 +212,67 @@
     </p>
   </div>
 
-  <div class="mt-6 grid gap-4">
-    {{range .Receipt.EditHistory}}
-      <article class="rounded-2xl border {{if eq .Kind "original"}}border-cordell-border bg-cordell-background dark:border-cordell-dark-border dark:bg-cordell-dark-background{{else}}border-amber-200 bg-amber-50/60 dark:border-amber-900/60 dark:bg-amber-950/20{{end}} p-4">
-        <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h3 class="m-0 text-lg font-extrabold">{{.Title}}</h3>
+  {{if .Receipt.HasEdits}}
+    <div class="mt-6 grid gap-4">
+      {{range .Receipt.EditHistory}}
+        <article class="rounded-2xl border {{if eq .Kind "original"}}border-cordell-border bg-cordell-background dark:border-cordell-dark-border dark:bg-cordell-dark-background{{else}}border-amber-200 bg-amber-50/60 dark:border-amber-900/60 dark:bg-amber-950/20{{end}} p-4">
+          <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h3 class="m-0 text-lg font-extrabold">{{.Title}}</h3>
 
-            <p class="mt-1 text-sm text-cordell-muted dark:text-cordell-dark-muted">
-              {{if eq .Kind "original"}}Registered{{else}}Edited{{end}} by {{.OperatorLabel}} · {{.CreatedAt}}
-            </p>
+              <p class="mt-1 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+                {{if eq .Kind "original"}}Registered{{else}}Edited{{end}} by {{.OperatorLabel}} · {{.CreatedAt}}
+              </p>
 
-            {{if .CorrectionID}}
-              <p class="mt-2 font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">
-                {{.CorrectionID}}
+              {{if .CorrectionID}}
+                <p class="mt-2 font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">
+                  {{.CorrectionID}}
+                </p>
+              {{end}}
+            </div>
+
+            <span class="inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold {{if eq .Kind "original"}}bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300{{else}}bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-200{{end}}">
+              {{if eq .Kind "original"}}Original{{else}}Edit{{end}}
+            </span>
+          </div>
+
+          <div class="mt-4 grid gap-2">
+            {{if .HasChanges}}
+              {{range .Changes}}
+                <div class="rounded-xl border border-cordell-border bg-cordell-surface px-4 py-3 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+                  <p class="m-0 text-sm font-extrabold">{{.Label}}</p>
+
+                  {{if .From}}
+                    <div class="mt-3 grid gap-3 md:grid-cols-2">
+                      <div class="rounded-xl border border-red-100 bg-red-50 px-3 py-2 dark:border-red-900/40 dark:bg-red-950/20">
+                        <p class="m-0 text-xs font-extrabold uppercase tracking-[0.08em] text-red-700 dark:text-red-200">Before</p>
+                        <p class="mt-1 whitespace-pre-wrap text-sm text-cordell-text dark:text-cordell-dark-text">{{.From}}</p>
+                      </div>
+
+                      <div class="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+                        <p class="m-0 text-xs font-extrabold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-200">After</p>
+                        <p class="mt-1 whitespace-pre-wrap text-sm font-bold text-cordell-text dark:text-cordell-dark-text">{{.To}}</p>
+                      </div>
+                    </div>
+                  {{else}}
+                    <p class="mt-2 whitespace-pre-wrap text-sm font-bold">{{.To}}</p>
+                  {{end}}
+                </div>
+              {{end}}
+            {{else}}
+              <p class="rounded-xl border border-cordell-border bg-cordell-surface px-4 py-3 text-sm text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-muted">
+                No balance-affecting fields changed.
               </p>
             {{end}}
           </div>
-
-          <span class="inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold {{if eq .Kind "original"}}bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300{{else}}bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-200{{end}}">
-            {{if eq .Kind "original"}}Original{{else}}Edit{{end}}
-          </span>
-        </div>
-
-        <div class="mt-4 grid gap-2">
-          {{if .HasChanges}}
-            {{range .Changes}}
-              <div class="rounded-xl border border-cordell-border bg-cordell-surface px-4 py-3 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
-                <p class="m-0 text-sm font-extrabold">{{.Label}}</p>
-
-                {{if .From}}
-                  <div class="mt-2 grid gap-2 text-sm md:grid-cols-[1fr_auto_1fr] md:items-center">
-                    <p class="m-0 text-cordell-muted dark:text-cordell-dark-muted">{{.From}}</p>
-                    <span class="hidden text-cordell-muted dark:text-cordell-dark-muted md:inline">→</span>
-                    <p class="m-0 font-bold">{{.To}}</p>
-                  </div>
-                {{else}}
-                  <p class="mt-2 text-sm font-bold">{{.To}}</p>
-                {{end}}
-              </div>
-            {{end}}
-          {{else}}
-            <p class="rounded-xl border border-cordell-border bg-cordell-surface px-4 py-3 text-sm text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-muted">
-              No balance-affecting fields changed.
-            </p>
-          {{end}}
-        </div>
-      </article>
-    {{end}}
-  </div>
+        </article>
+      {{end}}
+    </div>
+  {{else}}
+    <div class="mt-6 rounded-2xl border border-cordell-border bg-cordell-background px-4 py-6 text-sm text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-muted">
+      No edits have been recorded for this transaction yet. The correction history will appear here after the first edit.
+    </div>
+  {{end}}
 </section>
 
 <div class="mt-6 rounded-2xl border border-cordell-border bg-cordell-surface px-4 py-3 text-sm text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-muted">
