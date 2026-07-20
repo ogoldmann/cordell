@@ -129,7 +129,17 @@
 </section>
 
 <section class="mt-6 rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
-  <h2 class="m-0 text-xl font-extrabold">Lines</h2>
+  <div>
+    <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+      Original transaction
+    </p>
+
+    <h2 class="m-0 text-xl font-extrabold">Original lines</h2>
+
+    <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+      These are the lines stored in the original immutable transaction.
+    </p>
+  </div>
 
   <div class="mt-5 grid gap-4">
     {{range .Receipt.Lines}}
@@ -168,10 +178,14 @@
     <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
       <div>
         <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-amber-800 dark:text-amber-200">
-          Edited
+          Latest correction
         </p>
 
-        <h2 class="m-0 text-xl font-extrabold text-amber-950 dark:text-amber-100">Latest correction</h2>
+        <h2 class="m-0 text-2xl font-extrabold text-amber-950 dark:text-amber-100">Latest edit</h2>
+
+        <p class="mt-2 text-sm text-amber-800 dark:text-amber-200">
+          This section shows the latest edit recorded for this transaction. The original transaction remains immutable.
+        </p>
 
         <p class="mt-3 font-mono text-sm text-amber-800 dark:text-amber-200">
           {{.Receipt.Correction.ID}}
@@ -280,6 +294,10 @@
     </div>
   </section>
 {{end}}
+
+<div class="mt-6 rounded-2xl border border-cordell-border bg-cordell-surface px-4 py-3 text-sm text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-muted">
+  Editing this transaction creates an append-only correction. The original transaction remains preserved.
+</div>
 
 <div class="mt-6 flex flex-wrap gap-3">
   <a

@@ -308,3 +308,15 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] POST applies balance deltas through correction service.
 - [ ] POST records audit only when correction is newly created.
 - [ ] POST redirects to original receipt.
+
+## Custody Correction UX Hardening
+
+- [ ] Edit form uses submit confirmation modal.
+- [ ] Submit confirmation modal submits the original form.
+- [ ] Submit confirmation modal preserves corrected personnel.
+- [ ] Submit confirmation modal preserves corrected lines.
+- [ ] Submit confirmation modal preserves corrected notes.
+- [ ] Submit confirmation modal preserves correction ID.
+- [ ] Receipt distinguishes original transaction from latest edit.
+- [ ] Edit form explains whether base is original transaction or latest edit.
+- [ ] Insufficient balance error explains possible later custody activity.

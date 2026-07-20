@@ -19,6 +19,8 @@ type custodyTransactionEditPageData struct {
 	privateLayoutData
 	Title                string
 	Error                string
+	BaseTitle            string
+	BaseDescription      string
 	Receipt              custodyEditReceiptView
 	CorrectionID         string
 	FormAction           string
@@ -203,11 +205,16 @@ func (s *Server) newCustodyTransactionEditPageData(
 		return custodyTransactionEditPageData{}, err
 	}
 
+	baseTitle := "Editing original transaction"
+	baseDescription := "This transaction has no previous edit. The form is based on the original receipt."
+
 	effectivePersonnelID := receipt.PersonnelID
 	effectiveNotes := receipt.Notes
 	effectiveLines := correctionLineRowsFromReceiptLines(receipt.Lines)
 
 	if receipt.HasCorrection {
+		baseTitle = "Editing latest edit"
+		baseDescription = "This transaction already has an edit. The form is based on the latest correction, not directly on the original transaction."
 		effectivePersonnelID = receipt.Correction.CorrectedPersonnelID
 		effectiveNotes = receipt.Correction.CorrectedNotes
 		effectiveLines = correctionLineRowsFromCorrectionLines(receipt.Correction.Lines)
@@ -239,6 +246,8 @@ func (s *Server) newCustodyTransactionEditPageData(
 		privateLayoutData:    newPrivateLayoutData(r),
 		Title:                "Edit " + strings.ToLower(typeLabel),
 		Error:                state.Error,
+		BaseTitle:            baseTitle,
+		BaseDescription:      baseDescription,
 		CorrectionID:         state.CorrectionID,
 		FormAction:           "/custody/transactions/" + string(transactionID) + "/corrections",
 		CorrectedPersonnelID: state.CorrectedPersonnelID,
@@ -436,7 +445,7 @@ func humanizeCustodyCorrectionError(err error) string {
 	case errors.Is(err, domain.ErrInactiveOperator):
 		return "Inactive operators cannot register custody corrections."
 	case errors.Is(err, domain.ErrInsufficientCustodyBalance):
-		return "This edit cannot be applied because it would make a custody balance negative."
+		return "This edit cannot be applied because it would make a custody balance negative. This can happen when later custody activity already consumed part of the balance affected by the edit."
 	case errors.Is(err, domain.ErrEmptyPersonnelID):
 		return "Corrected personnel is required."
 	case errors.Is(err, domain.ErrEmptyAssetID):
@@ -446,7 +455,7 @@ func humanizeCustodyCorrectionError(err error) string {
 	case errors.Is(err, domain.ErrInvalidQuantity):
 		return "Each correction quantity must be a positive number."
 	default:
-		return "Could not edit this transaction. Please review the form and try again."
+		return "Could not save this edit. Please review the corrected personnel, assets, quantities, and current custody state."
 	}
 }
 

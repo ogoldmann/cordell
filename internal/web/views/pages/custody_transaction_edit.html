@@ -27,8 +27,14 @@
   </div>
 </section>
 
-<div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
-  This edit will not overwrite the original transaction. Cordell will store an append-only correction and update custody balances safely.
+<div class="mb-6 grid gap-3">
+  <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
+    This edit will not overwrite the original transaction. Cordell will store an append-only correction and update custody balances safely.
+  </div>
+
+  <div class="rounded-2xl border border-cordell-border bg-cordell-surface px-4 py-3 text-sm text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-muted">
+    You are editing the current effective interpretation of this transaction. If this transaction was already edited before, this form uses the latest edit as its starting point.
+  </div>
 </div>
 
 {{if .Error}}
@@ -37,7 +43,30 @@
   </div>
 {{end}}
 
-<form method="post" action="{{.FormAction}}">
+<section class="mb-6 rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+  <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+    Edit base
+  </p>
+
+  <h2 class="m-0 text-xl font-extrabold">
+    {{.BaseTitle}}
+  </h2>
+
+  <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+    {{.BaseDescription}}
+  </p>
+</section>
+
+<form
+  id="custody-transaction-edit-form"
+  method="post"
+  action="{{.FormAction}}"
+  data-submit-confirm-trigger
+  data-submit-confirm-title="Save this edit?"
+  data-submit-confirm-description="Cordell will keep the original transaction and store this edit as an append-only correction."
+  data-submit-confirm-warning="This can change current custody balances. If the edit cannot be applied safely, Cordell will reject it."
+  data-submit-confirm-label="Save edit"
+>
   <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
   <input type="hidden" name="correction_id" value="{{.CorrectionID}}">
 
@@ -131,6 +160,8 @@
     </a>
   </div>
 </form>
+
+{{template "submit_confirm_modal" .}}
 
 {{template "layout_end" .}}
 {{end}}

@@ -233,3 +233,9 @@ The custody transaction edit form is the user-facing workflow for creating a cus
 It allows operators to edit the effective interpretation of a checkout or return without mutating the original transaction.
 
 The submitted edit creates an append-only correction.
+
+## Latest Edit
+
+Latest edit is the most recent custody correction linked to a custody transaction.
+
+When a transaction already has an edit, the next edit uses the latest edit as its starting point instead of editing directly from the original transaction.

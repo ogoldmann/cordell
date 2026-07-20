@@ -1104,3 +1104,22 @@ The edit form:
 - redirects back to the original transaction receipt
 
 The original custody transaction is not overwritten.
+
+## Custody Correction UX Hardening
+
+Custody transaction edit uses a dedicated submit confirmation modal.
+
+This modal confirms the submission of the original edit form instead of creating a separate POST request.
+
+This preserves all submitted fields:
+
+- correction ID
+- corrected personnel
+- corrected asset lines
+- corrected quantities
+- corrected notes
+- CSRF token
+
+The receipt distinguishes the immutable original transaction from the latest edit.
+
+The edit form explains whether the operator is editing the original transaction or the latest edit.
