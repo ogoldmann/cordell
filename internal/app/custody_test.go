@@ -82,6 +82,60 @@ func TestRegisterCheckoutServiceExecute(t *testing.T) {
 	}
 }
 
+func TestListCustodyTransactionSummariesService(t *testing.T) {
+	custodyRepository := &fakeCustodyRepository{
+		transactionSummaries: []ports.CustodyTransactionSummary{
+			{
+				ID:                         "transaction-1",
+				TransactionType:            domain.CustodyTransactionTypeCheckout,
+				OriginalPersonnelID:        "personnel-1",
+				OriginalPersonnelFullName:  "John Original",
+				OriginalPersonnelAlias:     "original",
+				OriginalPersonnelRank:      domain.RankSergeant,
+				OriginalPersonnelActive:    true,
+				EffectivePersonnelID:       "personnel-2",
+				EffectivePersonnelFullName: "John Effective",
+				EffectivePersonnelAlias:    "effective",
+				EffectivePersonnelRank:     domain.RankCorporal,
+				EffectivePersonnelActive:   true,
+				OperatorID:                 "operator-1",
+				OperatorAlias:              "silva",
+				OperatorRank:               domain.RankSergeant,
+				OperatorRole:               domain.OperatorRoleOperator,
+				OperatorActive:             true,
+				TotalQuantity:              2,
+				HasCorrection:              true,
+				EditCount:                  1,
+			},
+		},
+	}
+
+	service := NewListCustodyTransactionSummariesService(custodyRepository)
+
+	summaries, err := service.Execute(context.Background(), ListCustodyTransactionSummariesCommand{
+		Limit: 50,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(summaries) != 1 {
+		t.Fatalf("expected 1 summary, got %d", len(summaries))
+	}
+
+	if summaries[0].EffectivePersonnelID != "personnel-2" {
+		t.Fatalf("expected effective personnel-2, got %s", summaries[0].EffectivePersonnelID)
+	}
+
+	if !summaries[0].HasCorrection {
+		t.Fatal("expected summary to be marked as corrected")
+	}
+
+	if summaries[0].EditCount != 1 {
+		t.Fatalf("expected edit count 1, got %d", summaries[0].EditCount)
+	}
+}
+
 func TestRegisterCheckoutServiceUsesCommandTransactionID(t *testing.T) {
 	personnel := mustBuildPersonnel(t, "personnel-1")
 	asset := mustBuildAsset(t, "asset-1")

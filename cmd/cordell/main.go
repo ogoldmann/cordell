@@ -179,6 +179,9 @@ func main() {
 			personnelRepository,
 			custodyRepository,
 		),
+		ListCustodyTransactionSummaries: app.NewListCustodyTransactionSummariesService(
+			custodyRepository,
+		),
 		RecordAuditEvent: app.NewRecordAuditEventService(
 			auditLogRepository,
 			idGenerator,

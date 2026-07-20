@@ -444,6 +444,91 @@ type CustodyHistoryEntry struct {
 	EditCount     int
 }
 
+// CustodyTransactionSummary represents a custody transaction summary for application views.
+type CustodyTransactionSummary struct {
+	ID                         domain.CustodyTransactionID
+	TransactionType            domain.CustodyTransactionType
+	OriginalPersonnelID        domain.PersonnelID
+	OriginalPersonnelFullName  string
+	OriginalPersonnelAlias     string
+	OriginalPersonnelRank      domain.Rank
+	OriginalPersonnelActive    bool
+	EffectivePersonnelID       domain.PersonnelID
+	EffectivePersonnelFullName string
+	EffectivePersonnelAlias    string
+	EffectivePersonnelRank     domain.Rank
+	EffectivePersonnelActive   bool
+	OperatorID                 domain.OperatorID
+	OperatorAlias              string
+	OperatorRank               domain.Rank
+	OperatorRole               domain.OperatorRole
+	OperatorActive             bool
+	TotalQuantity              int
+	CreatedAt                  time.Time
+	HasCorrection              bool
+	EditCount                  int
+}
+
+// ListCustodyTransactionSummariesCommand contains ledger list parameters.
+type ListCustodyTransactionSummariesCommand struct {
+	Limit int
+}
+
+// ListCustodyTransactionSummariesService lists custody transaction summaries.
+type ListCustodyTransactionSummariesService struct {
+	custodyRepository ports.CustodyRepository
+}
+
+// NewListCustodyTransactionSummariesService creates a ListCustodyTransactionSummariesService.
+func NewListCustodyTransactionSummariesService(
+	custodyRepository ports.CustodyRepository,
+) *ListCustodyTransactionSummariesService {
+	return &ListCustodyTransactionSummariesService{
+		custodyRepository: custodyRepository,
+	}
+}
+
+// Execute lists custody transaction summaries.
+func (s *ListCustodyTransactionSummariesService) Execute(
+	ctx context.Context,
+	cmd ListCustodyTransactionSummariesCommand,
+) ([]CustodyTransactionSummary, error) {
+	items, err := s.custodyRepository.ListTransactionSummaries(ctx, cmd.Limit)
+	if err != nil {
+		return nil, err
+	}
+
+	summaries := make([]CustodyTransactionSummary, 0, len(items))
+
+	for _, item := range items {
+		summaries = append(summaries, CustodyTransactionSummary{
+			ID:                         item.ID,
+			TransactionType:            item.TransactionType,
+			OriginalPersonnelID:        item.OriginalPersonnelID,
+			OriginalPersonnelFullName:  item.OriginalPersonnelFullName,
+			OriginalPersonnelAlias:     item.OriginalPersonnelAlias,
+			OriginalPersonnelRank:      item.OriginalPersonnelRank,
+			OriginalPersonnelActive:    item.OriginalPersonnelActive,
+			EffectivePersonnelID:       item.EffectivePersonnelID,
+			EffectivePersonnelFullName: item.EffectivePersonnelFullName,
+			EffectivePersonnelAlias:    item.EffectivePersonnelAlias,
+			EffectivePersonnelRank:     item.EffectivePersonnelRank,
+			EffectivePersonnelActive:   item.EffectivePersonnelActive,
+			OperatorID:                 item.OperatorID,
+			OperatorAlias:              item.OperatorAlias,
+			OperatorRank:               item.OperatorRank,
+			OperatorRole:               item.OperatorRole,
+			OperatorActive:             item.OperatorActive,
+			TotalQuantity:              item.TotalQuantity,
+			CreatedAt:                  item.CreatedAt,
+			HasCorrection:              item.HasCorrection,
+			EditCount:                  item.EditCount,
+		})
+	}
+
+	return summaries, nil
+}
+
 // ListCustodyHistoryCommand contains the input data required to list custody history.
 type ListCustodyHistoryCommand struct {
 	PersonnelID domain.PersonnelID

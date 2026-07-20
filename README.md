@@ -1217,6 +1217,22 @@ The edit history lists:
 
 The edit history does not render every correction as a full receipt snapshot.
 
+## Custody Transaction Ledger
+
+Cordell includes a custody transaction ledger at:
+
+```txt
+/custody/transactions
+```
+
+The ledger lists checkout and return transactions using their current effective state.
+
+If a transaction has corrections, the ledger shows the latest corrected personnel and corrected line total.
+
+The original transaction remains preserved in the receipt edit history.
+
+Ledger items link to the immutable custody receipt.
+
 ## Custody Correction Line Editing
 
 The custody transaction edit form supports adding and removing corrected lines.

@@ -60,6 +60,31 @@ type CustodyHistoryEntry struct {
 	EditCount     int
 }
 
+// CustodyTransactionSummary represents a custody transaction summary for ledger views.
+type CustodyTransactionSummary struct {
+	ID                         domain.CustodyTransactionID
+	TransactionType            domain.CustodyTransactionType
+	OriginalPersonnelID        domain.PersonnelID
+	OriginalPersonnelFullName  string
+	OriginalPersonnelAlias     string
+	OriginalPersonnelRank      domain.Rank
+	OriginalPersonnelActive    bool
+	EffectivePersonnelID       domain.PersonnelID
+	EffectivePersonnelFullName string
+	EffectivePersonnelAlias    string
+	EffectivePersonnelRank     domain.Rank
+	EffectivePersonnelActive   bool
+	OperatorID                 domain.OperatorID
+	OperatorAlias              string
+	OperatorRank               domain.Rank
+	OperatorRole               domain.OperatorRole
+	OperatorActive             bool
+	TotalQuantity              int
+	CreatedAt                  time.Time
+	HasCorrection              bool
+	EditCount                  int
+}
+
 // CustodyReceiptLine represents one asset line in a custody transaction receipt.
 type CustodyReceiptLine struct {
 	AssetID     domain.AssetID
@@ -172,6 +197,7 @@ type CustodyRepository interface {
 	ListCurrentByPersonnel(ctx context.Context, personnelID domain.PersonnelID) ([]CurrentCustodyItem, error)
 	ListCurrentByAsset(ctx context.Context, assetID domain.AssetID) ([]CurrentAssetHolder, error)
 	ListHistoryByPersonnel(ctx context.Context, personnelID domain.PersonnelID, limit int) ([]CustodyHistoryEntry, error)
+	ListTransactionSummaries(ctx context.Context, limit int) ([]CustodyTransactionSummary, error)
 	FindReceiptByID(ctx context.Context, id domain.CustodyTransactionID) (CustodyReceipt, error)
 	ListCorrectionContextsByTransactionID(ctx context.Context, id domain.CustodyTransactionID) ([]CustodyCorrectionContext, error)
 }

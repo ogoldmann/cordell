@@ -589,6 +589,165 @@ func (q *Queries) ListCustodyHistoryByPersonnel(ctx context.Context, arg ListCus
 	return items, nil
 }
 
+const listCustodyTransactionSummaries = `-- name: ListCustodyTransactionSummaries :many
+WITH correction_counts AS (
+    SELECT
+        corrected_transaction_id,
+        count(*)::int AS edit_count
+    FROM custody_corrections
+    GROUP BY corrected_transaction_id
+),
+latest_corrections AS (
+    SELECT DISTINCT ON (corrected_transaction_id)
+        id,
+        corrected_transaction_id,
+        corrected_personnel_id
+    FROM custody_corrections
+    ORDER BY corrected_transaction_id, created_at DESC, id DESC
+),
+effective_transactions AS (
+    SELECT
+        ct.id,
+        ct.transaction_type,
+        ct.personnel_id AS original_personnel_id,
+        COALESCE(lc.corrected_personnel_id, ct.personnel_id) AS effective_personnel_id,
+        ct.operator_id,
+        ct.created_at,
+        lc.id AS latest_correction_id,
+        COALESCE(cc.edit_count, 0)::int AS edit_count
+    FROM custody_transactions ct
+    LEFT JOIN latest_corrections lc
+        ON lc.corrected_transaction_id = ct.id
+    LEFT JOIN correction_counts cc
+        ON cc.corrected_transaction_id = ct.id
+),
+effective_lines AS (
+    SELECT
+        et.id AS transaction_id,
+        cl.quantity
+    FROM effective_transactions et
+    JOIN custody_lines cl
+        ON cl.custody_transaction_id = et.id
+    WHERE et.latest_correction_id IS NULL
+
+    UNION ALL
+
+    SELECT
+        et.id AS transaction_id,
+        ccl.quantity
+    FROM effective_transactions et
+    JOIN custody_correction_lines ccl
+        ON ccl.custody_correction_id = et.latest_correction_id
+    WHERE et.latest_correction_id IS NOT NULL
+),
+line_totals AS (
+    SELECT
+        transaction_id,
+        sum(quantity)::int AS total_quantity
+    FROM effective_lines
+    GROUP BY transaction_id
+)
+SELECT
+    et.id,
+    et.transaction_type,
+
+    op.id AS original_personnel_id,
+    op.full_name AS original_personnel_full_name,
+    op.alias AS original_personnel_alias,
+    op.rank AS original_personnel_rank,
+    op.active AS original_personnel_active,
+
+    ep.id AS effective_personnel_id,
+    ep.full_name AS effective_personnel_full_name,
+    ep.alias AS effective_personnel_alias,
+    ep.rank AS effective_personnel_rank,
+    ep.active AS effective_personnel_active,
+
+    et.operator_id,
+    o.alias AS operator_alias,
+    o.rank AS operator_rank,
+    o.role AS operator_role,
+    o.active AS operator_active,
+
+    COALESCE(lt.total_quantity, 0)::int AS total_quantity,
+    et.created_at,
+    (et.edit_count > 0) AS has_correction,
+    et.edit_count
+FROM effective_transactions et
+JOIN personnel op ON op.id = et.original_personnel_id
+JOIN personnel ep ON ep.id = et.effective_personnel_id
+JOIN operators o ON o.id = et.operator_id
+LEFT JOIN line_totals lt ON lt.transaction_id = et.id
+ORDER BY et.created_at DESC, et.id DESC
+LIMIT $1
+`
+
+type ListCustodyTransactionSummariesRow struct {
+	ID                         string             `json:"id"`
+	TransactionType            string             `json:"transaction_type"`
+	OriginalPersonnelID        string             `json:"original_personnel_id"`
+	OriginalPersonnelFullName  string             `json:"original_personnel_full_name"`
+	OriginalPersonnelAlias     string             `json:"original_personnel_alias"`
+	OriginalPersonnelRank      string             `json:"original_personnel_rank"`
+	OriginalPersonnelActive    bool               `json:"original_personnel_active"`
+	EffectivePersonnelID       string             `json:"effective_personnel_id"`
+	EffectivePersonnelFullName string             `json:"effective_personnel_full_name"`
+	EffectivePersonnelAlias    string             `json:"effective_personnel_alias"`
+	EffectivePersonnelRank     string             `json:"effective_personnel_rank"`
+	EffectivePersonnelActive   bool               `json:"effective_personnel_active"`
+	OperatorID                 string             `json:"operator_id"`
+	OperatorAlias              string             `json:"operator_alias"`
+	OperatorRank               string             `json:"operator_rank"`
+	OperatorRole               string             `json:"operator_role"`
+	OperatorActive             bool               `json:"operator_active"`
+	TotalQuantity              int32              `json:"total_quantity"`
+	CreatedAt                  pgtype.Timestamptz `json:"created_at"`
+	HasCorrection              bool               `json:"has_correction"`
+	EditCount                  int32              `json:"edit_count"`
+}
+
+func (q *Queries) ListCustodyTransactionSummaries(ctx context.Context, limitCount int32) ([]ListCustodyTransactionSummariesRow, error) {
+	rows, err := q.db.Query(ctx, listCustodyTransactionSummaries, limitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCustodyTransactionSummariesRow{}
+	for rows.Next() {
+		var i ListCustodyTransactionSummariesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.TransactionType,
+			&i.OriginalPersonnelID,
+			&i.OriginalPersonnelFullName,
+			&i.OriginalPersonnelAlias,
+			&i.OriginalPersonnelRank,
+			&i.OriginalPersonnelActive,
+			&i.EffectivePersonnelID,
+			&i.EffectivePersonnelFullName,
+			&i.EffectivePersonnelAlias,
+			&i.EffectivePersonnelRank,
+			&i.EffectivePersonnelActive,
+			&i.OperatorID,
+			&i.OperatorAlias,
+			&i.OperatorRank,
+			&i.OperatorRole,
+			&i.OperatorActive,
+			&i.TotalQuantity,
+			&i.CreatedAt,
+			&i.HasCorrection,
+			&i.EditCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPersonnelWithCurrentCustody = `-- name: ListPersonnelWithCurrentCustody :many
 SELECT
     p.id,

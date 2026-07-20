@@ -37,6 +37,7 @@ type Services struct {
 	ListCurrentCustody              *ListCurrentCustodyService
 	ListCurrentAssetHolders         *ListCurrentAssetHoldersService
 	ListCustodyHistory              *ListCustodyHistoryService
+	ListCustodyTransactionSummaries *ListCustodyTransactionSummariesService
 
 	RecordAuditEvent *RecordAuditEventService
 	ListAuditEvents  *ListAuditEventsService

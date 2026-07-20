@@ -445,6 +445,56 @@ func (r *CustodyRepository) ListHistoryByPersonnel(
 	return entries, nil
 }
 
+// ListTransactionSummaries returns custody transaction summaries for the ledger.
+func (r *CustodyRepository) ListTransactionSummaries(
+	ctx context.Context,
+	limit int,
+) ([]ports.CustodyTransactionSummary, error) {
+	if limit <= 0 {
+		limit = 100
+	}
+
+	rows, err := r.queries.ListCustodyTransactionSummaries(ctx, int32(limit))
+	if err != nil {
+		return nil, err
+	}
+
+	summaries := make([]ports.CustodyTransactionSummary, 0, len(rows))
+
+	for _, row := range rows {
+		createdAt, err := timestamptzToTime(row.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		summaries = append(summaries, ports.CustodyTransactionSummary{
+			ID:                         domain.CustodyTransactionID(row.ID),
+			TransactionType:            domain.CustodyTransactionType(row.TransactionType),
+			OriginalPersonnelID:        domain.PersonnelID(row.OriginalPersonnelID),
+			OriginalPersonnelFullName:  row.OriginalPersonnelFullName,
+			OriginalPersonnelAlias:     row.OriginalPersonnelAlias,
+			OriginalPersonnelRank:      domain.Rank(row.OriginalPersonnelRank),
+			OriginalPersonnelActive:    row.OriginalPersonnelActive,
+			EffectivePersonnelID:       domain.PersonnelID(row.EffectivePersonnelID),
+			EffectivePersonnelFullName: row.EffectivePersonnelFullName,
+			EffectivePersonnelAlias:    row.EffectivePersonnelAlias,
+			EffectivePersonnelRank:     domain.Rank(row.EffectivePersonnelRank),
+			EffectivePersonnelActive:   row.EffectivePersonnelActive,
+			OperatorID:                 domain.OperatorID(row.OperatorID),
+			OperatorAlias:              row.OperatorAlias,
+			OperatorRank:               domain.Rank(row.OperatorRank),
+			OperatorRole:               domain.OperatorRole(row.OperatorRole),
+			OperatorActive:             row.OperatorActive,
+			TotalQuantity:              int(row.TotalQuantity),
+			CreatedAt:                  createdAt,
+			HasCorrection:              row.HasCorrection,
+			EditCount:                  int(row.EditCount),
+		})
+	}
+
+	return summaries, nil
+}
+
 // FindReceiptByID retrieves a complete custody transaction receipt.
 func (r *CustodyRepository) FindReceiptByID(
 	ctx context.Context,

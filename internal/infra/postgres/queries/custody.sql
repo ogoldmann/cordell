@@ -173,6 +173,98 @@ WHERE personnel_id = sqlc.arg(personnel_id)
 ORDER BY transaction_created_at DESC, transaction_id DESC, asset_name ASC
 LIMIT sqlc.arg(limit_count);
 
+-- name: ListCustodyTransactionSummaries :many
+WITH correction_counts AS (
+    SELECT
+        corrected_transaction_id,
+        count(*)::int AS edit_count
+    FROM custody_corrections
+    GROUP BY corrected_transaction_id
+),
+latest_corrections AS (
+    SELECT DISTINCT ON (corrected_transaction_id)
+        id,
+        corrected_transaction_id,
+        corrected_personnel_id
+    FROM custody_corrections
+    ORDER BY corrected_transaction_id, created_at DESC, id DESC
+),
+effective_transactions AS (
+    SELECT
+        ct.id,
+        ct.transaction_type,
+        ct.personnel_id AS original_personnel_id,
+        COALESCE(lc.corrected_personnel_id, ct.personnel_id) AS effective_personnel_id,
+        ct.operator_id,
+        ct.created_at,
+        lc.id AS latest_correction_id,
+        COALESCE(cc.edit_count, 0)::int AS edit_count
+    FROM custody_transactions ct
+    LEFT JOIN latest_corrections lc
+        ON lc.corrected_transaction_id = ct.id
+    LEFT JOIN correction_counts cc
+        ON cc.corrected_transaction_id = ct.id
+),
+effective_lines AS (
+    SELECT
+        et.id AS transaction_id,
+        cl.quantity
+    FROM effective_transactions et
+    JOIN custody_lines cl
+        ON cl.custody_transaction_id = et.id
+    WHERE et.latest_correction_id IS NULL
+
+    UNION ALL
+
+    SELECT
+        et.id AS transaction_id,
+        ccl.quantity
+    FROM effective_transactions et
+    JOIN custody_correction_lines ccl
+        ON ccl.custody_correction_id = et.latest_correction_id
+    WHERE et.latest_correction_id IS NOT NULL
+),
+line_totals AS (
+    SELECT
+        transaction_id,
+        sum(quantity)::int AS total_quantity
+    FROM effective_lines
+    GROUP BY transaction_id
+)
+SELECT
+    et.id,
+    et.transaction_type,
+
+    op.id AS original_personnel_id,
+    op.full_name AS original_personnel_full_name,
+    op.alias AS original_personnel_alias,
+    op.rank AS original_personnel_rank,
+    op.active AS original_personnel_active,
+
+    ep.id AS effective_personnel_id,
+    ep.full_name AS effective_personnel_full_name,
+    ep.alias AS effective_personnel_alias,
+    ep.rank AS effective_personnel_rank,
+    ep.active AS effective_personnel_active,
+
+    et.operator_id,
+    o.alias AS operator_alias,
+    o.rank AS operator_rank,
+    o.role AS operator_role,
+    o.active AS operator_active,
+
+    COALESCE(lt.total_quantity, 0)::int AS total_quantity,
+    et.created_at,
+    (et.edit_count > 0) AS has_correction,
+    et.edit_count
+FROM effective_transactions et
+JOIN personnel op ON op.id = et.original_personnel_id
+JOIN personnel ep ON ep.id = et.effective_personnel_id
+JOIN operators o ON o.id = et.operator_id
+LEFT JOIN line_totals lt ON lt.transaction_id = et.id
+ORDER BY et.created_at DESC, et.id DESC
+LIMIT @limit_count;
+
 -- name: ListCurrentCustodyByAsset :many
 SELECT
     cb.asset_id,

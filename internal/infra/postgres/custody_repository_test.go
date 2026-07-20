@@ -2001,3 +2001,135 @@ func TestPostgresCustodyRepositorySaveTransactionIsIdempotentByTransactionID(t *
 		t.Fatalf("expected only one transaction in history, got %d", len(history))
 	}
 }
+
+func TestPostgresCustodyRepositoryListTransactionSummariesUsesEffectiveCorrectionState(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnelA := mustNewTestPersonnel(t, "personnel-1", "John A", "alpha", domain.RankSergeant, "52998224725")
+	personnelB := mustNewTestPersonnel(t, "personnel-2", "John B", "bravo", domain.RankCorporal, "93541134780")
+
+	if err := personnelRepository.Save(context.Background(), personnelA); err != nil {
+		t.Fatalf("expected no error saving personnel A, got %v", err)
+	}
+
+	if err := personnelRepository.Save(context.Background(), personnelB); err != nil {
+		t.Fatalf("expected no error saving personnel B, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"29109142088",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleOperator,
+	)
+
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	line, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid line, got %v", err)
+	}
+
+	transaction, err := domain.NewCustodyTransaction(
+		"transaction-1",
+		domain.CustodyTransactionTypeCheckout,
+		personnelA.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{line},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid transaction, got %v", err)
+	}
+
+	created, err := custodyRepository.SaveTransaction(context.Background(), transaction)
+	if err != nil {
+		t.Fatalf("expected no error saving transaction, got %v", err)
+	}
+
+	if !created {
+		t.Fatal("expected transaction to be created")
+	}
+
+	correctionLine, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(2))
+	if err != nil {
+		t.Fatalf("expected valid correction line, got %v", err)
+	}
+
+	correction, err := domain.NewCustodyCorrection(
+		"correction-1",
+		transaction.ID(),
+		operator.ID(),
+		personnelB.ID(),
+		[]domain.CustodyLine{correctionLine},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("expected valid correction, got %v", err)
+	}
+
+	created, err = custodyRepository.SaveCorrection(
+		context.Background(),
+		correction,
+		transaction.Type(),
+		transaction.PersonnelID(),
+		transaction.Lines(),
+	)
+	if err != nil {
+		t.Fatalf("expected no error saving correction, got %v", err)
+	}
+
+	if !created {
+		t.Fatal("expected correction to be created")
+	}
+
+	summaries, err := custodyRepository.ListTransactionSummaries(context.Background(), 10)
+	if err != nil {
+		t.Fatalf("expected no error listing transaction summaries, got %v", err)
+	}
+
+	if len(summaries) != 1 {
+		t.Fatalf("expected 1 summary, got %d", len(summaries))
+	}
+
+	summary := summaries[0]
+
+	if summary.OriginalPersonnelID != personnelA.ID() {
+		t.Fatalf("expected original personnel %s, got %s", personnelA.ID(), summary.OriginalPersonnelID)
+	}
+
+	if summary.EffectivePersonnelID != personnelB.ID() {
+		t.Fatalf("expected effective personnel %s, got %s", personnelB.ID(), summary.EffectivePersonnelID)
+	}
+
+	if summary.TotalQuantity != 2 {
+		t.Fatalf("expected total quantity 2, got %d", summary.TotalQuantity)
+	}
+
+	if !summary.HasCorrection {
+		t.Fatal("expected summary to have correction")
+	}
+
+	if summary.EditCount != 1 {
+		t.Fatalf("expected edit count 1, got %d", summary.EditCount)
+	}
+}

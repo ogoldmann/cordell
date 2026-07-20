@@ -333,6 +333,20 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Edit metadata is visually separated from changed content.
 - [ ] Latest correction is not rendered as a full duplicate receipt snapshot.
 
+## Custody Transaction Ledger
+
+- [ ] Ledger lists custody transactions.
+- [ ] Ledger orders transactions by newest first.
+- [ ] Ledger links each item to its receipt.
+- [ ] Ledger shows transaction type.
+- [ ] Ledger shows effective personnel.
+- [ ] Ledger shows original personnel when different from effective personnel.
+- [ ] Ledger shows effective total quantity.
+- [ ] Ledger shows operator.
+- [ ] Ledger marks edited transactions.
+- [ ] Ledger uses latest correction as effective state.
+- [ ] Ledger does not mutate original transactions.
+
 ## Correction Effective State Hardening
 
 - [ ] Checkout correction cannot create positive balance for inactive personnel.

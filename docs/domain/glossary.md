@@ -132,6 +132,12 @@ The custody ledger is the append-only history of checkout, return, and future co
 
 Current custody state should be derived from the ledger rather than manually overwritten.
 
+## Custody Transaction Ledger
+
+The custody transaction ledger is the operational list of checkout and return transactions.
+
+It shows each transaction using its current effective state and links to the receipt for immutable details and edit history.
+
 ## Current Custody Balance
 
 Current custody balance is the current quantity of a given asset under the responsibility of a given personnel record.

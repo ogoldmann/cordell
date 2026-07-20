@@ -1,0 +1,140 @@
+{{define "custody_transactions_index.html"}}
+{{template "layout_start" .}}
+
+<section class="mb-8">
+  <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+    Custody ledger
+  </p>
+
+  <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <div>
+      <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
+        Custody transactions
+      </h1>
+
+      <p class="mt-3 max-w-3xl text-cordell-muted dark:text-cordell-dark-muted">
+        Review checkout and return transactions using their current effective state. Edited transactions link back to the immutable receipt and edit history.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap gap-3">
+      <a
+        class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white no-underline transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+        href="/custody/checkouts/new"
+      >
+        New checkout
+      </a>
+
+      <a
+        class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-5 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+        href="/custody/returns/new"
+      >
+        New return
+      </a>
+    </div>
+  </div>
+</section>
+
+{{if .Transactions}}
+  <section class="grid gap-4">
+    {{range .Transactions}}
+      <article class="rounded-3xl border border-cordell-border bg-cordell-surface p-5 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div class="min-w-0">
+            <div class="mb-3 flex flex-wrap items-center gap-2">
+              <span class="inline-flex w-fit rounded-full border px-3 py-1 text-xs font-extrabold {{.TypeBadgeClass}}">
+                {{.TypeLabel}}
+              </span>
+
+              {{if .HasCorrection}}
+                <span class="inline-flex w-fit rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-extrabold text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
+                  {{.EditLabel}}
+                </span>
+              {{end}}
+            </div>
+
+            <a
+              class="block truncate font-mono text-sm font-bold text-cordell-primary no-underline hover:underline dark:text-cordell-dark-primary"
+              href="{{.ReceiptURL}}"
+            >
+              {{.ID}}
+            </a>
+
+            <div class="mt-4 grid gap-4 md:grid-cols-2">
+              <div>
+                <p class="m-0 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
+                  Effective personnel
+                </p>
+
+                <a
+                  class="mt-1 block text-lg font-extrabold text-cordell-text no-underline hover:text-cordell-primary dark:text-cordell-dark-text dark:hover:text-cordell-dark-primary"
+                  href="{{.EffectivePersonnelURL}}"
+                >
+                  {{.EffectivePersonnelDisplay}}
+                </a>
+
+                <p class="mt-1 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+                  {{.EffectivePersonnelFullName}}
+                  {{if not .EffectivePersonnelActive}}
+                    <span class="ml-2 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                      {{.EffectivePersonnelStatus}}
+                    </span>
+                  {{end}}
+                </p>
+
+                {{if .ShowOriginalPersonnel}}
+                  <p class="mt-2 text-xs text-cordell-muted dark:text-cordell-dark-muted">
+                    Original: {{.OriginalPersonnelDisplay}}
+                  </p>
+                {{end}}
+              </div>
+
+              <div>
+                <p class="m-0 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
+                  Registered by
+                </p>
+
+                <p class="mt-1 text-lg font-extrabold">
+                  {{.OperatorDisplay}}
+                </p>
+
+                <p class="mt-1 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+                  {{.CreatedAt}}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-start gap-3 lg:items-end">
+            <div class="rounded-2xl border border-cordell-border bg-cordell-background px-4 py-3 dark:border-cordell-dark-border dark:bg-cordell-dark-background">
+              <p class="m-0 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
+                Effective quantity
+              </p>
+
+              <p class="mt-1 text-3xl font-extrabold">
+                {{.TotalQuantity}}
+              </p>
+            </div>
+
+            <a
+              class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+              href="{{.ReceiptURL}}"
+            >
+              Open receipt
+            </a>
+          </div>
+        </div>
+      </article>
+    {{end}}
+  </section>
+{{else}}
+  <section class="rounded-3xl border border-cordell-border bg-cordell-surface p-8 text-center shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+    <h2 class="m-0 text-2xl font-extrabold">No custody transactions yet</h2>
+    <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
+      Checkout and return transactions will appear here after they are registered.
+    </p>
+  </section>
+{{end}}
+
+{{template "layout_end" .}}
+{{end}}
