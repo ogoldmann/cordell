@@ -60,9 +60,18 @@ type CustodyHistoryEntry struct {
 	EditCount     int
 }
 
+// CustodyTransactionSummaryLine represents an effective line in a custody transaction summary.
+type CustodyTransactionSummaryLine struct {
+	AssetID     domain.AssetID
+	AssetName   string
+	AssetActive bool
+	Quantity    int
+}
+
 // CustodyTransactionSummary represents a custody transaction summary for ledger views.
 type CustodyTransactionSummary struct {
 	ID                         domain.CustodyTransactionID
+	SequenceNumber             int
 	TransactionType            domain.CustodyTransactionType
 	OriginalPersonnelID        domain.PersonnelID
 	OriginalPersonnelFullName  string
@@ -80,6 +89,7 @@ type CustodyTransactionSummary struct {
 	OperatorRole               domain.OperatorRole
 	OperatorActive             bool
 	TotalQuantity              int
+	Lines                      []CustodyTransactionSummaryLine
 	CreatedAt                  time.Time
 	HasCorrection              bool
 	EditCount                  int

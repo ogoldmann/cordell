@@ -2,6 +2,8 @@ package web
 
 import (
 	"net/http"
+	"strconv"
+	"time"
 
 	"cordell/internal/app"
 	"cordell/internal/domain"
@@ -15,6 +17,9 @@ type custodyTransactionLedgerPageData struct {
 
 type custodyTransactionSummaryView struct {
 	ID                         string
+	SequenceLabel              string
+	DateLabel                  string
+	TimeLabel                  string
 	ReceiptURL                 string
 	TypeLabel                  string
 	TypeBadgeClass             string
@@ -28,9 +33,19 @@ type custodyTransactionSummaryView struct {
 	OperatorDisplay            string
 	OperatorStatus             string
 	TotalQuantity              int
+	Lines                      []custodyTransactionSummaryLineView
 	CreatedAt                  string
 	HasCorrection              bool
 	EditLabel                  string
+}
+
+type custodyTransactionSummaryLineView struct {
+	AssetID     string
+	AssetURL    string
+	AssetName   string
+	AssetActive bool
+	StatusLabel string
+	Quantity    int
 }
 
 func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.Request) {
@@ -73,8 +88,24 @@ func newCustodyTransactionSummaryViews(
 		showOriginalPersonnel := transaction.HasCorrection &&
 			transaction.OriginalPersonnelID != transaction.EffectivePersonnelID
 
+		lineViews := make([]custodyTransactionSummaryLineView, 0, len(transaction.Lines))
+
+		for _, line := range transaction.Lines {
+			lineViews = append(lineViews, custodyTransactionSummaryLineView{
+				AssetID:     string(line.AssetID),
+				AssetURL:    "/assets/" + string(line.AssetID),
+				AssetName:   line.AssetName,
+				AssetActive: line.AssetActive,
+				StatusLabel: activeStatusLabel(line.AssetActive),
+				Quantity:    line.Quantity,
+			})
+		}
+
 		views = append(views, custodyTransactionSummaryView{
 			ID:                         string(transaction.ID),
+			SequenceLabel:              ledgerSequenceLabel(transaction.SequenceNumber),
+			DateLabel:                  ledgerDateLabel(transaction.CreatedAt),
+			TimeLabel:                  ledgerTimeLabel(transaction.CreatedAt),
 			ReceiptURL:                 "/custody/transactions/" + string(transaction.ID),
 			TypeLabel:                  custodyTransactionTypeLabel(transaction.TransactionType),
 			TypeBadgeClass:             custodyTransactionTypeBadgeClass(transaction.TransactionType),
@@ -88,6 +119,7 @@ func newCustodyTransactionSummaryViews(
 			OperatorDisplay:            militaryDisplayName(transaction.OperatorRank, transaction.OperatorAlias),
 			OperatorStatus:             activeStatusLabel(transaction.OperatorActive),
 			TotalQuantity:              transaction.TotalQuantity,
+			Lines:                      lineViews,
 			CreatedAt:                  formatDateTime(transaction.CreatedAt),
 			HasCorrection:              transaction.HasCorrection,
 			EditLabel:                  editCountLabel(transaction.EditCount),
@@ -95,6 +127,22 @@ func newCustodyTransactionSummaryViews(
 	}
 
 	return views
+}
+
+func ledgerDateLabel(t time.Time) string {
+	return t.Format("02 Jan 2006")
+}
+
+func ledgerTimeLabel(t time.Time) string {
+	return t.Format("15:04")
+}
+
+func ledgerSequenceLabel(sequenceNumber int) string {
+	if sequenceNumber <= 0 {
+		return "#—"
+	}
+
+	return "#" + strconv.Itoa(sequenceNumber)
 }
 
 func custodyTransactionTypeBadgeClass(transactionType domain.CustodyTransactionType) string {

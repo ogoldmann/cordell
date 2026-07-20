@@ -1233,6 +1233,26 @@ The original transaction remains preserved in the receipt edit history.
 
 Ledger items link to the immutable custody receipt.
 
+## Custody Ledger Line Items and Timeline
+
+The custody transaction ledger shows effective transaction line items.
+
+Each ledger item displays:
+
+- transaction sequence number
+- transaction date
+- transaction time
+- transaction type
+- effective personnel
+- effective asset lines
+- quantity per asset
+- total effective quantity
+- edit count when corrected
+
+The sequence number represents the chronological order of custody transactions.
+
+The ledger is displayed newest first, while the sequence number preserves the transaction's original chronological position.
+
 ## Custody Correction Line Editing
 
 The custody transaction edit form supports adding and removing corrected lines.

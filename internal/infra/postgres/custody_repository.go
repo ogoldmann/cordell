@@ -459,37 +459,63 @@ func (r *CustodyRepository) ListTransactionSummaries(
 		return nil, err
 	}
 
-	summaries := make([]ports.CustodyTransactionSummary, 0, len(rows))
+	summariesByID := make(map[domain.CustodyTransactionID]*ports.CustodyTransactionSummary)
+	orderedIDs := make([]domain.CustodyTransactionID, 0)
 
 	for _, row := range rows {
-		createdAt, err := timestamptzToTime(row.CreatedAt)
-		if err != nil {
-			return nil, err
+		transactionID := domain.CustodyTransactionID(row.ID)
+
+		summary, ok := summariesByID[transactionID]
+		if !ok {
+			createdAt, err := timestamptzToTime(row.CreatedAt)
+			if err != nil {
+				return nil, err
+			}
+
+			summary = &ports.CustodyTransactionSummary{
+				ID:                         transactionID,
+				SequenceNumber:             int(row.SequenceNumber),
+				TransactionType:            domain.CustodyTransactionType(row.TransactionType),
+				OriginalPersonnelID:        domain.PersonnelID(row.OriginalPersonnelID),
+				OriginalPersonnelFullName:  row.OriginalPersonnelFullName,
+				OriginalPersonnelAlias:     row.OriginalPersonnelAlias,
+				OriginalPersonnelRank:      domain.Rank(row.OriginalPersonnelRank),
+				OriginalPersonnelActive:    row.OriginalPersonnelActive,
+				EffectivePersonnelID:       domain.PersonnelID(row.EffectivePersonnelID),
+				EffectivePersonnelFullName: row.EffectivePersonnelFullName,
+				EffectivePersonnelAlias:    row.EffectivePersonnelAlias,
+				EffectivePersonnelRank:     domain.Rank(row.EffectivePersonnelRank),
+				EffectivePersonnelActive:   row.EffectivePersonnelActive,
+				OperatorID:                 domain.OperatorID(row.OperatorID),
+				OperatorAlias:              row.OperatorAlias,
+				OperatorRank:               domain.Rank(row.OperatorRank),
+				OperatorRole:               domain.OperatorRole(row.OperatorRole),
+				OperatorActive:             row.OperatorActive,
+				TotalQuantity:              int(row.TotalQuantity),
+				CreatedAt:                  createdAt,
+				HasCorrection:              row.HasCorrection,
+				EditCount:                  int(row.EditCount),
+				Lines:                      make([]ports.CustodyTransactionSummaryLine, 0),
+			}
+
+			summariesByID[transactionID] = summary
+			orderedIDs = append(orderedIDs, transactionID)
 		}
 
-		summaries = append(summaries, ports.CustodyTransactionSummary{
-			ID:                         domain.CustodyTransactionID(row.ID),
-			TransactionType:            domain.CustodyTransactionType(row.TransactionType),
-			OriginalPersonnelID:        domain.PersonnelID(row.OriginalPersonnelID),
-			OriginalPersonnelFullName:  row.OriginalPersonnelFullName,
-			OriginalPersonnelAlias:     row.OriginalPersonnelAlias,
-			OriginalPersonnelRank:      domain.Rank(row.OriginalPersonnelRank),
-			OriginalPersonnelActive:    row.OriginalPersonnelActive,
-			EffectivePersonnelID:       domain.PersonnelID(row.EffectivePersonnelID),
-			EffectivePersonnelFullName: row.EffectivePersonnelFullName,
-			EffectivePersonnelAlias:    row.EffectivePersonnelAlias,
-			EffectivePersonnelRank:     domain.Rank(row.EffectivePersonnelRank),
-			EffectivePersonnelActive:   row.EffectivePersonnelActive,
-			OperatorID:                 domain.OperatorID(row.OperatorID),
-			OperatorAlias:              row.OperatorAlias,
-			OperatorRank:               domain.Rank(row.OperatorRank),
-			OperatorRole:               domain.OperatorRole(row.OperatorRole),
-			OperatorActive:             row.OperatorActive,
-			TotalQuantity:              int(row.TotalQuantity),
-			CreatedAt:                  createdAt,
-			HasCorrection:              row.HasCorrection,
-			EditCount:                  int(row.EditCount),
-		})
+		if row.AssetID.Valid {
+			summary.Lines = append(summary.Lines, ports.CustodyTransactionSummaryLine{
+				AssetID:     domain.AssetID(row.AssetID.String),
+				AssetName:   row.AssetName.String,
+				AssetActive: row.AssetActive.Bool,
+				Quantity:    int(row.Quantity.Int32),
+			})
+		}
+	}
+
+	summaries := make([]ports.CustodyTransactionSummary, 0, len(orderedIDs))
+
+	for _, id := range orderedIDs {
+		summaries = append(summaries, *summariesByID[id])
 	}
 
 	return summaries, nil

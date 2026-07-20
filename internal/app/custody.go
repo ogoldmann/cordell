@@ -444,9 +444,18 @@ type CustodyHistoryEntry struct {
 	EditCount     int
 }
 
+// CustodyTransactionSummaryLine represents an effective line in a custody transaction summary.
+type CustodyTransactionSummaryLine struct {
+	AssetID     domain.AssetID
+	AssetName   string
+	AssetActive bool
+	Quantity    int
+}
+
 // CustodyTransactionSummary represents a custody transaction summary for application views.
 type CustodyTransactionSummary struct {
 	ID                         domain.CustodyTransactionID
+	SequenceNumber             int
 	TransactionType            domain.CustodyTransactionType
 	OriginalPersonnelID        domain.PersonnelID
 	OriginalPersonnelFullName  string
@@ -464,6 +473,7 @@ type CustodyTransactionSummary struct {
 	OperatorRole               domain.OperatorRole
 	OperatorActive             bool
 	TotalQuantity              int
+	Lines                      []CustodyTransactionSummaryLine
 	CreatedAt                  time.Time
 	HasCorrection              bool
 	EditCount                  int
@@ -501,8 +511,9 @@ func (s *ListCustodyTransactionSummariesService) Execute(
 	summaries := make([]CustodyTransactionSummary, 0, len(items))
 
 	for _, item := range items {
-		summaries = append(summaries, CustodyTransactionSummary{
+		summary := CustodyTransactionSummary{
 			ID:                         item.ID,
+			SequenceNumber:             item.SequenceNumber,
 			TransactionType:            item.TransactionType,
 			OriginalPersonnelID:        item.OriginalPersonnelID,
 			OriginalPersonnelFullName:  item.OriginalPersonnelFullName,
@@ -523,7 +534,19 @@ func (s *ListCustodyTransactionSummariesService) Execute(
 			CreatedAt:                  item.CreatedAt,
 			HasCorrection:              item.HasCorrection,
 			EditCount:                  item.EditCount,
-		})
+			Lines:                      make([]CustodyTransactionSummaryLine, 0, len(item.Lines)),
+		}
+
+		for _, line := range item.Lines {
+			summary.Lines = append(summary.Lines, CustodyTransactionSummaryLine{
+				AssetID:     line.AssetID,
+				AssetName:   line.AssetName,
+				AssetActive: line.AssetActive,
+				Quantity:    line.Quantity,
+			})
+		}
+
+		summaries = append(summaries, summary)
 	}
 
 	return summaries, nil

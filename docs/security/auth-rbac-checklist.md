@@ -347,6 +347,19 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Ledger uses latest correction as effective state.
 - [ ] Ledger does not mutate original transactions.
 
+## Custody Ledger Timeline Clarity
+
+- [ ] Ledger shows transaction sequence number.
+- [ ] Ledger highlights transaction date.
+- [ ] Ledger highlights transaction time.
+- [ ] Ledger shows effective asset lines.
+- [ ] Ledger shows quantity per asset.
+- [ ] Ledger still shows total effective quantity.
+- [ ] Ledger supports multiple effective lines per transaction.
+- [ ] Ledger uses latest correction lines when present.
+- [ ] Ledger preserves newest-first ordering.
+- [ ] Ledger sequence number reflects chronological transaction order.
+
 ## Correction Effective State Hardening
 
 - [ ] Checkout correction cannot create positive balance for inactive personnel.

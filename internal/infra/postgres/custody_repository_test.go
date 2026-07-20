@@ -2132,4 +2132,24 @@ func TestPostgresCustodyRepositoryListTransactionSummariesUsesEffectiveCorrectio
 	if summary.EditCount != 1 {
 		t.Fatalf("expected edit count 1, got %d", summary.EditCount)
 	}
+
+	if summary.SequenceNumber <= 0 {
+		t.Fatalf("expected positive sequence number, got %d", summary.SequenceNumber)
+	}
+
+	if len(summary.Lines) != 1 {
+		t.Fatalf("expected 1 effective line, got %d", len(summary.Lines))
+	}
+
+	if summary.Lines[0].AssetID != asset.ID() {
+		t.Fatalf("expected asset %s, got %s", asset.ID(), summary.Lines[0].AssetID)
+	}
+
+	if summary.Lines[0].AssetName != asset.Name() {
+		t.Fatalf("expected asset name %s, got %s", asset.Name(), summary.Lines[0].AssetName)
+	}
+
+	if summary.Lines[0].Quantity != 2 {
+		t.Fatalf("expected effective line quantity 2, got %d", summary.Lines[0].Quantity)
+	}
 }

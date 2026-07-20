@@ -87,6 +87,7 @@ func TestListCustodyTransactionSummariesService(t *testing.T) {
 		transactionSummaries: []ports.CustodyTransactionSummary{
 			{
 				ID:                         "transaction-1",
+				SequenceNumber:             42,
 				TransactionType:            domain.CustodyTransactionTypeCheckout,
 				OriginalPersonnelID:        "personnel-1",
 				OriginalPersonnelFullName:  "John Original",
@@ -103,9 +104,23 @@ func TestListCustodyTransactionSummariesService(t *testing.T) {
 				OperatorRank:               domain.RankSergeant,
 				OperatorRole:               domain.OperatorRoleOperator,
 				OperatorActive:             true,
-				TotalQuantity:              2,
+				TotalQuantity:              3,
 				HasCorrection:              true,
 				EditCount:                  1,
+				Lines: []ports.CustodyTransactionSummaryLine{
+					{
+						AssetID:     "asset-1",
+						AssetName:   "Radio",
+						AssetActive: true,
+						Quantity:    1,
+					},
+					{
+						AssetID:     "asset-2",
+						AssetName:   "Helmet",
+						AssetActive: true,
+						Quantity:    2,
+					},
+				},
 			},
 		},
 	}
@@ -133,6 +148,22 @@ func TestListCustodyTransactionSummariesService(t *testing.T) {
 
 	if summaries[0].EditCount != 1 {
 		t.Fatalf("expected edit count 1, got %d", summaries[0].EditCount)
+	}
+
+	if summaries[0].SequenceNumber != 42 {
+		t.Fatalf("expected sequence number 42, got %d", summaries[0].SequenceNumber)
+	}
+
+	if len(summaries[0].Lines) != 2 {
+		t.Fatalf("expected 2 lines, got %d", len(summaries[0].Lines))
+	}
+
+	if summaries[0].Lines[0].AssetName != "Radio" {
+		t.Fatalf("expected Radio, got %s", summaries[0].Lines[0].AssetName)
+	}
+
+	if summaries[0].Lines[1].Quantity != 2 {
+		t.Fatalf("expected quantity 2, got %d", summaries[0].Lines[1].Quantity)
 	}
 }
 

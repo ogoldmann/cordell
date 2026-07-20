@@ -138,6 +138,14 @@ The custody transaction ledger is the operational list of checkout and return tr
 
 It shows each transaction using its current effective state and links to the receipt for immutable details and edit history.
 
+## Custody Transaction Sequence Number
+
+A custody transaction sequence number is the chronological position of a custody transaction in the ledger.
+
+The first recorded custody transaction is sequence number 1.
+
+The ledger may display newest transactions first while still preserving the original sequence number.
+
 ## Current Custody Balance
 
 Current custody balance is the current quantity of a given asset under the responsibility of a given personnel record.

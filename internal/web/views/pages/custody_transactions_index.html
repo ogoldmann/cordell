@@ -38,8 +38,22 @@
 {{if .Transactions}}
   <section class="grid gap-4">
     {{range .Transactions}}
-      <article class="rounded-3xl border border-cordell-border bg-cordell-surface p-5 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <article class="relative rounded-3xl border border-cordell-border bg-cordell-surface p-5 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+        <div class="flex flex-col gap-5 lg:grid lg:grid-cols-[8rem_1fr_auto] lg:items-start">
+          <div class="rounded-2xl border border-cordell-border bg-cordell-background px-4 py-3 text-center dark:border-cordell-dark-border dark:bg-cordell-dark-background">
+            <p class="m-0 font-mono text-xl font-extrabold text-cordell-primary dark:text-cordell-dark-primary">
+              {{.SequenceLabel}}
+            </p>
+
+            <p class="mt-2 text-sm font-extrabold">
+              {{.DateLabel}}
+            </p>
+
+            <p class="mt-1 font-mono text-sm text-cordell-muted dark:text-cordell-dark-muted">
+              {{.TimeLabel}}
+            </p>
+          </div>
+
           <div class="min-w-0">
             <div class="mb-3 flex flex-wrap items-center gap-2">
               <span class="inline-flex w-fit rounded-full border px-3 py-1 text-xs font-extrabold {{.TypeBadgeClass}}">
@@ -60,7 +74,7 @@
               {{.ID}}
             </a>
 
-            <div class="mt-4 grid gap-4 md:grid-cols-2">
+            <div class="mt-4 grid gap-4 xl:grid-cols-2">
               <div>
                 <p class="m-0 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
                   Effective personnel
@@ -103,19 +117,46 @@
                 </p>
               </div>
             </div>
+
+            <div class="mt-5">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <p class="m-0 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
+                  Effective items
+                </p>
+
+                <span class="inline-flex rounded-full border border-cordell-border bg-cordell-background px-3 py-1 text-xs font-bold text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-muted">
+                  Total {{.TotalQuantity}}
+                </span>
+              </div>
+
+              <div class="mt-3 grid gap-2">
+                {{range .Lines}}
+                  <div class="flex flex-col gap-2 rounded-2xl border border-cordell-border bg-cordell-background px-4 py-3 dark:border-cordell-dark-border dark:bg-cordell-dark-background sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <a
+                        class="font-bold text-cordell-text no-underline hover:text-cordell-primary dark:text-cordell-dark-text dark:hover:text-cordell-dark-primary"
+                        href="{{.AssetURL}}"
+                      >
+                        {{.AssetName}}
+                      </a>
+
+                      {{if not .AssetActive}}
+                        <span class="ml-2 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                          {{.StatusLabel}}
+                        </span>
+                      {{end}}
+                    </div>
+
+                    <p class="m-0 font-mono text-lg font-extrabold">
+                      ×{{.Quantity}}
+                    </p>
+                  </div>
+                {{end}}
+              </div>
+            </div>
           </div>
 
           <div class="flex flex-col items-start gap-3 lg:items-end">
-            <div class="rounded-2xl border border-cordell-border bg-cordell-background px-4 py-3 dark:border-cordell-dark-border dark:bg-cordell-dark-background">
-              <p class="m-0 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
-                Effective quantity
-              </p>
-
-              <p class="mt-1 text-3xl font-extrabold">
-                {{.TotalQuantity}}
-              </p>
-            </div>
-
             <a
               class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
               href="{{.ReceiptURL}}"

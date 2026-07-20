@@ -256,6 +256,9 @@
   .fixed {
     position: fixed;
   }
+  .relative {
+    position: relative;
+  }
   .static {
     position: static;
   }
@@ -775,10 +778,6 @@
     font-size: var(--text-2xl);
     line-height: var(--tw-leading, var(--text-2xl--line-height));
   }
-  .text-3xl {
-    font-size: var(--text-3xl);
-    line-height: var(--tw-leading, var(--text-3xl--line-height));
-  }
   .text-4xl {
     font-size: var(--text-4xl);
     line-height: var(--tw-leading, var(--text-4xl--line-height));
@@ -1132,6 +1131,11 @@
       justify-content: flex-end;
     }
   }
+  .lg\:grid {
+    @media (width >= 64rem) {
+      display: grid;
+    }
+  }
   .lg\:grid-cols-2 {
     @media (width >= 64rem) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1152,9 +1156,9 @@
       grid-template-columns: 1fr 1fr 10rem;
     }
   }
-  .lg\:flex-row {
+  .lg\:grid-cols-\[8rem_1fr_auto\] {
     @media (width >= 64rem) {
-      flex-direction: row;
+      grid-template-columns: 8rem 1fr auto;
     }
   }
   .lg\:items-end {
@@ -1167,9 +1171,9 @@
       align-items: flex-start;
     }
   }
-  .lg\:justify-between {
-    @media (width >= 64rem) {
-      justify-content: space-between;
+  .xl\:grid-cols-2 {
+    @media (width >= 80rem) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
   .dark\:divide-cordell-dark-border {
