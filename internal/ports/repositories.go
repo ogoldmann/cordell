@@ -95,6 +95,13 @@ type CustodyTransactionSummary struct {
 	EditCount                  int
 }
 
+// CustodyTransactionLedgerPeriod represents a year/month bucket in the custody ledger.
+type CustodyTransactionLedgerPeriod struct {
+	Year             int
+	Month            int
+	TransactionCount int
+}
+
 // CustodyTransactionTypeFilter filters custody transaction ledger items by type.
 type CustodyTransactionTypeFilter string
 
@@ -119,6 +126,9 @@ type CustodyTransactionSummaryFilters struct {
 	SearchQuery           string
 	TransactionTypeFilter CustodyTransactionTypeFilter
 	EditStatusFilter      CustodyEditStatusFilter
+	PeriodStart           time.Time
+	PeriodEnd             time.Time
+	HasPeriod             bool
 }
 
 // CustodyReceiptLine represents one asset line in a custody transaction receipt.
@@ -233,6 +243,7 @@ type CustodyRepository interface {
 	ListCurrentByPersonnel(ctx context.Context, personnelID domain.PersonnelID) ([]CurrentCustodyItem, error)
 	ListCurrentByAsset(ctx context.Context, assetID domain.AssetID) ([]CurrentAssetHolder, error)
 	ListHistoryByPersonnel(ctx context.Context, personnelID domain.PersonnelID, limit int) ([]CustodyHistoryEntry, error)
+	ListTransactionLedgerPeriods(ctx context.Context) ([]CustodyTransactionLedgerPeriod, error)
 	ListTransactionSummaries(ctx context.Context, filters CustodyTransactionSummaryFilters) ([]CustodyTransactionSummary, error)
 	FindReceiptByID(ctx context.Context, id domain.CustodyTransactionID) (CustodyReceipt, error)
 	ListCorrectionContextsByTransactionID(ctx context.Context, id domain.CustodyTransactionID) ([]CustodyCorrectionContext, error)

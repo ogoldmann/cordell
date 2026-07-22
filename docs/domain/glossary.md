@@ -138,6 +138,14 @@ The custody transaction ledger is the operational list of checkout and return tr
 
 It shows each transaction using its current effective state and links to the receipt for immutable details and edit history.
 
+## Ledger Period
+
+A ledger period is a year/month window used to navigate custody transactions.
+
+Ledger periods are based on the original transaction creation date.
+
+Corrections do not move a transaction to a different ledger period.
+
 ## Custody Transaction Sequence Number
 
 A custody transaction sequence number is the chronological position of a custody transaction in the ledger.

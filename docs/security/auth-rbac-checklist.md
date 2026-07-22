@@ -347,6 +347,18 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Ledger uses latest correction as effective state.
 - [ ] Ledger does not mutate original transactions.
 
+## Custody Ledger Period Navigation
+
+- [ ] Ledger lists available year/month periods.
+- [ ] Ledger defaults to the latest period with transactions.
+- [ ] Ledger period navigation preserves search/filter context.
+- [ ] Ledger supports limit inside selected period.
+- [ ] Ledger search works inside selected period.
+- [ ] Ledger type filter works inside selected period.
+- [ ] Ledger edit status filter works inside selected period.
+- [ ] Sequence number remains global.
+- [ ] Corrections do not move transactions between periods.
+
 ## Custody Ledger Timeline Clarity
 
 - [ ] Ledger shows transaction sequence number.

@@ -357,6 +357,7 @@ type fakeCustodyRepository struct {
 	currentByAsset              map[domain.AssetID][]ports.CurrentAssetHolder
 	personnelWithCurrentCustody []ports.PersonnelWithCurrentCustody
 	historyByPerson             map[domain.PersonnelID][]ports.CustodyHistoryEntry
+	transactionLedgerPeriods    []ports.CustodyTransactionLedgerPeriod
 	transactionSummaries        []ports.CustodyTransactionSummary
 	receipts                    map[domain.CustodyTransactionID]ports.CustodyReceipt
 	correctionByTransactionID   map[domain.CustodyTransactionID]ports.CustodyCorrectionContext
@@ -477,6 +478,12 @@ func (r *fakeCustodyRepository) ListTransactionSummaries(
 	_ ports.CustodyTransactionSummaryFilters,
 ) ([]ports.CustodyTransactionSummary, error) {
 	return r.transactionSummaries, nil
+}
+
+func (r *fakeCustodyRepository) ListTransactionLedgerPeriods(
+	_ context.Context,
+) ([]ports.CustodyTransactionLedgerPeriod, error) {
+	return r.transactionLedgerPeriods, nil
 }
 
 func (r *fakeCustodyRepository) FindReceiptByID(

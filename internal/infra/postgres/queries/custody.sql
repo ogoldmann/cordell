@@ -173,6 +173,17 @@ WHERE personnel_id = sqlc.arg(personnel_id)
 ORDER BY transaction_created_at DESC, transaction_id DESC, asset_name ASC
 LIMIT sqlc.arg(limit_count);
 
+-- name: ListCustodyTransactionLedgerPeriods :many
+SELECT
+    extract(year FROM created_at)::int AS year,
+    extract(month FROM created_at)::int AS month,
+    count(*)::int AS transaction_count
+FROM custody_transactions
+GROUP BY
+    extract(year FROM created_at)::int,
+    extract(month FROM created_at)::int
+ORDER BY year DESC, month DESC;
+
 -- name: ListCustodyTransactionSummaries :many
 WITH correction_counts AS (
     SELECT
@@ -254,6 +265,13 @@ filtered_transactions AS (
     JOIN operators o
         ON o.id = et.operator_id
     WHERE (
+        NOT sqlc.arg(has_period)::bool
+        OR (
+            et.created_at >= sqlc.arg(period_start)::timestamptz
+            AND et.created_at < sqlc.arg(period_end)::timestamptz
+        )
+    )
+    AND (
         sqlc.arg(transaction_type_filter)::text = 'all'
         OR et.transaction_type = sqlc.arg(transaction_type_filter)::text
     )

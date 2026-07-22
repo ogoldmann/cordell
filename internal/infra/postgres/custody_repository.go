@@ -446,6 +446,28 @@ func (r *CustodyRepository) ListHistoryByPersonnel(
 	return entries, nil
 }
 
+// ListTransactionLedgerPeriods returns available year/month periods for the custody ledger.
+func (r *CustodyRepository) ListTransactionLedgerPeriods(
+	ctx context.Context,
+) ([]ports.CustodyTransactionLedgerPeriod, error) {
+	rows, err := r.queries.ListCustodyTransactionLedgerPeriods(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	periods := make([]ports.CustodyTransactionLedgerPeriod, 0, len(rows))
+
+	for _, row := range rows {
+		periods = append(periods, ports.CustodyTransactionLedgerPeriod{
+			Year:             int(row.Year),
+			Month:            int(row.Month),
+			TransactionCount: int(row.TransactionCount),
+		})
+	}
+
+	return periods, nil
+}
+
 // ListTransactionSummaries returns custody transaction summaries for the ledger.
 func (r *CustodyRepository) ListTransactionSummaries(
 	ctx context.Context,
@@ -477,6 +499,15 @@ func (r *CustodyRepository) ListTransactionSummaries(
 		SearchPattern:         searchPattern,
 		TransactionTypeFilter: string(transactionTypeFilter),
 		EditStatusFilter:      string(editStatusFilter),
+		HasPeriod:             filters.HasPeriod,
+		PeriodStart: pgtype.Timestamptz{
+			Time:  filters.PeriodStart,
+			Valid: filters.HasPeriod,
+		},
+		PeriodEnd: pgtype.Timestamptz{
+			Time:  filters.PeriodEnd,
+			Valid: filters.HasPeriod,
+		},
 	})
 	if err != nil {
 		return nil, err

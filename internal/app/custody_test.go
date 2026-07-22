@@ -167,6 +167,76 @@ func TestListCustodyTransactionSummariesService(t *testing.T) {
 	}
 }
 
+func TestCustodyLedgerPeriodRange(t *testing.T) {
+	start, end, ok := custodyLedgerPeriodRange(2026, 7)
+	if !ok {
+		t.Fatal("expected valid period")
+	}
+
+	if start.Year() != 2026 {
+		t.Fatalf("expected year 2026, got %d", start.Year())
+	}
+
+	if start.Month() != time.July {
+		t.Fatalf("expected July, got %s", start.Month())
+	}
+
+	if start.Day() != 1 {
+		t.Fatalf("expected first day, got %d", start.Day())
+	}
+
+	if end.Month() != time.August {
+		t.Fatalf("expected August end boundary, got %s", end.Month())
+	}
+}
+
+func TestCustodyLedgerPeriodRangeRejectsInvalidPeriod(t *testing.T) {
+	_, _, ok := custodyLedgerPeriodRange(2026, 13)
+	if ok {
+		t.Fatal("expected invalid month to be rejected")
+	}
+
+	_, _, ok = custodyLedgerPeriodRange(0, 7)
+	if ok {
+		t.Fatal("expected invalid year to be rejected")
+	}
+}
+
+func TestListCustodyTransactionLedgerPeriodsService(t *testing.T) {
+	custodyRepository := &fakeCustodyRepository{
+		transactionLedgerPeriods: []ports.CustodyTransactionLedgerPeriod{
+			{
+				Year:             2026,
+				Month:            7,
+				TransactionCount: 12,
+			},
+		},
+	}
+
+	service := NewListCustodyTransactionLedgerPeriodsService(custodyRepository)
+
+	periods, err := service.Execute(context.Background())
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(periods) != 1 {
+		t.Fatalf("expected 1 period, got %d", len(periods))
+	}
+
+	if periods[0].Year != 2026 {
+		t.Fatalf("expected year 2026, got %d", periods[0].Year)
+	}
+
+	if periods[0].Month != 7 {
+		t.Fatalf("expected month 7, got %d", periods[0].Month)
+	}
+
+	if periods[0].TransactionCount != 12 {
+		t.Fatalf("expected transaction count 12, got %d", periods[0].TransactionCount)
+	}
+}
+
 func TestNormalizeCustodyTransactionTypeFilter(t *testing.T) {
 	if got := normalizeCustodyTransactionTypeFilter("checkout"); got != ports.CustodyTransactionTypeFilterCheckout {
 		t.Fatalf("expected checkout, got %s", got)

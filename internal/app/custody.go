@@ -479,12 +479,32 @@ type CustodyTransactionSummary struct {
 	EditCount                  int
 }
 
+// CustodyTransactionLedgerPeriod represents a year/month period available in the custody ledger.
+type CustodyTransactionLedgerPeriod struct {
+	Year             int
+	Month            int
+	TransactionCount int
+}
+
 // ListCustodyTransactionSummariesCommand contains ledger list parameters.
 type ListCustodyTransactionSummariesCommand struct {
 	Limit                 int
 	SearchQuery           string
 	TransactionTypeFilter string
 	EditStatusFilter      string
+	Year                  int
+	Month                 int
+}
+
+func custodyLedgerPeriodRange(year int, month int) (time.Time, time.Time, bool) {
+	if year <= 0 || month < 1 || month > 12 {
+		return time.Time{}, time.Time{}, false
+	}
+
+	start := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
+	end := start.AddDate(0, 1, 0)
+
+	return start, end, true
 }
 
 // ListCustodyTransactionSummariesService lists custody transaction summaries.
@@ -506,11 +526,16 @@ func (s *ListCustodyTransactionSummariesService) Execute(
 	ctx context.Context,
 	cmd ListCustodyTransactionSummariesCommand,
 ) ([]CustodyTransactionSummary, error) {
+	periodStart, periodEnd, hasPeriod := custodyLedgerPeriodRange(cmd.Year, cmd.Month)
+
 	items, err := s.custodyRepository.ListTransactionSummaries(ctx, ports.CustodyTransactionSummaryFilters{
 		Limit:                 cmd.Limit,
 		SearchQuery:           cmd.SearchQuery,
 		TransactionTypeFilter: normalizeCustodyTransactionTypeFilter(cmd.TransactionTypeFilter),
 		EditStatusFilter:      normalizeCustodyEditStatusFilter(cmd.EditStatusFilter),
+		PeriodStart:           periodStart,
+		PeriodEnd:             periodEnd,
+		HasPeriod:             hasPeriod,
 	})
 	if err != nil {
 		return nil, err
@@ -558,6 +583,42 @@ func (s *ListCustodyTransactionSummariesService) Execute(
 	}
 
 	return summaries, nil
+}
+
+// ListCustodyTransactionLedgerPeriodsService lists available ledger periods.
+type ListCustodyTransactionLedgerPeriodsService struct {
+	custodyRepository ports.CustodyRepository
+}
+
+// NewListCustodyTransactionLedgerPeriodsService creates a ListCustodyTransactionLedgerPeriodsService.
+func NewListCustodyTransactionLedgerPeriodsService(
+	custodyRepository ports.CustodyRepository,
+) *ListCustodyTransactionLedgerPeriodsService {
+	return &ListCustodyTransactionLedgerPeriodsService{
+		custodyRepository: custodyRepository,
+	}
+}
+
+// Execute lists available ledger periods.
+func (s *ListCustodyTransactionLedgerPeriodsService) Execute(
+	ctx context.Context,
+) ([]CustodyTransactionLedgerPeriod, error) {
+	periods, err := s.custodyRepository.ListTransactionLedgerPeriods(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]CustodyTransactionLedgerPeriod, 0, len(periods))
+
+	for _, period := range periods {
+		result = append(result, CustodyTransactionLedgerPeriod{
+			Year:             period.Year,
+			Month:            period.Month,
+			TransactionCount: period.TransactionCount,
+		})
+	}
+
+	return result, nil
 }
 
 func normalizeCustodyTransactionTypeFilter(value string) ports.CustodyTransactionTypeFilter {

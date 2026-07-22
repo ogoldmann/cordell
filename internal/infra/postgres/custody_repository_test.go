@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"cordell/internal/app"
 	"cordell/internal/domain"
@@ -2000,6 +2001,209 @@ func TestPostgresCustodyRepositorySaveTransactionIsIdempotentByTransactionID(t *
 
 	if len(history) != 1 {
 		t.Fatalf("expected only one transaction in history, got %d", len(history))
+	}
+}
+
+func TestPostgresCustodyRepositoryListTransactionLedgerPeriods(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(t, "operator-1", "93541134780", "silva", domain.RankSergeant, domain.OperatorRoleOperator)
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	line, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid line, got %v", err)
+	}
+
+	transactions := []struct {
+		id        domain.CustodyTransactionID
+		createdAt time.Time
+	}{
+		{
+			id:        "transaction-june",
+			createdAt: time.Date(2026, time.June, 10, 9, 0, 0, 0, time.Local),
+		},
+		{
+			id:        "transaction-july-a",
+			createdAt: time.Date(2026, time.July, 3, 9, 0, 0, 0, time.Local),
+		},
+		{
+			id:        "transaction-july-b",
+			createdAt: time.Date(2026, time.July, 20, 9, 0, 0, 0, time.Local),
+		},
+	}
+
+	for _, transactionData := range transactions {
+		transaction, err := domain.NewCustodyTransaction(
+			transactionData.id,
+			domain.CustodyTransactionTypeCheckout,
+			personnel.ID(),
+			operator.ID(),
+			[]domain.CustodyLine{line},
+			"",
+		)
+		if err != nil {
+			t.Fatalf("expected valid transaction, got %v", err)
+		}
+
+		created, err := custodyRepository.SaveTransaction(context.Background(), transaction)
+		if err != nil {
+			t.Fatalf("expected no error saving transaction, got %v", err)
+		}
+		if !created {
+			t.Fatal("expected transaction to be created")
+		}
+
+		_, err = pool.Exec(
+			context.Background(),
+			"UPDATE custody_transactions SET created_at = $1 WHERE id = $2",
+			transactionData.createdAt,
+			string(transactionData.id),
+		)
+		if err != nil {
+			t.Fatalf("expected no error setting transaction period, got %v", err)
+		}
+	}
+
+	periods, err := custodyRepository.ListTransactionLedgerPeriods(context.Background())
+	if err != nil {
+		t.Fatalf("expected no error listing ledger periods, got %v", err)
+	}
+
+	if len(periods) != 2 {
+		t.Fatalf("expected 2 periods, got %d", len(periods))
+	}
+
+	if periods[0].Year != 2026 || periods[0].Month != 7 || periods[0].TransactionCount != 2 {
+		t.Fatalf("expected July 2026 with 2 transactions, got %+v", periods[0])
+	}
+
+	if periods[1].Year != 2026 || periods[1].Month != 6 || periods[1].TransactionCount != 1 {
+		t.Fatalf("expected June 2026 with 1 transaction, got %+v", periods[1])
+	}
+}
+
+func TestPostgresCustodyRepositoryListTransactionSummariesFiltersByLedgerPeriod(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(t, "operator-1", "93541134780", "silva", domain.RankSergeant, domain.OperatorRoleOperator)
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	line, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid line, got %v", err)
+	}
+
+	transactions := []struct {
+		id        domain.CustodyTransactionID
+		createdAt time.Time
+	}{
+		{
+			id:        "transaction-june",
+			createdAt: time.Date(2026, time.June, 10, 9, 0, 0, 0, time.Local),
+		},
+		{
+			id:        "transaction-july",
+			createdAt: time.Date(2026, time.July, 3, 9, 0, 0, 0, time.Local),
+		},
+	}
+
+	for _, transactionData := range transactions {
+		transaction, err := domain.NewCustodyTransaction(
+			transactionData.id,
+			domain.CustodyTransactionTypeCheckout,
+			personnel.ID(),
+			operator.ID(),
+			[]domain.CustodyLine{line},
+			"",
+		)
+		if err != nil {
+			t.Fatalf("expected valid transaction, got %v", err)
+		}
+
+		created, err := custodyRepository.SaveTransaction(context.Background(), transaction)
+		if err != nil {
+			t.Fatalf("expected no error saving transaction, got %v", err)
+		}
+		if !created {
+			t.Fatal("expected transaction to be created")
+		}
+
+		_, err = pool.Exec(
+			context.Background(),
+			"UPDATE custody_transactions SET created_at = $1 WHERE id = $2",
+			transactionData.createdAt,
+			string(transactionData.id),
+		)
+		if err != nil {
+			t.Fatalf("expected no error setting transaction period, got %v", err)
+		}
+	}
+
+	summaries, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
+		Limit:       10,
+		PeriodStart: time.Date(2026, time.July, 1, 0, 0, 0, 0, time.Local),
+		PeriodEnd:   time.Date(2026, time.August, 1, 0, 0, 0, 0, time.Local),
+		HasPeriod:   true,
+	})
+	if err != nil {
+		t.Fatalf("expected no error listing summaries, got %v", err)
+	}
+
+	if len(summaries) != 1 {
+		t.Fatalf("expected 1 summary, got %d", len(summaries))
+	}
+
+	if summaries[0].ID != "transaction-july" {
+		t.Fatalf("expected July transaction, got %s", summaries[0].ID)
+	}
+
+	if summaries[0].SequenceNumber != 2 {
+		t.Fatalf("expected global sequence number 2, got %d", summaries[0].SequenceNumber)
 	}
 }
 

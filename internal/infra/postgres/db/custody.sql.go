@@ -589,6 +589,44 @@ func (q *Queries) ListCustodyHistoryByPersonnel(ctx context.Context, arg ListCus
 	return items, nil
 }
 
+const listCustodyTransactionLedgerPeriods = `-- name: ListCustodyTransactionLedgerPeriods :many
+SELECT
+    extract(year FROM created_at)::int AS year,
+    extract(month FROM created_at)::int AS month,
+    count(*)::int AS transaction_count
+FROM custody_transactions
+GROUP BY
+    extract(year FROM created_at)::int,
+    extract(month FROM created_at)::int
+ORDER BY year DESC, month DESC
+`
+
+type ListCustodyTransactionLedgerPeriodsRow struct {
+	Year             int32 `json:"year"`
+	Month            int32 `json:"month"`
+	TransactionCount int32 `json:"transaction_count"`
+}
+
+func (q *Queries) ListCustodyTransactionLedgerPeriods(ctx context.Context) ([]ListCustodyTransactionLedgerPeriodsRow, error) {
+	rows, err := q.db.Query(ctx, listCustodyTransactionLedgerPeriods)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCustodyTransactionLedgerPeriodsRow{}
+	for rows.Next() {
+		var i ListCustodyTransactionLedgerPeriodsRow
+		if err := rows.Scan(&i.Year, &i.Month, &i.TransactionCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listCustodyTransactionSummaries = `-- name: ListCustodyTransactionSummaries :many
 WITH correction_counts AS (
     SELECT
@@ -670,35 +708,42 @@ filtered_transactions AS (
     JOIN operators o
         ON o.id = et.operator_id
     WHERE (
-        $1::text = 'all'
-        OR et.transaction_type = $1::text
+        NOT $1::bool
+        OR (
+            et.created_at >= $2::timestamptz
+            AND et.created_at < $3::timestamptz
+        )
     )
     AND (
-        $2::text = 'all'
+        $4::text = 'all'
+        OR et.transaction_type = $4::text
+    )
+    AND (
+        $5::text = 'all'
         OR (
-            $2::text = 'edited'
+            $5::text = 'edited'
             AND et.edit_count > 0
         )
         OR (
-            $2::text = 'unedited'
+            $5::text = 'unedited'
             AND et.edit_count = 0
         )
     )
     AND (
-        $3::text = ''
-        OR et.id ILIKE $3::text ESCAPE '\'
-        OR ep.full_name ILIKE $3::text ESCAPE '\'
-        OR ep.alias ILIKE $3::text ESCAPE '\'
-        OR ep.registration_id ILIKE $3::text ESCAPE '\'
-        OR op.full_name ILIKE $3::text ESCAPE '\'
-        OR op.alias ILIKE $3::text ESCAPE '\'
-        OR op.registration_id ILIKE $3::text ESCAPE '\'
-        OR o.alias ILIKE $3::text ESCAPE '\'
+        $6::text = ''
+        OR et.id ILIKE $6::text ESCAPE '\'
+        OR ep.full_name ILIKE $6::text ESCAPE '\'
+        OR ep.alias ILIKE $6::text ESCAPE '\'
+        OR ep.registration_id ILIKE $6::text ESCAPE '\'
+        OR op.full_name ILIKE $6::text ESCAPE '\'
+        OR op.alias ILIKE $6::text ESCAPE '\'
+        OR op.registration_id ILIKE $6::text ESCAPE '\'
+        OR o.alias ILIKE $6::text ESCAPE '\'
         OR EXISTS (
             SELECT 1
             FROM effective_lines el
             WHERE el.transaction_id = et.id
-              AND el.asset_name ILIKE $3::text ESCAPE '\'
+              AND el.asset_name ILIKE $6::text ESCAPE '\'
         )
     )
 ),
@@ -706,7 +751,7 @@ selected_transactions AS (
     SELECT id, sequence_number, transaction_type, original_personnel_id, effective_personnel_id, operator_id, created_at, latest_correction_id, edit_count
     FROM filtered_transactions
     ORDER BY created_at DESC, id DESC
-    LIMIT $4
+    LIMIT $7
 )
 SELECT
     st.id,
@@ -750,10 +795,13 @@ ORDER BY st.created_at DESC, st.id DESC, el.asset_name ASC, el.line_order ASC
 `
 
 type ListCustodyTransactionSummariesParams struct {
-	TransactionTypeFilter string `json:"transaction_type_filter"`
-	EditStatusFilter      string `json:"edit_status_filter"`
-	SearchPattern         string `json:"search_pattern"`
-	LimitCount            int32  `json:"limit_count"`
+	HasPeriod             bool               `json:"has_period"`
+	PeriodStart           pgtype.Timestamptz `json:"period_start"`
+	PeriodEnd             pgtype.Timestamptz `json:"period_end"`
+	TransactionTypeFilter string             `json:"transaction_type_filter"`
+	EditStatusFilter      string             `json:"edit_status_filter"`
+	SearchPattern         string             `json:"search_pattern"`
+	LimitCount            int32              `json:"limit_count"`
 }
 
 type ListCustodyTransactionSummariesRow struct {
@@ -787,6 +835,9 @@ type ListCustodyTransactionSummariesRow struct {
 
 func (q *Queries) ListCustodyTransactionSummaries(ctx context.Context, arg ListCustodyTransactionSummariesParams) ([]ListCustodyTransactionSummariesRow, error) {
 	rows, err := q.db.Query(ctx, listCustodyTransactionSummaries,
+		arg.HasPeriod,
+		arg.PeriodStart,
+		arg.PeriodEnd,
 		arg.TransactionTypeFilter,
 		arg.EditStatusFilter,
 		arg.SearchPattern,

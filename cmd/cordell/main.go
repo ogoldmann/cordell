@@ -179,6 +179,9 @@ func main() {
 			personnelRepository,
 			custodyRepository,
 		),
+		ListCustodyTransactionLedgerPeriods: app.NewListCustodyTransactionLedgerPeriodsService(
+			custodyRepository,
+		),
 		ListCustodyTransactionSummaries: app.NewListCustodyTransactionSummariesService(
 			custodyRepository,
 		),

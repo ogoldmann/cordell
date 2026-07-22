@@ -1233,6 +1233,25 @@ The original transaction remains preserved in the receipt edit history.
 
 Ledger items link to the immutable custody receipt.
 
+## Custody Ledger Period Navigation
+
+The custody transaction ledger supports period-based navigation.
+
+Transactions are grouped by the year and month of the original custody transaction date.
+
+The ledger defaults to the most recent month that contains transactions.
+
+Ledger period navigation can be combined with:
+
+- search query
+- transaction type filter
+- edit status filter
+- limit
+
+The ledger remains newest-first within the selected period.
+
+The transaction sequence number remains global and is not reset by month.
+
 ## Custody Ledger Line Items and Timeline
 
 The custody transaction ledger shows effective transaction line items.
