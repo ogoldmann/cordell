@@ -1248,6 +1248,32 @@ The ledger defaults to the most recent month that contains transactions.
 
 Selecting All periods allows search and filters to run across the full ledger.
 
+## Ledger Split Period Selector
+
+The custody ledger period selector is split into year and month fields.
+
+The year field includes:
+
+- All periods
+- years that contain custody transactions
+
+The month field includes months that contain custody transactions for the selected year.
+
+Future months do not appear until they contain at least one custody transaction.
+
+The selected period remains the scope for ledger search and filters.
+
+## Ledger Filter Layout
+
+- [ ] Ledger period selector is split into year and month.
+- [ ] Ledger period card uses horizontal layout.
+- [ ] Ledger filter card uses horizontal layout.
+- [ ] Ledger period card and filter card have matching width and visual treatment.
+- [ ] All periods remains available.
+- [ ] Future empty months are not shown as normal options.
+- [ ] Search/filter card preserves selected period.
+- [ ] Period card preserves search/filter context.
+
 ## Custody Ledger Pagination
 
 The custody transaction ledger uses common page-based navigation.

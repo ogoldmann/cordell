@@ -3,6 +3,7 @@ package web
 import (
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -21,6 +22,10 @@ type custodyTransactionLedgerPageData struct {
 	SelectedYear        int
 	SelectedMonth       int
 	SelectedPeriodLabel string
+	SelectedYearValue   string
+	SelectedMonthValue  string
+	YearOptions         []custodyLedgerYearOptionView
+	MonthOptions        []custodyLedgerMonthOptionView
 	PeriodValue         string
 	Periods             []custodyLedgerPeriodView
 	Page                int
@@ -39,6 +44,19 @@ type custodyLedgerPeriodView struct {
 	URL              string
 	Selected         bool
 	TransactionCount int
+}
+
+type custodyLedgerYearOptionView struct {
+	Value    string
+	Label    string
+	Selected bool
+}
+
+type custodyLedgerMonthOptionView struct {
+	Value    string
+	Label    string
+	Year     int
+	Selected bool
 }
 
 type custodyTransactionSummaryView struct {
@@ -91,7 +109,7 @@ func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.R
 		pageNumber = 1
 	}
 
-	selectedYear, selectedMonth, periodValue := parseLedgerPeriodValue(r.URL.Query().Get("period"), periods)
+	selectedYear, selectedMonth, periodValue := parseLedgerScopeFromRequest(r, periods)
 
 	transactionPage, err := s.services.ListCustodyTransactionSummaries.Execute(r.Context(), app.ListCustodyTransactionSummariesCommand{
 		Page:                  pageNumber,
@@ -117,21 +135,35 @@ func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.R
 		nextPageURL = custodyLedgerURL(query, typeFilter, editStatusFilter, periodValue, transactionPage.Page+1)
 	}
 
+	hasFilters := query != "" ||
+		typeFilter != "all" ||
+		editStatusFilter != "all" ||
+		periodValue == "all" ||
+		transactionPage.Page > 1
+
 	data := custodyTransactionLedgerPageData{
-		privateLayoutData: newPrivateLayoutData(r),
-		Title:             "Custody transactions",
-		Query:             query,
-		TypeFilter:        typeFilter,
-		EditStatusFilter:  editStatusFilter,
-		HasFilters: query != "" ||
-			typeFilter != "all" ||
-			editStatusFilter != "all" ||
-			periodValue == "all" ||
-			transactionPage.Page > 1,
+		privateLayoutData:   newPrivateLayoutData(r),
+		Title:               "Custody transactions",
+		Query:               query,
+		TypeFilter:          typeFilter,
+		EditStatusFilter:    editStatusFilter,
+		HasFilters:          hasFilters,
 		SelectedYear:        selectedYear,
 		SelectedMonth:       selectedMonth,
 		SelectedPeriodLabel: ledgerPeriodLabel(selectedYear, selectedMonth),
-		PeriodValue:         periodValue,
+		SelectedYearValue:   selectedLedgerYearValue(selectedYear, periodValue),
+		SelectedMonthValue:  selectedLedgerMonthValue(selectedMonth, periodValue),
+		YearOptions: newCustodyLedgerYearOptions(
+			periods,
+			selectedYear,
+			periodValue,
+		),
+		MonthOptions: newCustodyLedgerMonthOptions(
+			periods,
+			selectedYear,
+			selectedMonth,
+		),
+		PeriodValue: periodValue,
 		Periods: newCustodyLedgerPeriodViews(
 			periods,
 			periodValue,
@@ -160,6 +192,41 @@ func parsePositiveLedgerInt(value string) int {
 	}
 
 	return parsed
+}
+
+func parseLedgerScopeFromRequest(
+	r *http.Request,
+	periods []app.CustodyTransactionLedgerPeriod,
+) (int, int, string) {
+	yearValue := strings.TrimSpace(r.URL.Query().Get("year"))
+	monthValue := strings.TrimSpace(r.URL.Query().Get("month"))
+
+	if yearValue == "all" {
+		return 0, 0, "all"
+	}
+
+	if yearValue != "" && monthValue != "" {
+		year, yearErr := strconv.Atoi(yearValue)
+		month, monthErr := strconv.Atoi(monthValue)
+
+		if yearErr == nil && monthErr == nil && month >= 1 && month <= 12 {
+			return year, month, ledgerPeriodValue(year, month)
+		}
+	}
+
+	legacyPeriodValue := strings.TrimSpace(r.URL.Query().Get("period"))
+	if legacyPeriodValue != "" {
+		return parseLedgerPeriodValue(legacyPeriodValue, periods)
+	}
+
+	if len(periods) == 0 {
+		return 0, 0, "all"
+	}
+
+	year := periods[0].Year
+	month := periods[0].Month
+
+	return year, month, ledgerPeriodValue(year, month)
 }
 
 func parseLedgerPeriodValue(value string, periods []app.CustodyTransactionLedgerPeriod) (int, int, string) {
@@ -256,12 +323,12 @@ func custodyLedgerURL(
 		values.Set("edited", editStatusFilter)
 	}
 
-	if periodValue != "" && periodValue != "all" {
-		values.Set("period", periodValue)
-	}
-
+	year, month, ok := splitLedgerPeriodValue(periodValue)
 	if periodValue == "all" {
-		values.Set("period", "all")
+		values.Set("year", "all")
+	} else if ok {
+		values.Set("year", strconv.Itoa(year))
+		values.Set("month", strconv.Itoa(month))
 	}
 
 	if page > 1 {
@@ -274,6 +341,126 @@ func custodyLedgerURL(
 	}
 
 	return "/custody/transactions?" + encoded
+}
+
+func splitLedgerPeriodValue(value string) (int, int, bool) {
+	parts := strings.Split(strings.TrimSpace(value), "-")
+	if len(parts) != 2 {
+		return 0, 0, false
+	}
+
+	year, yearErr := strconv.Atoi(parts[0])
+	month, monthErr := strconv.Atoi(parts[1])
+
+	if yearErr != nil || monthErr != nil || year <= 0 || month < 1 || month > 12 {
+		return 0, 0, false
+	}
+
+	return year, month, true
+}
+
+func newCustodyLedgerYearOptions(
+	periods []app.CustodyTransactionLedgerPeriod,
+	selectedYear int,
+	selectedPeriodValue string,
+) []custodyLedgerYearOptionView {
+	yearsSeen := make(map[int]struct{})
+	years := make([]int, 0)
+
+	for _, period := range periods {
+		if _, ok := yearsSeen[period.Year]; ok {
+			continue
+		}
+
+		yearsSeen[period.Year] = struct{}{}
+		years = append(years, period.Year)
+	}
+
+	sort.Sort(sort.Reverse(sort.IntSlice(years)))
+
+	options := make([]custodyLedgerYearOptionView, 0, len(years)+1)
+
+	options = append(options, custodyLedgerYearOptionView{
+		Value:    "all",
+		Label:    "All periods",
+		Selected: selectedPeriodValue == "all",
+	})
+
+	for _, year := range years {
+		options = append(options, custodyLedgerYearOptionView{
+			Value:    strconv.Itoa(year),
+			Label:    strconv.Itoa(year),
+			Selected: selectedYear == year && selectedPeriodValue != "all",
+		})
+	}
+
+	return options
+}
+
+func newCustodyLedgerMonthOptions(
+	periods []app.CustodyTransactionLedgerPeriod,
+	selectedYear int,
+	selectedMonth int,
+) []custodyLedgerMonthOptionView {
+	options := make([]custodyLedgerMonthOptionView, 0, len(periods))
+
+	for _, period := range periods {
+		options = append(options, custodyLedgerMonthOptionView{
+			Value:    strconv.Itoa(period.Month),
+			Label:    ledgerMonthLabel(period.Month),
+			Year:     period.Year,
+			Selected: period.Year == selectedYear && period.Month == selectedMonth,
+		})
+	}
+
+	sort.Slice(options, func(i, j int) bool {
+		if options[i].Year != options[j].Year {
+			return options[i].Year > options[j].Year
+		}
+
+		return monthValue(options[i].Value) > monthValue(options[j].Value)
+	})
+
+	return options
+}
+
+func ledgerMonthLabel(month int) string {
+	if month < 1 || month > 12 {
+		return "Unknown"
+	}
+
+	t := time.Date(2000, time.Month(month), 1, 0, 0, 0, 0, time.Local)
+
+	return t.Format("January")
+}
+
+func monthValue(value string) int {
+	month, err := strconv.Atoi(value)
+	if err != nil {
+		return 0
+	}
+
+	return month
+}
+
+func selectedLedgerYearValue(selectedYear int, periodValue string) string {
+	if periodValue == "all" {
+		return "all"
+	}
+
+	if selectedYear <= 0 {
+		return ""
+	}
+
+	return strconv.Itoa(selectedYear)
+}
+
+func selectedLedgerMonthValue(selectedMonth int, periodValue string) string {
+	if periodValue == "all" || selectedMonth <= 0 {
+		return ""
+	}
+
+	return strconv.Itoa(selectedMonth)
 }
 
 func newCustodyLedgerPeriodViews(

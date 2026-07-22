@@ -35,70 +35,99 @@
   </div>
 </section>
 
-{{if .Periods}}
-  <section class="mb-6 rounded-3xl border border-cordell-border bg-cordell-surface p-5 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
-    <div class="grid gap-4 lg:grid-cols-[1fr_18rem_auto] lg:items-end">
-      <div>
-        <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-          Ledger period
-        </p>
+<section class="mb-6 rounded-3xl border border-cordell-border bg-cordell-surface p-5 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+  <form
+    class="grid gap-4 lg:grid-cols-[1fr_12rem_12rem_auto] lg:items-end"
+    method="get"
+    action="/custody/transactions"
+    data-ledger-period-scope
+  >
+    {{if .Query}}
+      <input type="hidden" name="q" value="{{.Query}}">
+    {{end}}
 
-        <h2 class="m-0 text-2xl font-extrabold">
-          {{.SelectedPeriodLabel}}
-        </h2>
+    {{if ne .TypeFilter "all"}}
+      <input type="hidden" name="type" value="{{.TypeFilter}}">
+    {{end}}
 
-        <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
-          Period defines the ledger scope. Search and filters below run inside the selected period.
-        </p>
-      </div>
+    {{if ne .EditStatusFilter "all"}}
+      <input type="hidden" name="edited" value="{{.EditStatusFilter}}">
+    {{end}}
 
-      <form method="get" action="/custody/transactions">
-        {{if .Query}}
-          <input type="hidden" name="q" value="{{.Query}}">
-        {{end}}
+    <div>
+      <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+        Ledger period
+      </p>
 
-        {{if ne .TypeFilter "all"}}
-          <input type="hidden" name="type" value="{{.TypeFilter}}">
-        {{end}}
+      <h2 class="m-0 text-2xl font-extrabold">
+        {{.SelectedPeriodLabel}}
+      </h2>
 
-        {{if ne .EditStatusFilter "all"}}
-          <input type="hidden" name="edited" value="{{.EditStatusFilter}}">
-        {{end}}
-
-        <label>
-          <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">
-            Period
-          </span>
-
-          <select
-            class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-            name="period"
-          >
-            {{range .Periods}}
-              <option value="{{if and (eq .Year 0) (eq .Month 0)}}all{{else}}{{printf "%04d-%02d" .Year .Month}}{{end}}" {{if .Selected}}selected{{end}}>
-                {{.Label}}{{if .TransactionCount}} · {{.TransactionCount}}{{end}}
-              </option>
-            {{end}}
-          </select>
-        </label>
-
-        <button
-          class="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
-          type="submit"
-        >
-          Change period
-        </button>
-      </form>
+      <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+        Period defines the scope. Search and filters below run inside this selected scope.
+      </p>
     </div>
-  </section>
-{{end}}
+
+    <label>
+      <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">
+        Year
+      </span>
+
+      <select
+        class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+        name="year"
+        data-ledger-year-select
+      >
+        {{range .YearOptions}}
+          <option value="{{.Value}}" {{if .Selected}}selected{{end}}>
+            {{.Label}}
+          </option>
+        {{end}}
+      </select>
+    </label>
+
+    <label>
+      <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">
+        Month
+      </span>
+
+      <select
+        class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 disabled:cursor-not-allowed disabled:opacity-60 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+        name="month"
+        data-ledger-month-select
+      >
+        <option value="">All months</option>
+        {{range .MonthOptions}}
+          <option
+            value="{{.Value}}"
+            data-year="{{.Year}}"
+            {{if .Selected}}selected{{end}}
+          >
+            {{.Label}}
+          </option>
+        {{end}}
+      </select>
+    </label>
+
+    <button
+      class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+      type="submit"
+    >
+      Apply period
+    </button>
+  </form>
+</section>
 
 <form
   class="mb-6 rounded-3xl border border-cordell-border bg-cordell-surface p-5 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface"
   method="get"
   action="/custody/transactions"
 >
-  <input type="hidden" name="period" value="{{.PeriodValue}}">
+  <input type="hidden" name="year" value="{{.SelectedYearValue}}">
+
+  {{if .SelectedMonthValue}}
+    <input type="hidden" name="month" value="{{.SelectedMonthValue}}">
+  {{end}}
 
   <div class="grid gap-4 lg:grid-cols-[1fr_12rem_12rem_auto] lg:items-end">
     <label>
@@ -150,7 +179,7 @@
         class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
         type="submit"
       >
-        Apply
+        Apply filters
       </button>
 
       {{if .HasFilters}}
