@@ -82,6 +82,65 @@ func TestRegisterCheckoutServiceExecute(t *testing.T) {
 	}
 }
 
+func TestRegisterCheckoutServiceRegistersMultipleLines(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+	radio := mustBuildAsset(t, "asset-1")
+	helmet := mustBuildAsset(t, "asset-2")
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleOperator)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			radio.ID():  radio,
+			helmet.ID(): helmet,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
+	custodyRepository := &fakeCustodyRepository{}
+	idGenerator := fixedIDGenerator{id: "transaction-1"}
+
+	service := NewRegisterCheckoutService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+		idGenerator,
+	)
+
+	result, err := service.Execute(context.Background(), RegisterCheckoutCommand{
+		PersonnelID: personnel.ID(),
+		OperatorID:  operator.ID(),
+		Lines: []CustodyLineCommand{
+			{AssetID: radio.ID(), Quantity: 1},
+			{AssetID: helmet.ID(), Quantity: 2},
+		},
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	lines := result.Transaction.Lines()
+	if len(lines) != 2 {
+		t.Fatalf("expected 2 transaction lines, got %d", len(lines))
+	}
+
+	if lines[0].AssetID() != radio.ID() {
+		t.Fatalf("expected first line asset %s, got %s", radio.ID(), lines[0].AssetID())
+	}
+
+	if lines[1].AssetID() != helmet.ID() {
+		t.Fatalf("expected second line asset %s, got %s", helmet.ID(), lines[1].AssetID())
+	}
+
+	if lines[1].Quantity().Int() != 2 {
+		t.Fatalf("expected second line quantity 2, got %d", lines[1].Quantity().Int())
+	}
+}
+
 func TestListCustodyTransactionSummariesService(t *testing.T) {
 	custodyRepository := &fakeCustodyRepository{
 		transactionSummaries: []ports.CustodyTransactionSummary{

@@ -86,7 +86,9 @@ An immutable business event representing either a checkout, a return, or a futur
 
 ## Custody Line
 
-A line inside a custody transaction representing an asset and a quantity.
+A custody line is one asset and quantity pair inside a custody transaction.
+
+A checkout or return transaction may contain one or more custody lines.
 
 ## Custody Balance
 

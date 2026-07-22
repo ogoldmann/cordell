@@ -1,0 +1,103 @@
+{{define "custody_line_items"}}
+<div data-custody-line-items>
+  <div class="grid gap-4" data-custody-line-container>
+    {{range .LineRows}}
+      <div
+        class="grid gap-3 rounded-2xl border border-cordell-border bg-cordell-background p-4 dark:border-cordell-dark-border dark:bg-cordell-dark-background md:grid-cols-[1fr_10rem_auto]"
+        data-custody-line-row
+      >
+        <label>
+          <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Asset</span>
+
+          <select
+            class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+            name="asset_id"
+            required
+          >
+            <option value="">Select asset</option>
+            {{$selectedAssetID := .AssetID}}
+            {{range $.AssetOptions}}
+              <option value="{{.ID}}" {{if eq .ID $selectedAssetID}}selected{{end}}>{{.Label}}</option>
+            {{end}}
+          </select>
+        </label>
+
+        <label>
+          <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Quantity</span>
+
+          <input
+            class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+            type="number"
+            name="quantity"
+            min="1"
+            step="1"
+            value="{{.Quantity}}"
+            required
+          >
+        </label>
+
+        <button
+          class="mt-7 inline-flex h-12 w-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 font-bold text-red-700 transition hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200"
+          type="button"
+          data-remove-custody-line
+          aria-label="Remove line"
+        >
+          <span aria-hidden="true">🗑</span>
+        </button>
+      </div>
+    {{end}}
+  </div>
+
+  <button
+    class="mt-4 inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-3 font-bold text-cordell-text transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+    type="button"
+    data-add-custody-line
+  >
+    + Add line
+  </button>
+
+  <template data-custody-line-template>
+    <div
+      class="grid gap-3 rounded-2xl border border-cordell-border bg-cordell-background p-4 dark:border-cordell-dark-border dark:bg-cordell-dark-background md:grid-cols-[1fr_10rem_auto]"
+      data-custody-line-row
+    >
+      <label>
+        <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Asset</span>
+
+        <select
+          class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+          name="asset_id"
+          required
+        >
+          <option value="">Select asset</option>
+          {{range .AssetOptions}}
+            <option value="{{.ID}}">{{.Label}}</option>
+          {{end}}
+        </select>
+      </label>
+
+      <label>
+        <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Quantity</span>
+
+        <input
+          class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+          type="number"
+          name="quantity"
+          min="1"
+          step="1"
+          required
+        >
+      </label>
+
+      <button
+        class="mt-7 inline-flex h-12 w-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 font-bold text-red-700 transition hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200"
+        type="button"
+        data-remove-custody-line
+        aria-label="Remove line"
+      >
+        <span aria-hidden="true">🗑</span>
+      </button>
+    </div>
+  </template>
+</div>
+{{end}}

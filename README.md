@@ -208,7 +208,26 @@ Register checkout:
 http://localhost:8080/custody/checkouts/new
 ```
 
-The checkout flow assigns an asset quantity to personnel and redirects to the personnel detail page, where current custody balances are displayed.
+The checkout flow assigns one or more asset quantities to personnel and redirects to the custody receipt page.
+
+## Multiple-Line Checkout
+
+Checkout transactions can contain multiple asset lines.
+
+Each checkout line contains:
+
+- asset
+- quantity
+
+The checkout form supports adding and removing lines dynamically.
+
+At least one line is required.
+
+Only active assets are selectable in checkout forms.
+
+The backend validates all submitted lines and consolidates duplicate assets according to application rules.
+
+Receipts and the custody ledger display all effective checkout lines.
 
 ## Return Flow
 
@@ -252,6 +271,20 @@ This prevents inactive assets or inactive personnel from becoming impossible to 
 - [ ] Return asset selector/list uses current custody items.
 - [ ] Return asset selector/list includes inactive assets under current custody.
 - [ ] Return service continues to allow safe custody-clearing returns for inactive records.
+
+## Multiple-Line Checkout Checklist
+
+- [ ] Checkout form starts with one asset line.
+- [ ] Checkout form can add asset lines.
+- [ ] Checkout form can remove asset lines.
+- [ ] Checkout form keeps at least one line.
+- [ ] Each checkout line requires asset and quantity.
+- [ ] Checkout asset selector lists active assets only.
+- [ ] Checkout POST parses repeated asset_id and quantity fields.
+- [ ] Checkout service receives multiple line commands.
+- [ ] Checkout receipt shows multiple lines.
+- [ ] Custody ledger shows multiple effective lines.
+- [ ] Duplicate asset lines are handled by backend rules.
 
 ## Effective Custody Read Models
 

@@ -3,7 +3,6 @@ package web
 import (
 	"errors"
 	"net/http"
-	"strconv"
 
 	"cordell/internal/app"
 	"cordell/internal/domain"
@@ -15,20 +14,28 @@ type checkoutNewPageData struct {
 	Title               string
 	Error               string
 	Personnel           []personnelView
-	Assets              []assetView
 	SelectedPersonnelID string
-	SelectedAssetID     string
-	Quantity            string
+	AssetOptions        []custodyAssetOptionView
+	LineRows            []custodyLineFormRowView
 	Notes               string
 	TransactionID       string
 }
 
 func (s *Server) handleNewCheckoutForm(w http.ResponseWriter, r *http.Request) {
+	lineRows := defaultCustodyLineFormRows()
+	if assetID := r.URL.Query().Get("asset_id"); assetID != "" {
+		lineRows = []custodyLineFormRowView{
+			{
+				AssetID:  assetID,
+				Quantity: "1",
+			},
+		}
+	}
+
 	data, err := s.buildCheckoutNewPageData(r, checkoutNewPageData{
 		Title:               "Register checkout",
 		SelectedPersonnelID: r.URL.Query().Get("personnel_id"),
-		SelectedAssetID:     r.URL.Query().Get("asset_id"),
-		Quantity:            "1",
+		LineRows:            lineRows,
 	})
 	if err != nil {
 		s.logger.Error("failed to build checkout form data", "error", err)
@@ -53,8 +60,6 @@ func (s *Server) handleCreateCheckout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	personnelID := r.FormValue("personnel_id")
-	assetID := r.FormValue("asset_id")
-	quantityText := r.FormValue("quantity")
 	notes := r.FormValue("notes")
 	transactionID := domain.CustodyTransactionID(r.FormValue("transaction_id"))
 	if transactionID == "" {
@@ -67,13 +72,13 @@ func (s *Server) handleCreateCheckout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	quantity, err := strconv.Atoi(quantityText)
+	lines, err := parseCustodyLineCommandsFromRequest(r)
 	if err != nil {
 		s.renderCheckoutFormWithError(
 			w,
 			r,
 			http.StatusBadRequest,
-			"Quantity must be a valid number.",
+			humanizeCustodyLineFormError(err),
 		)
 		return
 	}
@@ -88,13 +93,8 @@ func (s *Server) handleCreateCheckout(w http.ResponseWriter, r *http.Request) {
 		TransactionID: transactionID,
 		PersonnelID:   domain.PersonnelID(personnelID),
 		OperatorID:    currentOperator.ID(),
-		Lines: []app.CustodyLineCommand{
-			{
-				AssetID:  domain.AssetID(assetID),
-				Quantity: quantity,
-			},
-		},
-		Notes: notes,
+		Lines:         lines,
+		Notes:         notes,
 	})
 	if err != nil {
 		s.renderCheckoutFormWithError(
@@ -136,8 +136,7 @@ func (s *Server) renderCheckoutFormWithError(
 		Title:               "Register checkout",
 		Error:               message,
 		SelectedPersonnelID: r.FormValue("personnel_id"),
-		SelectedAssetID:     r.FormValue("asset_id"),
-		Quantity:            r.FormValue("quantity"),
+		LineRows:            custodyLineFormRowsFromRequest(r),
 		Notes:               r.FormValue("notes"),
 		TransactionID:       r.FormValue("transaction_id"),
 	})
@@ -191,16 +190,9 @@ func (s *Server) buildCheckoutNewPageData(
 		data.Personnel = append(data.Personnel, newPersonnelView(item))
 	}
 
-	data.Assets = make([]assetView, 0, len(assets))
-	for _, item := range assets {
-		if !item.Active() {
-			continue
-		}
-
-		data.Assets = append(data.Assets, newAssetView(item))
-	}
-	if data.Quantity == "" {
-		data.Quantity = "1"
+	data.AssetOptions = newCustodyAssetOptions(assets)
+	if len(data.LineRows) == 0 {
+		data.LineRows = defaultCustodyLineFormRows()
 	}
 
 	return data, nil
