@@ -472,10 +472,19 @@ func (r *CustodyRepository) ListTransactionLedgerPeriods(
 func (r *CustodyRepository) ListTransactionSummaries(
 	ctx context.Context,
 	filters ports.CustodyTransactionSummaryFilters,
-) ([]ports.CustodyTransactionSummary, error) {
-	limit := filters.Limit
-	if limit <= 0 {
-		limit = 100
+) (ports.CustodyTransactionSummaryPage, error) {
+	pageSize := filters.PageSize
+	if pageSize <= 0 {
+		pageSize = 50
+	}
+
+	if pageSize > 100 {
+		pageSize = 100
+	}
+
+	offset := filters.Offset
+	if offset < 0 {
+		offset = 0
 	}
 
 	transactionTypeFilter := filters.TransactionTypeFilter
@@ -495,7 +504,8 @@ func (r *CustodyRepository) ListTransactionSummaries(
 	}
 
 	rows, err := r.queries.ListCustodyTransactionSummaries(ctx, db.ListCustodyTransactionSummariesParams{
-		LimitCount:            int32(limit),
+		PageSizePlusOne:       int32(pageSize + 1),
+		OffsetCount:           int32(offset),
 		SearchPattern:         searchPattern,
 		TransactionTypeFilter: string(transactionTypeFilter),
 		EditStatusFilter:      string(editStatusFilter),
@@ -510,7 +520,7 @@ func (r *CustodyRepository) ListTransactionSummaries(
 		},
 	})
 	if err != nil {
-		return nil, err
+		return ports.CustodyTransactionSummaryPage{}, err
 	}
 
 	summariesByID := make(map[domain.CustodyTransactionID]*ports.CustodyTransactionSummary)
@@ -523,7 +533,7 @@ func (r *CustodyRepository) ListTransactionSummaries(
 		if !ok {
 			createdAt, err := timestamptzToTime(row.CreatedAt)
 			if err != nil {
-				return nil, err
+				return ports.CustodyTransactionSummaryPage{}, err
 			}
 
 			summary = &ports.CustodyTransactionSummary{
@@ -572,7 +582,15 @@ func (r *CustodyRepository) ListTransactionSummaries(
 		summaries = append(summaries, *summariesByID[id])
 	}
 
-	return summaries, nil
+	hasNextPage := len(summaries) > pageSize
+	if hasNextPage {
+		summaries = summaries[:pageSize]
+	}
+
+	return ports.CustodyTransactionSummaryPage{
+		Items:       summaries,
+		HasNextPage: hasNextPage,
+	}, nil
 }
 
 // FindReceiptByID retrieves a complete custody transaction receipt.

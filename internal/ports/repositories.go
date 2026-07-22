@@ -122,13 +122,20 @@ const (
 
 // CustodyTransactionSummaryFilters contains filters for custody transaction ledger summaries.
 type CustodyTransactionSummaryFilters struct {
-	Limit                 int
+	PageSize              int
+	Offset                int
 	SearchQuery           string
 	TransactionTypeFilter CustodyTransactionTypeFilter
 	EditStatusFilter      CustodyEditStatusFilter
 	PeriodStart           time.Time
 	PeriodEnd             time.Time
 	HasPeriod             bool
+}
+
+// CustodyTransactionSummaryPage represents a paginated custody transaction ledger page.
+type CustodyTransactionSummaryPage struct {
+	Items       []CustodyTransactionSummary
+	HasNextPage bool
 }
 
 // CustodyReceiptLine represents one asset line in a custody transaction receipt.
@@ -244,7 +251,7 @@ type CustodyRepository interface {
 	ListCurrentByAsset(ctx context.Context, assetID domain.AssetID) ([]CurrentAssetHolder, error)
 	ListHistoryByPersonnel(ctx context.Context, personnelID domain.PersonnelID, limit int) ([]CustodyHistoryEntry, error)
 	ListTransactionLedgerPeriods(ctx context.Context) ([]CustodyTransactionLedgerPeriod, error)
-	ListTransactionSummaries(ctx context.Context, filters CustodyTransactionSummaryFilters) ([]CustodyTransactionSummary, error)
+	ListTransactionSummaries(ctx context.Context, filters CustodyTransactionSummaryFilters) (CustodyTransactionSummaryPage, error)
 	FindReceiptByID(ctx context.Context, id domain.CustodyTransactionID) (CustodyReceipt, error)
 	ListCorrectionContextsByTransactionID(ctx context.Context, id domain.CustodyTransactionID) ([]CustodyCorrectionContext, error)
 }

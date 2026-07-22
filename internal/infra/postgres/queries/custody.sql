@@ -308,7 +308,8 @@ selected_transactions AS (
     SELECT *
     FROM filtered_transactions
     ORDER BY created_at DESC, id DESC
-    LIMIT @limit_count
+    LIMIT @page_size_plus_one
+    OFFSET @offset_count
 )
 SELECT
     st.id,

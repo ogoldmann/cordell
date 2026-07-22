@@ -1233,22 +1233,41 @@ The original transaction remains preserved in the receipt edit history.
 
 Ledger items link to the immutable custody receipt.
 
-## Custody Ledger Period Navigation
+## Custody Ledger Period Scope
 
-The custody transaction ledger supports period-based navigation.
+Ledger period defines the scope for ledger search and filters.
 
-Transactions are grouped by the year and month of the original custody transaction date.
+Available period options include:
+
+- All periods
+- each year/month that contains custody transactions
+
+Future months do not appear until they contain transactions.
 
 The ledger defaults to the most recent month that contains transactions.
 
-Ledger period navigation can be combined with:
+Selecting All periods allows search and filters to run across the full ledger.
 
+## Custody Ledger Pagination
+
+The custody transaction ledger uses common page-based navigation.
+
+Pagination is not exposed as a filter field.
+
+The page size is controlled by the application and defaults to 50 transactions per page.
+
+Ledger pagination preserves:
+
+- selected period
 - search query
 - transaction type filter
 - edit status filter
-- limit
 
-The ledger remains newest-first within the selected period.
+The repository applies pagination in SQL using a bounded page size and offset.
+
+The UI does not load all filtered results before paginating.
+
+The ledger remains newest-first within the selected scope.
 
 The transaction sequence number remains global and is not reset by month.
 

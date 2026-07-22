@@ -422,6 +422,9 @@ const (
 	maxCustodyHistoryLimit     = 100
 )
 
+// DefaultCustodyLedgerPageSize is the application-controlled ledger page size.
+const DefaultCustodyLedgerPageSize = 50
+
 // CustodyHistoryLine contains display-ready asset data inside a custody history entry.
 type CustodyHistoryLine struct {
 	AssetID   domain.AssetID
@@ -479,6 +482,14 @@ type CustodyTransactionSummary struct {
 	EditCount                  int
 }
 
+// CustodyTransactionSummaryPage represents a paginated custody ledger page.
+type CustodyTransactionSummaryPage struct {
+	Items       []CustodyTransactionSummary
+	HasNextPage bool
+	Page        int
+	PageSize    int
+}
+
 // CustodyTransactionLedgerPeriod represents a year/month period available in the custody ledger.
 type CustodyTransactionLedgerPeriod struct {
 	Year             int
@@ -488,7 +499,7 @@ type CustodyTransactionLedgerPeriod struct {
 
 // ListCustodyTransactionSummariesCommand contains ledger list parameters.
 type ListCustodyTransactionSummariesCommand struct {
-	Limit                 int
+	Page                  int
 	SearchQuery           string
 	TransactionTypeFilter string
 	EditStatusFilter      string
@@ -525,11 +536,20 @@ func NewListCustodyTransactionSummariesService(
 func (s *ListCustodyTransactionSummariesService) Execute(
 	ctx context.Context,
 	cmd ListCustodyTransactionSummariesCommand,
-) ([]CustodyTransactionSummary, error) {
+) (CustodyTransactionSummaryPage, error) {
 	periodStart, periodEnd, hasPeriod := custodyLedgerPeriodRange(cmd.Year, cmd.Month)
 
-	items, err := s.custodyRepository.ListTransactionSummaries(ctx, ports.CustodyTransactionSummaryFilters{
-		Limit:                 cmd.Limit,
+	page := cmd.Page
+	if page <= 0 {
+		page = 1
+	}
+
+	pageSize := DefaultCustodyLedgerPageSize
+	offset := (page - 1) * pageSize
+
+	result, err := s.custodyRepository.ListTransactionSummaries(ctx, ports.CustodyTransactionSummaryFilters{
+		PageSize:              pageSize,
+		Offset:                offset,
 		SearchQuery:           cmd.SearchQuery,
 		TransactionTypeFilter: normalizeCustodyTransactionTypeFilter(cmd.TransactionTypeFilter),
 		EditStatusFilter:      normalizeCustodyEditStatusFilter(cmd.EditStatusFilter),
@@ -538,12 +558,12 @@ func (s *ListCustodyTransactionSummariesService) Execute(
 		HasPeriod:             hasPeriod,
 	})
 	if err != nil {
-		return nil, err
+		return CustodyTransactionSummaryPage{}, err
 	}
 
-	summaries := make([]CustodyTransactionSummary, 0, len(items))
+	summaries := make([]CustodyTransactionSummary, 0, len(result.Items))
 
-	for _, item := range items {
+	for _, item := range result.Items {
 		summary := CustodyTransactionSummary{
 			ID:                         item.ID,
 			SequenceNumber:             item.SequenceNumber,
@@ -582,7 +602,12 @@ func (s *ListCustodyTransactionSummariesService) Execute(
 		summaries = append(summaries, summary)
 	}
 
-	return summaries, nil
+	return CustodyTransactionSummaryPage{
+		Items:       summaries,
+		HasNextPage: result.HasNextPage,
+		Page:        page,
+		PageSize:    pageSize,
+	}, nil
 }
 
 // ListCustodyTransactionLedgerPeriodsService lists available ledger periods.

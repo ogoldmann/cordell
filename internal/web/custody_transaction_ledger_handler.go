@@ -21,9 +21,14 @@ type custodyTransactionLedgerPageData struct {
 	SelectedYear        int
 	SelectedMonth       int
 	SelectedPeriodLabel string
+	PeriodValue         string
 	Periods             []custodyLedgerPeriodView
-	Limit               int
-	LimitOptions        []custodyLedgerLimitOptionView
+	Page                int
+	PageSize            int
+	HasPreviousPage     bool
+	HasNextPage         bool
+	PreviousPageURL     string
+	NextPageURL         string
 	Transactions        []custodyTransactionSummaryView
 }
 
@@ -34,12 +39,6 @@ type custodyLedgerPeriodView struct {
 	URL              string
 	Selected         bool
 	TransactionCount int
-}
-
-type custodyLedgerLimitOptionView struct {
-	Value    int
-	Label    string
-	Selected bool
 }
 
 type custodyTransactionSummaryView struct {
@@ -87,18 +86,15 @@ func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	selectedYear := parsePositiveLedgerInt(r.URL.Query().Get("year"))
-	selectedMonth := parsePositiveLedgerInt(r.URL.Query().Get("month"))
-
-	if (selectedYear == 0 || selectedMonth == 0) && len(periods) > 0 {
-		selectedYear = periods[0].Year
-		selectedMonth = periods[0].Month
+	pageNumber := parsePositiveLedgerInt(r.URL.Query().Get("page"))
+	if pageNumber <= 0 {
+		pageNumber = 1
 	}
 
-	limit := parseLedgerLimit(r.URL.Query().Get("limit"))
+	selectedYear, selectedMonth, periodValue := parseLedgerPeriodValue(r.URL.Query().Get("period"), periods)
 
-	transactions, err := s.services.ListCustodyTransactionSummaries.Execute(r.Context(), app.ListCustodyTransactionSummariesCommand{
-		Limit:                 limit,
+	transactionPage, err := s.services.ListCustodyTransactionSummaries.Execute(r.Context(), app.ListCustodyTransactionSummariesCommand{
+		Page:                  pageNumber,
 		SearchQuery:           query,
 		TransactionTypeFilter: typeFilter,
 		EditStatusFilter:      editStatusFilter,
@@ -111,6 +107,16 @@ func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	previousPageURL := ""
+	if transactionPage.Page > 1 {
+		previousPageURL = custodyLedgerURL(query, typeFilter, editStatusFilter, periodValue, transactionPage.Page-1)
+	}
+
+	nextPageURL := ""
+	if transactionPage.HasNextPage {
+		nextPageURL = custodyLedgerURL(query, typeFilter, editStatusFilter, periodValue, transactionPage.Page+1)
+	}
+
 	data := custodyTransactionLedgerPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Custody transactions",
@@ -120,24 +126,26 @@ func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.R
 		HasFilters: query != "" ||
 			typeFilter != "all" ||
 			editStatusFilter != "all" ||
-			selectedYear > 0 ||
-			selectedMonth > 0 ||
-			limit != 100,
+			periodValue == "all" ||
+			transactionPage.Page > 1,
 		SelectedYear:        selectedYear,
 		SelectedMonth:       selectedMonth,
 		SelectedPeriodLabel: ledgerPeriodLabel(selectedYear, selectedMonth),
+		PeriodValue:         periodValue,
 		Periods: newCustodyLedgerPeriodViews(
 			periods,
-			selectedYear,
-			selectedMonth,
+			periodValue,
 			query,
 			typeFilter,
 			editStatusFilter,
-			limit,
 		),
-		Limit:        limit,
-		LimitOptions: newCustodyLedgerLimitOptions(limit),
-		Transactions: newCustodyTransactionSummaryViews(transactions),
+		Page:            transactionPage.Page,
+		PageSize:        transactionPage.PageSize,
+		HasPreviousPage: transactionPage.Page > 1,
+		HasNextPage:     transactionPage.HasNextPage,
+		PreviousPageURL: previousPageURL,
+		NextPageURL:     nextPageURL,
+		Transactions:    newCustodyTransactionSummaryViews(transactionPage.Items),
 	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "custody_transactions_index.html", data); err != nil {
@@ -154,15 +162,49 @@ func parsePositiveLedgerInt(value string) int {
 	return parsed
 }
 
-func parseLedgerLimit(value string) int {
-	parsed := parsePositiveLedgerInt(value)
+func parseLedgerPeriodValue(value string, periods []app.CustodyTransactionLedgerPeriod) (int, int, string) {
+	value = strings.TrimSpace(value)
 
-	switch parsed {
-	case 25, 50, 100, 200:
-		return parsed
-	default:
-		return 100
+	if value == "all" {
+		return 0, 0, "all"
 	}
+
+	if value != "" {
+		parts := strings.Split(value, "-")
+		if len(parts) == 2 {
+			year, yearErr := strconv.Atoi(parts[0])
+			month, monthErr := strconv.Atoi(parts[1])
+
+			if yearErr == nil && monthErr == nil && month >= 1 && month <= 12 {
+				return year, month, value
+			}
+		}
+	}
+
+	if len(periods) == 0 {
+		return 0, 0, "all"
+	}
+
+	year := periods[0].Year
+	month := periods[0].Month
+
+	return year, month, ledgerPeriodValue(year, month)
+}
+
+func ledgerPeriodValue(year int, month int) string {
+	if year <= 0 || month < 1 || month > 12 {
+		return "all"
+	}
+
+	return strconv.Itoa(year) + "-" + twoDigitMonth(month)
+}
+
+func twoDigitMonth(month int) string {
+	if month < 10 {
+		return "0" + strconv.Itoa(month)
+	}
+
+	return strconv.Itoa(month)
 }
 
 func normalizedLedgerTypeFilter(value string) string {
@@ -193,7 +235,13 @@ func ledgerPeriodLabel(year int, month int) string {
 	return t.Format("January 2006")
 }
 
-func custodyLedgerURL(query string, typeFilter string, editStatusFilter string, year int, month int, limit int) string {
+func custodyLedgerURL(
+	query string,
+	typeFilter string,
+	editStatusFilter string,
+	periodValue string,
+	page int,
+) string {
 	values := make(url.Values)
 
 	if strings.TrimSpace(query) != "" {
@@ -208,13 +256,16 @@ func custodyLedgerURL(query string, typeFilter string, editStatusFilter string, 
 		values.Set("edited", editStatusFilter)
 	}
 
-	if year > 0 && month >= 1 && month <= 12 {
-		values.Set("year", strconv.Itoa(year))
-		values.Set("month", strconv.Itoa(month))
+	if periodValue != "" && periodValue != "all" {
+		values.Set("period", periodValue)
 	}
 
-	if limit > 0 && limit != 100 {
-		values.Set("limit", strconv.Itoa(limit))
+	if periodValue == "all" {
+		values.Set("period", "all")
+	}
+
+	if page > 1 {
+		values.Set("page", strconv.Itoa(page))
 	}
 
 	encoded := values.Encode()
@@ -227,43 +278,36 @@ func custodyLedgerURL(query string, typeFilter string, editStatusFilter string, 
 
 func newCustodyLedgerPeriodViews(
 	periods []app.CustodyTransactionLedgerPeriod,
-	selectedYear int,
-	selectedMonth int,
+	selectedPeriodValue string,
 	query string,
 	typeFilter string,
 	editStatusFilter string,
-	limit int,
 ) []custodyLedgerPeriodView {
-	views := make([]custodyLedgerPeriodView, 0, len(periods))
+	views := make([]custodyLedgerPeriodView, 0, len(periods)+1)
+
+	views = append(views, custodyLedgerPeriodView{
+		Year:             0,
+		Month:            0,
+		Label:            "All periods",
+		URL:              custodyLedgerURL(query, typeFilter, editStatusFilter, "all", 1),
+		Selected:         selectedPeriodValue == "all",
+		TransactionCount: 0,
+	})
 
 	for _, period := range periods {
+		value := ledgerPeriodValue(period.Year, period.Month)
+
 		views = append(views, custodyLedgerPeriodView{
 			Year:             period.Year,
 			Month:            period.Month,
 			Label:            ledgerPeriodLabel(period.Year, period.Month),
-			URL:              custodyLedgerURL(query, typeFilter, editStatusFilter, period.Year, period.Month, limit),
-			Selected:         period.Year == selectedYear && period.Month == selectedMonth,
+			URL:              custodyLedgerURL(query, typeFilter, editStatusFilter, value, 1),
+			Selected:         selectedPeriodValue == value,
 			TransactionCount: period.TransactionCount,
 		})
 	}
 
 	return views
-}
-
-func newCustodyLedgerLimitOptions(limit int) []custodyLedgerLimitOptionView {
-	values := []int{25, 50, 100, 200}
-
-	options := make([]custodyLedgerLimitOptionView, 0, len(values))
-
-	for _, value := range values {
-		options = append(options, custodyLedgerLimitOptionView{
-			Value:    value,
-			Label:    strconv.Itoa(value),
-			Selected: value == limit,
-		})
-	}
-
-	return options
 }
 
 func newCustodyTransactionSummaryViews(

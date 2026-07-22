@@ -146,6 +146,16 @@ Ledger periods are based on the original transaction creation date.
 
 Corrections do not move a transaction to a different ledger period.
 
+## Ledger Page
+
+A ledger page is a bounded set of custody transactions returned by the repository for the selected ledger scope.
+
+Ledger pagination is separate from ledger filtering.
+
+## All Periods
+
+All periods is a ledger period option that removes the year/month boundary and allows search and filters to run across the full custody ledger.
+
 ## Custody Transaction Sequence Number
 
 A custody transaction sequence number is the chronological position of a custody transaction in the ledger.

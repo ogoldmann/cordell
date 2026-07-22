@@ -352,12 +352,24 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Ledger lists available year/month periods.
 - [ ] Ledger defaults to the latest period with transactions.
 - [ ] Ledger period navigation preserves search/filter context.
-- [ ] Ledger supports limit inside selected period.
 - [ ] Ledger search works inside selected period.
 - [ ] Ledger type filter works inside selected period.
 - [ ] Ledger edit status filter works inside selected period.
 - [ ] Sequence number remains global.
 - [ ] Corrections do not move transactions between periods.
+
+## Custody Ledger Pagination and Period Scope
+
+- [ ] Limit field is removed from ledger filters.
+- [ ] Ledger uses page-based navigation.
+- [ ] Page size is controlled by the application.
+- [ ] Pagination is applied in SQL.
+- [ ] Pagination preserves period/search/type/edit filters.
+- [ ] Period selector includes All periods.
+- [ ] Period selector includes only periods with transactions.
+- [ ] Period defines the scope of search and filters.
+- [ ] Filter form resets to page 1.
+- [ ] All periods allows full-ledger search.
 
 ## Custody Ledger Timeline Clarity
 

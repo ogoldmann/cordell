@@ -476,8 +476,11 @@ func (r *fakeCustodyRepository) ListHistoryByPersonnel(
 func (r *fakeCustodyRepository) ListTransactionSummaries(
 	_ context.Context,
 	_ ports.CustodyTransactionSummaryFilters,
-) ([]ports.CustodyTransactionSummary, error) {
-	return r.transactionSummaries, nil
+) (ports.CustodyTransactionSummaryPage, error) {
+	return ports.CustodyTransactionSummaryPage{
+		Items:       r.transactionSummaries,
+		HasNextPage: false,
+	}, nil
 }
 
 func (r *fakeCustodyRepository) ListTransactionLedgerPeriods(

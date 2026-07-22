@@ -751,7 +751,8 @@ selected_transactions AS (
     SELECT id, sequence_number, transaction_type, original_personnel_id, effective_personnel_id, operator_id, created_at, latest_correction_id, edit_count
     FROM filtered_transactions
     ORDER BY created_at DESC, id DESC
-    LIMIT $7
+    LIMIT $8
+    OFFSET $7
 )
 SELECT
     st.id,
@@ -801,7 +802,8 @@ type ListCustodyTransactionSummariesParams struct {
 	TransactionTypeFilter string             `json:"transaction_type_filter"`
 	EditStatusFilter      string             `json:"edit_status_filter"`
 	SearchPattern         string             `json:"search_pattern"`
-	LimitCount            int32              `json:"limit_count"`
+	OffsetCount           int32              `json:"offset_count"`
+	PageSizePlusOne       int32              `json:"page_size_plus_one"`
 }
 
 type ListCustodyTransactionSummariesRow struct {
@@ -841,7 +843,8 @@ func (q *Queries) ListCustodyTransactionSummaries(ctx context.Context, arg ListC
 		arg.TransactionTypeFilter,
 		arg.EditStatusFilter,
 		arg.SearchPattern,
-		arg.LimitCount,
+		arg.OffsetCount,
+		arg.PageSizePlusOne,
 	)
 	if err != nil {
 		return nil, err

@@ -3,6 +3,7 @@ package postgres_test
 import (
 	"context"
 	"errors"
+	"strconv"
 	"testing"
 	"time"
 
@@ -2184,8 +2185,8 @@ func TestPostgresCustodyRepositoryListTransactionSummariesFiltersByLedgerPeriod(
 		}
 	}
 
-	summaries, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
-		Limit:       10,
+	page, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
+		PageSize:    10,
 		PeriodStart: time.Date(2026, time.July, 1, 0, 0, 0, 0, time.Local),
 		PeriodEnd:   time.Date(2026, time.August, 1, 0, 0, 0, 0, time.Local),
 		HasPeriod:   true,
@@ -2193,6 +2194,8 @@ func TestPostgresCustodyRepositoryListTransactionSummariesFiltersByLedgerPeriod(
 	if err != nil {
 		t.Fatalf("expected no error listing summaries, got %v", err)
 	}
+
+	summaries := page.Items
 
 	if len(summaries) != 1 {
 		t.Fatalf("expected 1 summary, got %d", len(summaries))
@@ -2204,6 +2207,78 @@ func TestPostgresCustodyRepositoryListTransactionSummariesFiltersByLedgerPeriod(
 
 	if summaries[0].SequenceNumber != 2 {
 		t.Fatalf("expected global sequence number 2, got %d", summaries[0].SequenceNumber)
+	}
+}
+
+func TestPostgresCustodyRepositoryListTransactionSummariesDetectsNextPage(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := assetRepository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	operator := mustNewTestOperator(t, "operator-1", "93541134780", "silva", domain.RankSergeant, domain.OperatorRoleOperator)
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	line, err := domain.NewCustodyLine(asset.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid line, got %v", err)
+	}
+
+	for i := 1; i <= 3; i++ {
+		transaction, err := domain.NewCustodyTransaction(
+			domain.CustodyTransactionID("transaction-"+strconv.Itoa(i)),
+			domain.CustodyTransactionTypeCheckout,
+			personnel.ID(),
+			operator.ID(),
+			[]domain.CustodyLine{line},
+			"",
+		)
+		if err != nil {
+			t.Fatalf("expected valid transaction, got %v", err)
+		}
+
+		created, err := custodyRepository.SaveTransaction(context.Background(), transaction)
+		if err != nil {
+			t.Fatalf("expected no error saving transaction, got %v", err)
+		}
+
+		if !created {
+			t.Fatal("expected transaction to be created")
+		}
+	}
+
+	page, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
+		PageSize: 2,
+	})
+	if err != nil {
+		t.Fatalf("expected no error listing transaction summaries, got %v", err)
+	}
+
+	if len(page.Items) != 2 {
+		t.Fatalf("expected 2 items, got %d", len(page.Items))
+	}
+
+	if !page.HasNextPage {
+		t.Fatal("expected next page")
 	}
 }
 
@@ -2307,12 +2382,14 @@ func TestPostgresCustodyRepositoryListTransactionSummariesUsesEffectiveCorrectio
 		t.Fatal("expected correction to be created")
 	}
 
-	summaries, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
-		Limit: 10,
+	page, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
+		PageSize: 10,
 	})
 	if err != nil {
 		t.Fatalf("expected no error listing transaction summaries, got %v", err)
 	}
+
+	summaries := page.Items
 
 	if len(summaries) != 1 {
 		t.Fatalf("expected 1 summary, got %d", len(summaries))
@@ -2434,13 +2511,15 @@ func TestPostgresCustodyRepositoryListTransactionSummariesFiltersByTransactionTy
 		t.Fatal("expected return to be created")
 	}
 
-	summaries, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
-		Limit:                 10,
+	page, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
+		PageSize:              10,
 		TransactionTypeFilter: ports.CustodyTransactionTypeFilterCheckout,
 	})
 	if err != nil {
 		t.Fatalf("expected no error listing summaries, got %v", err)
 	}
+
+	summaries := page.Items
 
 	if len(summaries) != 1 {
 		t.Fatalf("expected 1 checkout summary, got %d", len(summaries))
@@ -2535,13 +2614,15 @@ func TestPostgresCustodyRepositoryListTransactionSummariesFiltersEditedTransacti
 		t.Fatal("expected correction to be created")
 	}
 
-	summaries, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
-		Limit:            10,
+	page, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
+		PageSize:         10,
 		EditStatusFilter: ports.CustodyEditStatusFilterEdited,
 	})
 	if err != nil {
 		t.Fatalf("expected no error listing edited summaries, got %v", err)
 	}
+
+	summaries := page.Items
 
 	if len(summaries) != 1 {
 		t.Fatalf("expected 1 edited summary, got %d", len(summaries))
@@ -2645,13 +2726,15 @@ func TestPostgresCustodyRepositoryListTransactionSummariesSearchesEffectiveAsset
 		t.Fatal("expected correction to be created")
 	}
 
-	summaries, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
-		Limit:       10,
+	page, err := custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
+		PageSize:    10,
 		SearchQuery: "Helmet",
 	})
 	if err != nil {
 		t.Fatalf("expected no error searching summaries, got %v", err)
 	}
+
+	summaries := page.Items
 
 	if len(summaries) != 1 {
 		t.Fatalf("expected 1 summary, got %d", len(summaries))

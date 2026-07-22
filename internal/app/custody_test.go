@@ -127,43 +127,60 @@ func TestListCustodyTransactionSummariesService(t *testing.T) {
 
 	service := NewListCustodyTransactionSummariesService(custodyRepository)
 
-	summaries, err := service.Execute(context.Background(), ListCustodyTransactionSummariesCommand{
-		Limit: 50,
-	})
+	page, err := service.Execute(context.Background(), ListCustodyTransactionSummariesCommand{})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if len(summaries) != 1 {
-		t.Fatalf("expected 1 summary, got %d", len(summaries))
+	if len(page.Items) != 1 {
+		t.Fatalf("expected 1 summary, got %d", len(page.Items))
 	}
 
-	if summaries[0].EffectivePersonnelID != "personnel-2" {
-		t.Fatalf("expected effective personnel-2, got %s", summaries[0].EffectivePersonnelID)
+	if page.Items[0].EffectivePersonnelID != "personnel-2" {
+		t.Fatalf("expected effective personnel-2, got %s", page.Items[0].EffectivePersonnelID)
 	}
 
-	if !summaries[0].HasCorrection {
+	if !page.Items[0].HasCorrection {
 		t.Fatal("expected summary to be marked as corrected")
 	}
 
-	if summaries[0].EditCount != 1 {
-		t.Fatalf("expected edit count 1, got %d", summaries[0].EditCount)
+	if page.Items[0].EditCount != 1 {
+		t.Fatalf("expected edit count 1, got %d", page.Items[0].EditCount)
 	}
 
-	if summaries[0].SequenceNumber != 42 {
-		t.Fatalf("expected sequence number 42, got %d", summaries[0].SequenceNumber)
+	if page.Items[0].SequenceNumber != 42 {
+		t.Fatalf("expected sequence number 42, got %d", page.Items[0].SequenceNumber)
 	}
 
-	if len(summaries[0].Lines) != 2 {
-		t.Fatalf("expected 2 lines, got %d", len(summaries[0].Lines))
+	if len(page.Items[0].Lines) != 2 {
+		t.Fatalf("expected 2 lines, got %d", len(page.Items[0].Lines))
 	}
 
-	if summaries[0].Lines[0].AssetName != "Radio" {
-		t.Fatalf("expected Radio, got %s", summaries[0].Lines[0].AssetName)
+	if page.Items[0].Lines[0].AssetName != "Radio" {
+		t.Fatalf("expected Radio, got %s", page.Items[0].Lines[0].AssetName)
 	}
 
-	if summaries[0].Lines[1].Quantity != 2 {
-		t.Fatalf("expected quantity 2, got %d", summaries[0].Lines[1].Quantity)
+	if page.Items[0].Lines[1].Quantity != 2 {
+		t.Fatalf("expected quantity 2, got %d", page.Items[0].Lines[1].Quantity)
+	}
+}
+
+func TestListCustodyTransactionSummariesServiceDefaultsToFirstPage(t *testing.T) {
+	custodyRepository := &fakeCustodyRepository{}
+
+	service := NewListCustodyTransactionSummariesService(custodyRepository)
+
+	page, err := service.Execute(context.Background(), ListCustodyTransactionSummariesCommand{})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if page.Page != 1 {
+		t.Fatalf("expected page 1, got %d", page.Page)
+	}
+
+	if page.PageSize != DefaultCustodyLedgerPageSize {
+		t.Fatalf("expected page size %d, got %d", DefaultCustodyLedgerPageSize, page.PageSize)
 	}
 }
 
