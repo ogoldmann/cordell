@@ -46,3 +46,35 @@ func TestParseCustodyLineCommandsFromRequestRejectsNoLines(t *testing.T) {
 		t.Fatalf("expected no line error, got %v", err)
 	}
 }
+
+func TestDefaultCustodyLineFormRowsStartsQuantityAtOne(t *testing.T) {
+	rows := defaultCustodyLineFormRows()
+
+	if len(rows) != 1 {
+		t.Fatalf("expected 1 row, got %d", len(rows))
+	}
+
+	if rows[0].Quantity != "1" {
+		t.Fatalf("expected quantity 1, got %q", rows[0].Quantity)
+	}
+}
+
+func TestCustodyLineFormRowsFromRequestDefaultsEmptyQuantityToOne(t *testing.T) {
+	form := make(url.Values)
+	form.Add("asset_id", "asset-1")
+	form.Add("quantity", "")
+
+	request := &http.Request{
+		PostForm: form,
+	}
+
+	rows := custodyLineFormRowsFromRequest(request)
+
+	if len(rows) != 1 {
+		t.Fatalf("expected 1 row, got %d", len(rows))
+	}
+
+	if rows[0].Quantity != "1" {
+		t.Fatalf("expected quantity 1, got %q", rows[0].Quantity)
+	}
+}

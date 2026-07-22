@@ -229,6 +229,23 @@ The backend validates all submitted lines and consolidates duplicate assets acco
 
 Receipts and the custody ledger display all effective checkout lines.
 
+## Reusable Custody Line Items
+
+Checkout and custody correction forms share the same custody line item component.
+
+The shared component supports:
+
+- one or more asset lines
+- add line
+- remove line
+- at least one required line
+- asset selector
+- quantity input
+- quantity defaulting to 1
+- UI-level duplicate asset prevention
+
+The backend still validates submitted lines and remains the source of truth.
+
 ## Return Flow
 
 Register return:
@@ -285,6 +302,17 @@ This prevents inactive assets or inactive personnel from becoming impossible to 
 - [ ] Checkout receipt shows multiple lines.
 - [ ] Custody ledger shows multiple effective lines.
 - [ ] Duplicate asset lines are handled by backend rules.
+
+## Reusable Custody Line Items UX
+
+- [ ] Checkout uses shared custody line item component.
+- [ ] Correction uses shared custody line item component.
+- [ ] Shared component starts quantity at 1.
+- [ ] Added lines start quantity at 1.
+- [ ] Selected assets are hidden or disabled in other rows.
+- [ ] Removing a line makes its asset selectable again.
+- [ ] Backend duplicate validation/consolidation remains active.
+- [ ] Old correction-specific line JS is removed if unused.
 
 ## Effective Custody Read Models
 

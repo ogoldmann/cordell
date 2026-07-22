@@ -13,8 +13,11 @@ import (
 var errNoCustodyLineSubmitted = errors.New("no custody line submitted")
 
 type custodyLineFormRowView struct {
-	AssetID  string
-	Quantity string
+	AssetID              string
+	Quantity             string
+	CurrentAssetLabel    string
+	CurrentAssetIsActive bool
+	NeedsReplacement     bool
 }
 
 type custodyAssetOptionView struct {
@@ -77,7 +80,9 @@ func humanizeCustodyLineFormError(err error) string {
 
 func defaultCustodyLineFormRows() []custodyLineFormRowView {
 	return []custodyLineFormRowView{
-		{},
+		{
+			Quantity: "1",
+		},
 	}
 }
 
@@ -103,11 +108,29 @@ func custodyLineFormRowsFromRequest(r *http.Request) []custodyLineFormRowView {
 			row.Quantity = strings.TrimSpace(quantities[index])
 		}
 
+		if row.Quantity == "" {
+			row.Quantity = "1"
+		}
+
 		rows = append(rows, row)
 	}
 
 	if len(rows) == 0 {
 		return defaultCustodyLineFormRows()
+	}
+
+	return rows
+}
+
+func ensureAtLeastOneCustodyLineFormRow(rows []custodyLineFormRowView) []custodyLineFormRowView {
+	if len(rows) == 0 {
+		return defaultCustodyLineFormRows()
+	}
+
+	for index := range rows {
+		if rows[index].Quantity == "" {
+			rows[index].Quantity = "1"
+		}
 	}
 
 	return rows

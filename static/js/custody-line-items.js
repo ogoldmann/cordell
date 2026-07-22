@@ -11,6 +11,36 @@
         return Array.from(container.querySelectorAll("[data-custody-line-row]"));
       }
 
+      function selects() {
+        return Array.from(container.querySelectorAll("[data-custody-asset-select]"));
+      }
+
+      function selectedAssetIDsExcept(currentSelect) {
+        return selects()
+          .filter((select) => select !== currentSelect)
+          .map((select) => select.value)
+          .filter((value) => value !== "");
+      }
+
+      function updateAssetOptions() {
+        selects().forEach((select) => {
+          const selectedElsewhere = new Set(selectedAssetIDsExcept(select));
+
+          Array.from(select.options).forEach((option) => {
+            if (option.value === "") {
+              option.hidden = false;
+              option.disabled = false;
+              return;
+            }
+
+            const unavailable = selectedElsewhere.has(option.value);
+
+            option.hidden = unavailable;
+            option.disabled = unavailable;
+          });
+        });
+      }
+
       function updateRemoveButtons() {
         const currentRows = rows();
 
@@ -25,8 +55,13 @@
         });
       }
 
+      function syncRows() {
+        updateRemoveButtons();
+        updateAssetOptions();
+      }
+
       function focusNewRow(row) {
-        const select = row.querySelector("select[name='asset_id']");
+        const select = row.querySelector("[data-custody-asset-select]");
         if (select) select.focus();
       }
 
@@ -35,7 +70,7 @@
         const newRow = fragment.querySelector("[data-custody-line-row]");
 
         container.appendChild(fragment);
-        updateRemoveButtons();
+        syncRows();
 
         if (newRow) {
           focusNewRow(newRow);
@@ -53,10 +88,16 @@
         if (!row) return;
 
         row.remove();
-        updateRemoveButtons();
+        syncRows();
       });
 
-      updateRemoveButtons();
+      container.addEventListener("change", (event) => {
+        if (!event.target.closest("[data-custody-asset-select]")) return;
+
+        updateAssetOptions();
+      });
+
+      syncRows();
     });
   }
 

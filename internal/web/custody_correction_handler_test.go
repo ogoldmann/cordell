@@ -31,7 +31,7 @@ func TestNewCorrectionOptionsDoNotMarkInactiveRecords(t *testing.T) {
 		t.Fatalf("expected personnel option without inactive label, got %q", personnelOptions[0].Label)
 	}
 
-	assetOptions := newCorrectionAssetOptions([]domain.Asset{asset})
+	assetOptions := newCustodyAssetOptions([]domain.Asset{asset})
 	if strings.Contains(assetOptions[0].Label, "(Inactive)") {
 		t.Fatalf("expected asset option without inactive label, got %q", assetOptions[0].Label)
 	}
@@ -75,7 +75,7 @@ func TestCorrectionSelectedPersonnelIDKeepsStateSelection(t *testing.T) {
 
 func TestCorrectionLineRowsForFormClearsInactiveEffectiveAsset(t *testing.T) {
 	rows := correctionLineRowsForForm(
-		[]correctionLineRowView{
+		[]custodyLineFormRowView{
 			{
 				AssetID:           "asset-1",
 				Quantity:          "1",
@@ -105,7 +105,7 @@ func TestCorrectionLineRowsForFormClearsInactiveEffectiveAsset(t *testing.T) {
 
 func TestCorrectionLineRowsForFormKeepsActiveEffectiveAsset(t *testing.T) {
 	rows := correctionLineRowsForForm(
-		[]correctionLineRowView{
+		[]custodyLineFormRowView{
 			{
 				AssetID:           "asset-1",
 				Quantity:          "1",

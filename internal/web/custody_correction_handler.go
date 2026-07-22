@@ -29,8 +29,8 @@ type custodyTransactionEditPageData struct {
 	CorrectedPersonnelID        string
 	CorrectedNotes              string
 	PersonnelOptions            []correctionPersonnelOptionView
-	AssetOptions                []correctionAssetOptionView
-	LineRows                    []correctionLineRowView
+	AssetOptions                []custodyAssetOptionView
+	LineRows                    []custodyLineFormRowView
 }
 
 type custodyEditReceiptView struct {
@@ -46,24 +46,11 @@ type correctionPersonnelOptionView struct {
 	Selected bool
 }
 
-type correctionAssetOptionView struct {
-	ID    string
-	Label string
-}
-
-type correctionLineRowView struct {
-	AssetID              string
-	Quantity             string
-	CurrentAssetLabel    string
-	CurrentAssetIsActive bool
-	NeedsReplacement     bool
-}
-
 type custodyTransactionEditFormState struct {
 	CorrectionID         string
 	CorrectedPersonnelID string
 	CorrectedNotes       string
-	LineRows             []correctionLineRowView
+	LineRows             []custodyLineFormRowView
 	Error                string
 }
 
@@ -119,9 +106,9 @@ func (s *Server) handleCreateCustodyCorrection(w http.ResponseWriter, r *http.Re
 	correctedPersonnelID := domain.PersonnelID(strings.TrimSpace(r.FormValue("corrected_personnel_id")))
 	correctedNotes := strings.TrimSpace(r.FormValue("corrected_notes"))
 
-	lineRows := correctionLineRowsFromRequest(r)
-	lines, parseErr := parseCorrectionLineCommands(lineRows)
-	if parseErr != "" {
+	lineRows := custodyLineFormRowsFromRequest(r)
+	lines, parseErr := parseCustodyLineCommandsFromRequest(r)
+	if parseErr != nil {
 		s.renderCustodyCorrectionFormErrorWithState(
 			w,
 			r,
@@ -132,7 +119,7 @@ func (s *Server) handleCreateCustodyCorrection(w http.ResponseWriter, r *http.Re
 				CorrectedPersonnelID: string(correctedPersonnelID),
 				CorrectedNotes:       correctedNotes,
 				LineRows:             lineRows,
-				Error:                parseErr,
+				Error:                humanizeCustodyCorrectionError(parseErr),
 			},
 		)
 		return
@@ -291,7 +278,7 @@ func (s *Server) newCustodyTransactionEditPageData(
 			CreatedAt: formatDateTime(receipt.CreatedAt),
 		},
 		PersonnelOptions: newCorrectionPersonnelOptions(personnel, state.CorrectedPersonnelID),
-		AssetOptions:     newCorrectionAssetOptions(assets),
+		AssetOptions:     newCustodyAssetOptions(assets),
 		LineRows:         state.LineRows,
 	}
 
@@ -309,19 +296,6 @@ func newCorrectionPersonnelOptions(
 			ID:       string(item.ID()),
 			Label:    militaryDisplayName(item.Rank(), item.Alias()) + " - " + item.FullName(),
 			Selected: string(item.ID()) == selectedID,
-		})
-	}
-
-	return options
-}
-
-func newCorrectionAssetOptions(assets []domain.Asset) []correctionAssetOptionView {
-	options := make([]correctionAssetOptionView, 0, len(assets))
-
-	for _, item := range assets {
-		options = append(options, correctionAssetOptionView{
-			ID:    string(item.ID()),
-			Label: item.Name(),
 		})
 	}
 
@@ -380,11 +354,11 @@ func effectivePersonnelLabelFromReceipt(receipt app.CustodyReceipt) (string, boo
 		receipt.PersonnelActive
 }
 
-func correctionLineRowsFromReceiptLines(lines []app.CustodyReceiptLine) []correctionLineRowView {
-	rows := make([]correctionLineRowView, 0, len(lines))
+func correctionLineRowsFromReceiptLines(lines []app.CustodyReceiptLine) []custodyLineFormRowView {
+	rows := make([]custodyLineFormRowView, 0, len(lines))
 
 	for _, line := range lines {
-		rows = append(rows, correctionLineRowView{
+		rows = append(rows, custodyLineFormRowView{
 			AssetID:              string(line.AssetID),
 			Quantity:             strconv.Itoa(line.Quantity),
 			CurrentAssetLabel:    line.AssetName,
@@ -396,11 +370,11 @@ func correctionLineRowsFromReceiptLines(lines []app.CustodyReceiptLine) []correc
 	return rows
 }
 
-func correctionLineRowsFromCorrectionLines(lines []app.CustodyCorrectionContextLine) []correctionLineRowView {
-	rows := make([]correctionLineRowView, 0, len(lines))
+func correctionLineRowsFromCorrectionLines(lines []app.CustodyCorrectionContextLine) []custodyLineFormRowView {
+	rows := make([]custodyLineFormRowView, 0, len(lines))
 
 	for _, line := range lines {
-		rows = append(rows, correctionLineRowView{
+		rows = append(rows, custodyLineFormRowView{
 			AssetID:              string(line.AssetID),
 			Quantity:             strconv.Itoa(line.Quantity),
 			CurrentAssetLabel:    line.AssetName,
@@ -413,21 +387,20 @@ func correctionLineRowsFromCorrectionLines(lines []app.CustodyCorrectionContextL
 }
 
 func correctionLineRowsForForm(
-	effectiveLines []correctionLineRowView,
+	effectiveLines []custodyLineFormRowView,
 	activeAssetIDs map[string]struct{},
-	stateRows []correctionLineRowView,
-) []correctionLineRowView {
+	stateRows []custodyLineFormRowView,
+) []custodyLineFormRowView {
 	if len(stateRows) > 0 {
-		return ensureAtLeastOneCorrectionRow(stateRows)
+		return ensureAtLeastOneCustodyLineFormRow(stateRows)
 	}
 
-	rows := make([]correctionLineRowView, 0, len(effectiveLines))
+	rows := make([]custodyLineFormRowView, 0, len(effectiveLines))
 
 	for _, line := range effectiveLines {
 		_, isActive := activeAssetIDs[line.AssetID]
 
 		row := line
-		row.CurrentAssetLabel = line.CurrentAssetLabel
 		row.CurrentAssetIsActive = isActive
 
 		if !isActive {
@@ -435,82 +408,14 @@ func correctionLineRowsForForm(
 			row.NeedsReplacement = true
 		}
 
+		if row.Quantity == "" {
+			row.Quantity = "1"
+		}
+
 		rows = append(rows, row)
 	}
 
-	return ensureAtLeastOneCorrectionRow(rows)
-}
-
-func ensureAtLeastOneCorrectionRow(rows []correctionLineRowView) []correctionLineRowView {
-	if len(rows) > 0 {
-		return rows
-	}
-
-	return []correctionLineRowView{{}}
-}
-
-func correctionLineRowsFromRequest(r *http.Request) []correctionLineRowView {
-	assetIDs := r.PostForm["asset_id"]
-	quantities := r.PostForm["quantity"]
-
-	rowCount := len(assetIDs)
-	if len(quantities) > rowCount {
-		rowCount = len(quantities)
-	}
-
-	rows := make([]correctionLineRowView, 0, rowCount)
-
-	for index := 0; index < rowCount; index++ {
-		assetID := ""
-		if index < len(assetIDs) {
-			assetID = strings.TrimSpace(assetIDs[index])
-		}
-
-		quantity := ""
-		if index < len(quantities) {
-			quantity = strings.TrimSpace(quantities[index])
-		}
-
-		rows = append(rows, correctionLineRowView{
-			AssetID:  assetID,
-			Quantity: quantity,
-		})
-	}
-
-	return rows
-}
-
-func parseCorrectionLineCommands(rows []correctionLineRowView) ([]app.CustodyLineCommand, string) {
-	lines := make([]app.CustodyLineCommand, 0, len(rows))
-
-	for _, row := range rows {
-		assetID := strings.TrimSpace(row.AssetID)
-		quantityText := strings.TrimSpace(row.Quantity)
-
-		if assetID == "" && quantityText == "" {
-			continue
-		}
-
-		if assetID == "" || quantityText == "" {
-			return nil, "Each correction line must include both asset and quantity."
-		}
-
-		quantity, err := strconv.Atoi(quantityText)
-		if err != nil || quantity <= 0 {
-			return nil, "Each correction quantity must be a positive number."
-		}
-
-		lines = append(lines, app.CustodyLineCommand{
-			AssetID:  domain.AssetID(assetID),
-			Quantity: quantity,
-		})
-	}
-
-	if len(lines) == 0 {
-		return nil, "At least one correction line is required."
-	}
-
-	return lines, ""
+	return ensureAtLeastOneCustodyLineFormRow(rows)
 }
 
 func (s *Server) renderCustodyCorrectionFormError(
@@ -560,6 +465,8 @@ func humanizeCustodyCorrectionError(err error) string {
 		return "Corrected personnel is required."
 	case errors.Is(err, domain.ErrEmptyAssetID):
 		return "Each correction line must include an asset."
+	case errors.Is(err, errNoCustodyLineSubmitted):
+		return "At least one correction line is required."
 	case errors.Is(err, domain.ErrEmptyTransactionLines):
 		return "At least one correction line is required."
 	case errors.Is(err, domain.ErrInvalidQuantity):
