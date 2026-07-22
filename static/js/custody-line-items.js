@@ -55,9 +55,45 @@
         });
       }
 
+      function quantityInputForSelect(select) {
+        const row = select.closest("[data-custody-line-row]");
+        if (!row) return null;
+
+        return row.querySelector("input[name='quantity']");
+      }
+
+      function updateQuantityConstraints() {
+        selects().forEach((select) => {
+          const quantityInput = quantityInputForSelect(select);
+          if (!quantityInput) return;
+
+          const selectedOption = select.selectedOptions[0];
+          const maxQuantity = selectedOption ? selectedOption.dataset.maxQuantity : "";
+
+          if (!maxQuantity) {
+            quantityInput.removeAttribute("max");
+            return;
+          }
+
+          quantityInput.max = maxQuantity;
+
+          const currentValue = Number.parseInt(quantityInput.value || "1", 10);
+          const parsedMax = Number.parseInt(maxQuantity, 10);
+
+          if (Number.isFinite(currentValue) && Number.isFinite(parsedMax) && currentValue > parsedMax) {
+            quantityInput.value = String(parsedMax);
+          }
+
+          if (quantityInput.value === "") {
+            quantityInput.value = "1";
+          }
+        });
+      }
+
       function syncRows() {
         updateRemoveButtons();
         updateAssetOptions();
+        updateQuantityConstraints();
       }
 
       function focusNewRow(row) {
@@ -94,7 +130,7 @@
       container.addEventListener("change", (event) => {
         if (!event.target.closest("[data-custody-asset-select]")) return;
 
-        updateAssetOptions();
+        syncRows();
       });
 
       syncRows();

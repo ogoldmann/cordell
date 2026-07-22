@@ -161,6 +161,19 @@ Use this checklist after changes to authentication, sessions, CSRF, operators, o
 - [ ] Personnel with no current custody shows an empty state.
 - [ ] Backend still rejects return quantity greater than current balance.
 
+## Multiple-Line Return
+
+- [ ] Return form can register multiple asset lines.
+- [ ] Return form uses current custody items as options.
+- [ ] Return form includes inactive assets under custody.
+- [ ] Return form does not use active asset list.
+- [ ] Return line quantity defaults to 1.
+- [ ] Return line quantity has UI max based on current custody.
+- [ ] Return form prevents duplicate selected assets in UI.
+- [ ] Backend rejects returns above current custody balance.
+- [ ] Return receipt shows multiple lines.
+- [ ] Custody ledger shows multiple effective return lines.
+
 ## Checkout Active Record Guardrails
 
 - [ ] Checkout form lists only active personnel.

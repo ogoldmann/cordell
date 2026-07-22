@@ -258,6 +258,23 @@ The return flow subtracts an asset quantity from a personnel custody balance.
 
 Cordell prevents returns greater than the current custody quantity.
 
+## Multiple-Line Return
+
+Return transactions can contain multiple asset lines.
+
+Return forms are based on current custody, not on the active asset list.
+
+A return line can select any asset currently held by the selected personnel, including inactive assets.
+
+Each return line contains:
+
+- asset
+- quantity
+
+The UI sets the maximum quantity based on current custody.
+
+The backend still validates current custody balance and remains the source of truth.
+
 ## Operational Form Eligibility
 
 Cordell uses different eligibility rules depending on the operation.
@@ -302,6 +319,19 @@ This prevents inactive assets or inactive personnel from becoming impossible to 
 - [ ] Checkout receipt shows multiple lines.
 - [ ] Custody ledger shows multiple effective lines.
 - [ ] Duplicate asset lines are handled by backend rules.
+
+## Multiple-Line Return Checklist
+
+- [ ] Return form can register multiple asset lines.
+- [ ] Return form uses current custody items as options.
+- [ ] Return form includes inactive assets under custody.
+- [ ] Return form does not use active asset list.
+- [ ] Return line quantity defaults to 1.
+- [ ] Return line quantity has UI max based on current custody.
+- [ ] Return form prevents duplicate selected assets in UI.
+- [ ] Backend rejects returns above current custody balance.
+- [ ] Return receipt shows multiple lines.
+- [ ] Custody ledger shows multiple effective return lines.
 
 ## Reusable Custody Line Items UX
 
@@ -532,9 +562,10 @@ Return workflow:
 
 1. Select personnel.
 2. Cordell lists only assets currently under that personnel's custody.
-3. Each return card shows the available quantity.
-4. The quantity input uses the available quantity as the HTML maximum.
-5. The backend still validates the real current balance before saving.
+3. Add one or more return lines.
+4. Each return line starts with quantity 1.
+5. The quantity input uses the available quantity as the HTML maximum.
+6. The backend still validates the real current balance before saving.
 
 The UI reduces operational mistakes, but the application service and repository remain the source of truth.
 

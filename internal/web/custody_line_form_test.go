@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
+
+	"cordell/internal/app"
 )
 
 func TestParseCustodyLineCommandsFromRequestParsesMultipleLines(t *testing.T) {
@@ -76,5 +78,37 @@ func TestCustodyLineFormRowsFromRequestDefaultsEmptyQuantityToOne(t *testing.T) 
 
 	if rows[0].Quantity != "1" {
 		t.Fatalf("expected quantity 1, got %q", rows[0].Quantity)
+	}
+}
+
+func TestNewReturnAssetOptionsUsesCurrentCustodyQuantityAsMax(t *testing.T) {
+	options := newReturnAssetOptions([]app.CurrentCustodyItem{
+		{
+			AssetID:     "asset-1",
+			AssetName:   "Battery",
+			AssetActive: false,
+			Quantity:    3,
+		},
+	})
+
+	if len(options) != 1 {
+		t.Fatalf("expected 1 option, got %d", len(options))
+	}
+
+	option := options[0]
+	if option.ID != "asset-1" {
+		t.Fatalf("expected asset-1, got %s", option.ID)
+	}
+
+	if option.Label != "Battery · available 3 · Inactive" {
+		t.Fatalf("expected inactive custody label, got %q", option.Label)
+	}
+
+	if !option.HasMaxQuantity {
+		t.Fatal("expected max quantity flag")
+	}
+
+	if option.MaxQuantity != 3 {
+		t.Fatalf("expected max quantity 3, got %d", option.MaxQuantity)
 	}
 }

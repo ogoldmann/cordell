@@ -21,8 +21,10 @@ type custodyLineFormRowView struct {
 }
 
 type custodyAssetOptionView struct {
-	ID    string
-	Label string
+	ID             string
+	Label          string
+	HasMaxQuantity bool
+	MaxQuantity    int
 }
 
 func parseCustodyLineCommandsFromRequest(r *http.Request) ([]app.CustodyLineCommand, error) {
@@ -70,9 +72,9 @@ func humanizeCustodyLineFormError(err error) string {
 	case errors.Is(err, errNoCustodyLineSubmitted):
 		return "Add at least one asset line."
 	case errors.Is(err, domain.ErrEmptyAssetID):
-		return "Each checkout line must have an asset."
+		return "Each asset line must have an asset."
 	case errors.Is(err, domain.ErrInvalidQuantity):
-		return "Each checkout line must have a valid positive quantity."
+		return "Each asset line must have a valid positive quantity."
 	default:
 		return "Review the asset lines and try again."
 	}
@@ -141,10 +143,42 @@ func newCustodyAssetOptions(assets []domain.Asset) []custodyAssetOptionView {
 
 	for _, asset := range assets {
 		options = append(options, custodyAssetOptionView{
-			ID:    string(asset.ID()),
-			Label: asset.Name(),
+			ID:             string(asset.ID()),
+			Label:          asset.Name(),
+			HasMaxQuantity: false,
+			MaxQuantity:    0,
 		})
 	}
 
 	return options
+}
+
+func newReturnAssetOptions(items []app.CurrentCustodyItem) []custodyAssetOptionView {
+	options := make([]custodyAssetOptionView, 0, len(items))
+
+	for _, item := range items {
+		label := item.AssetName + " · available " + strconv.Itoa(item.Quantity)
+		if !item.AssetActive {
+			label += " · Inactive"
+		}
+
+		options = append(options, custodyAssetOptionView{
+			ID:             string(item.AssetID),
+			Label:          label,
+			HasMaxQuantity: true,
+			MaxQuantity:    item.Quantity,
+		})
+	}
+
+	return options
+}
+
+func custodyTransactionTotalQuantity(lines []domain.CustodyLine) int {
+	total := 0
+
+	for _, line := range lines {
+		total += line.Quantity().Int()
+	}
+
+	return total
 }

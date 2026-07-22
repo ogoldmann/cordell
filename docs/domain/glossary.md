@@ -90,6 +90,12 @@ A custody line is one asset and quantity pair inside a custody transaction.
 
 A checkout or return transaction may contain one or more custody lines.
 
+## Return Line
+
+A return line is one asset and quantity pair inside a return transaction.
+
+Return lines are selected from current custody items for the selected personnel.
+
 ## Custody Balance
 
 The current quantity of a given asset under the custody of a given person.

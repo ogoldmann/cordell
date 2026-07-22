@@ -461,6 +461,9 @@
   .justify-center {
     justify-content: center;
   }
+  .justify-end {
+    justify-content: flex-end;
+  }
   .gap-1 {
     gap: var(--spacing);
   }
@@ -1095,11 +1098,6 @@
   .md\:grid-cols-\[1fr_10rem_auto\] {
     @media (width >= 48rem) {
       grid-template-columns: 1fr 10rem auto;
-    }
-  }
-  .md\:grid-cols-\[1fr_160px_auto\] {
-    @media (width >= 48rem) {
-      grid-template-columns: 1fr 160px auto;
     }
   }
   .md\:grid-cols-\[1fr_auto\] {

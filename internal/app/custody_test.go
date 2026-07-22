@@ -585,6 +585,57 @@ func TestRegisterReturnServiceExecute(t *testing.T) {
 	}
 }
 
+func TestRegisterReturnServiceRegistersMultipleLines(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+	assetA := mustBuildAsset(t, "asset-1")
+	assetB := mustBuildAsset(t, "asset-2")
+	operator := mustNewTestOperator(t, "operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleOperator)
+
+	personnelRepository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+	assetRepository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			assetA.ID(): assetA,
+			assetB.ID(): assetB,
+		},
+	}
+	operatorRepository := newFakeOperatorRepository(operator)
+	custodyRepository := &fakeCustodyRepository{
+		currentQuantity: map[string]int{
+			custodyBalanceKey(personnel.ID(), assetA.ID()): 3,
+			custodyBalanceKey(personnel.ID(), assetB.ID()): 2,
+		},
+	}
+	idGenerator := fixedIDGenerator{id: "transaction-1"}
+
+	service := NewRegisterReturnService(
+		personnelRepository,
+		assetRepository,
+		operatorRepository,
+		custodyRepository,
+		idGenerator,
+	)
+
+	result, err := service.Execute(context.Background(), RegisterReturnCommand{
+		OperatorID:  operator.ID(),
+		PersonnelID: personnel.ID(),
+		Lines: []CustodyLineCommand{
+			{AssetID: assetA.ID(), Quantity: 1},
+			{AssetID: assetB.ID(), Quantity: 2},
+		},
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(result.Transaction.Lines()) != 2 {
+		t.Fatalf("expected 2 lines, got %d", len(result.Transaction.Lines()))
+	}
+}
+
 func TestRegisterReturnServiceUsesCommandTransactionID(t *testing.T) {
 	personnel := mustBuildPersonnel(t, "personnel-1")
 	asset := mustBuildAsset(t, "asset-1")

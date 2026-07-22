@@ -33,7 +33,13 @@
             <option value="">Select asset</option>
             {{$selectedAssetID := .AssetID}}
             {{range $.AssetOptions}}
-              <option value="{{.ID}}" {{if eq .ID $selectedAssetID}}selected{{end}}>{{.Label}}</option>
+              <option
+                value="{{.ID}}"
+                {{if .HasMaxQuantity}}data-max-quantity="{{.MaxQuantity}}"{{end}}
+                {{if eq .ID $selectedAssetID}}selected{{end}}
+              >
+                {{.Label}}
+              </option>
             {{end}}
           </select>
         </label>
@@ -88,7 +94,12 @@
         >
           <option value="">Select asset</option>
           {{range .AssetOptions}}
-            <option value="{{.ID}}">{{.Label}}</option>
+            <option
+              value="{{.ID}}"
+              {{if .HasMaxQuantity}}data-max-quantity="{{.MaxQuantity}}"{{end}}
+            >
+              {{.Label}}
+            </option>
           {{end}}
         </select>
       </label>

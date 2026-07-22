@@ -18,22 +18,17 @@ type returnNewPageData struct {
 	SelectedPersonnelID  string
 	SelectedPersonnel    personnelReturnView
 	HasSelectedPersonnel bool
-	CurrentItems         []returnCurrentCustodyItemView
-	HasCurrentItems      bool
+	AssetOptions         []custodyAssetOptionView
+	LineRows             []custodyLineFormRowView
+	Notes                string
+	TransactionID        string
+	HasCurrentCustody    bool
 }
 
 type personnelReturnView struct {
 	ID          string
 	DisplayName string
 	FullName    string
-}
-
-type returnCurrentCustodyItemView struct {
-	TransactionID string
-	AssetID       string
-	AssetName     string
-	AssetActive   bool
-	Quantity      int
 }
 
 type returnPersonnelOptionView struct {
@@ -43,9 +38,11 @@ type returnPersonnelOptionView struct {
 }
 
 func (s *Server) handleNewReturnForm(w http.ResponseWriter, r *http.Request) {
-	selectedPersonnelID := domain.PersonnelID(r.URL.Query().Get("personnel_id"))
-
-	data, err := s.buildReturnFormPageData(r, selectedPersonnelID, "")
+	data, err := s.buildReturnFormPageData(r, returnNewPageData{
+		Title:               "Register return",
+		SelectedPersonnelID: r.URL.Query().Get("personnel_id"),
+		LineRows:            defaultCustodyLineFormRows(),
+	})
 	if err != nil {
 		s.logger.Error("failed to build return form", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -70,7 +67,6 @@ func (s *Server) handleCreateReturn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	personnelID := domain.PersonnelID(r.FormValue("personnel_id"))
-	assetID := domain.AssetID(r.FormValue("asset_id"))
 	transactionID := domain.CustodyTransactionID(r.FormValue("transaction_id"))
 	if transactionID == "" {
 		s.renderReturnFormError(
@@ -83,14 +79,14 @@ func (s *Server) handleCreateReturn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	quantity, err := parsePositiveInt(r.FormValue("quantity"))
+	lines, err := parseCustodyLineCommandsFromRequest(r)
 	if err != nil {
 		s.renderReturnFormError(
 			w,
 			r,
 			http.StatusBadRequest,
 			personnelID,
-			"Quantity must be a positive number.",
+			humanizeCustodyLineFormError(err),
 		)
 		return
 	}
@@ -101,13 +97,8 @@ func (s *Server) handleCreateReturn(w http.ResponseWriter, r *http.Request) {
 		TransactionID: transactionID,
 		PersonnelID:   personnelID,
 		OperatorID:    currentOperator.ID(),
-		Lines: []app.CustodyLineCommand{
-			{
-				AssetID:  assetID,
-				Quantity: quantity,
-			},
-		},
-		Notes: notes,
+		Lines:         lines,
+		Notes:         notes,
 	})
 	if err != nil {
 		s.renderReturnFormError(
@@ -127,7 +118,10 @@ func (s *Server) handleCreateReturn(w http.ResponseWriter, r *http.Request) {
 			domain.AuditEntityCustodyTransaction,
 			string(result.Transaction.ID()),
 			map[string]string{
-				"personnel_id": string(result.Transaction.PersonnelID()),
+				"transaction_id": string(result.Transaction.ID()),
+				"personnel_id":   string(result.Transaction.PersonnelID()),
+				"line_count":     strconv.Itoa(len(result.Transaction.Lines())),
+				"total_quantity": strconv.Itoa(custodyTransactionTotalQuantity(result.Transaction.Lines())),
 			},
 		)
 	}
@@ -142,7 +136,14 @@ func (s *Server) renderReturnFormError(
 	personnelID domain.PersonnelID,
 	message string,
 ) {
-	data, err := s.buildReturnFormPageData(r, personnelID, message)
+	data, err := s.buildReturnFormPageData(r, returnNewPageData{
+		Title:               "Register return",
+		Error:               message,
+		SelectedPersonnelID: string(personnelID),
+		LineRows:            custodyLineFormRowsFromRequest(r),
+		Notes:               r.FormValue("notes"),
+		TransactionID:       r.FormValue("transaction_id"),
+	})
 	if err != nil {
 		s.logger.Error("failed to build return form error page", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -156,25 +157,31 @@ func (s *Server) renderReturnFormError(
 
 func (s *Server) buildReturnFormPageData(
 	r *http.Request,
-	selectedPersonnelID domain.PersonnelID,
-	errorMessage string,
+	data returnNewPageData,
 ) (returnNewPageData, error) {
 	personnelList, err := s.services.ListPersonnelWithCurrentCustody.Execute(r.Context())
 	if err != nil {
 		return returnNewPageData{}, err
 	}
 
-	data := returnNewPageData{
-		privateLayoutData:   newPrivateLayoutData(r),
-		Title:               "Register return",
-		Error:               errorMessage,
-		PersonnelOptions:    newReturnPersonnelOptions(personnelList, string(selectedPersonnelID)),
-		SelectedPersonnelID: string(selectedPersonnelID),
+	data.privateLayoutData = newPrivateLayoutData(r)
+	data.PersonnelOptions = newReturnPersonnelOptions(personnelList, data.SelectedPersonnelID)
+	data.LineRows = ensureAtLeastOneCustodyLineFormRow(data.LineRows)
+
+	if data.TransactionID == "" {
+		transactionID, err := newFormTransactionID()
+		if err != nil {
+			return returnNewPageData{}, err
+		}
+
+		data.TransactionID = string(transactionID)
 	}
 
-	if selectedPersonnelID == "" {
+	if data.SelectedPersonnelID == "" {
 		return data, nil
 	}
+
+	selectedPersonnelID := domain.PersonnelID(data.SelectedPersonnelID)
 
 	personnel, err := s.services.GetPersonnel.Execute(r.Context(), app.GetPersonnelCommand{
 		ID: selectedPersonnelID,
@@ -197,24 +204,8 @@ func (s *Server) buildReturnFormPageData(
 		return returnNewPageData{}, err
 	}
 
-	data.CurrentItems = make([]returnCurrentCustodyItemView, 0, len(currentItems))
-
-	for _, item := range currentItems {
-		transactionID, err := newFormTransactionID()
-		if err != nil {
-			return returnNewPageData{}, err
-		}
-
-		data.CurrentItems = append(data.CurrentItems, returnCurrentCustodyItemView{
-			TransactionID: string(transactionID),
-			AssetID:       string(item.AssetID),
-			AssetName:     item.AssetName,
-			AssetActive:   item.AssetActive,
-			Quantity:      item.Quantity,
-		})
-	}
-
-	data.HasCurrentItems = len(data.CurrentItems) > 0
+	data.AssetOptions = newReturnAssetOptions(currentItems)
+	data.HasCurrentCustody = len(data.AssetOptions) > 0
 
 	return data, nil
 }
@@ -260,17 +251,4 @@ func humanizeReturnWebError(err error) string {
 	default:
 		return "Could not register return."
 	}
-}
-
-func parsePositiveInt(value string) (int, error) {
-	quantity, err := strconv.Atoi(value)
-	if err != nil {
-		return 0, err
-	}
-
-	if quantity <= 0 {
-		return 0, domain.ErrInvalidQuantity
-	}
-
-	return quantity, nil
 }
