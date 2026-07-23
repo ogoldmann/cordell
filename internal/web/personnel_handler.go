@@ -194,12 +194,12 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) {
-			http.NotFound(w, r)
+			s.renderNotFound(w, r)
 			return
 		}
 
 		if errors.Is(err, domain.ErrEmptyPersonnelID) {
-			http.NotFound(w, r)
+			s.renderNotFound(w, r)
 			return
 		}
 
@@ -297,7 +297,7 @@ func (s *Server) handleDeactivatePersonnel(w http.ResponseWriter, r *http.Reques
 	})
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyPersonnelID) {
-			http.NotFound(w, r)
+			s.renderNotFound(w, r)
 			return
 		}
 
@@ -325,7 +325,7 @@ func (s *Server) handleReactivatePersonnel(w http.ResponseWriter, r *http.Reques
 	})
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyPersonnelID) {
-			http.NotFound(w, r)
+			s.renderNotFound(w, r)
 			return
 		}
 

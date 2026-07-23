@@ -47,6 +47,14 @@ func (s *Server) Routes() http.Handler {
 
 	router.Use(s.securityHeaders)
 
+	router.NotFound(
+		s.loadCurrentOperator(http.HandlerFunc(s.handleNotFound)).ServeHTTP,
+	)
+
+	router.MethodNotAllowed(
+		s.loadCurrentOperator(http.HandlerFunc(s.handleMethodNotAllowed)).ServeHTTP,
+	)
+
 	router.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	router.Group(func(public chi.Router) {

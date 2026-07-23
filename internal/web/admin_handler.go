@@ -121,7 +121,7 @@ func (s *Server) renderAdminOperatorShow(
 	})
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) {
-			http.NotFound(w, r)
+			s.renderNotFound(w, r)
 			return
 		}
 

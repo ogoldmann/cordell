@@ -26,7 +26,7 @@ func (s *Server) handleShowCustodyReceipt(w http.ResponseWriter, r *http.Request
 	})
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyTransactionID) {
-			http.NotFound(w, r)
+			s.renderNotFound(w, r)
 			return
 		}
 

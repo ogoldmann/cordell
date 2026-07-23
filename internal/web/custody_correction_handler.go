@@ -69,7 +69,7 @@ func (s *Server) handleEditCustodyTransactionForm(w http.ResponseWriter, r *http
 	})
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyTransactionID) {
-			http.NotFound(w, r)
+			s.renderNotFound(w, r)
 			return
 		}
 

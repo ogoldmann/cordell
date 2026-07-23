@@ -1,0 +1,45 @@
+{{define "not_found.html"}}
+  {{if .UsePrivateLayout}}
+    {{template "layout_start" .}}
+  {{else}}
+    {{template "public_layout_start" .}}
+  {{end}}
+
+  <section class="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center text-center">
+    <div class="mb-6 inline-flex rounded-full border border-cordell-border bg-cordell-surface px-4 py-2 text-sm font-extrabold text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-muted">
+      Erro 404
+    </div>
+
+    <h1 class="m-0 text-4xl font-extrabold tracking-tight text-cordell-text dark:text-cordell-dark-text sm:text-5xl">
+      {{.Heading}}
+    </h1>
+
+    <p class="mt-4 max-w-2xl text-lg text-cordell-muted dark:text-cordell-dark-muted">
+      {{.Description}}
+    </p>
+
+    <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
+      <a
+        class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white no-underline transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+        href="{{.HomeURL}}"
+      >
+        {{.HomeLabel}}
+      </a>
+
+      {{if .UsePrivateLayout}}
+        <a
+          class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-5 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+          href="{{.SearchURL}}"
+        >
+          {{.SearchLabel}}
+        </a>
+      {{end}}
+    </div>
+  </section>
+
+  {{if .UsePrivateLayout}}
+    {{template "layout_end" .}}
+  {{else}}
+    {{template "public_layout_end" .}}
+  {{end}}
+{{end}}

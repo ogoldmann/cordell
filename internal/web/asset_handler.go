@@ -175,12 +175,12 @@ func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) {
-			http.NotFound(w, r)
+			s.renderNotFound(w, r)
 			return
 		}
 
 		if errors.Is(err, domain.ErrEmptyAssetID) {
-			http.NotFound(w, r)
+			s.renderNotFound(w, r)
 			return
 		}
 
@@ -243,7 +243,7 @@ func (s *Server) handleDeactivateAsset(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyAssetID) {
-			http.NotFound(w, r)
+			s.renderNotFound(w, r)
 			return
 		}
 
@@ -271,7 +271,7 @@ func (s *Server) handleReactivateAsset(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyAssetID) {
-			http.NotFound(w, r)
+			s.renderNotFound(w, r)
 			return
 		}
 

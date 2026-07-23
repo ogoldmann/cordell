@@ -291,6 +291,30 @@ Return forms must list current custody records, even when the personnel or asset
 
 This prevents inactive assets or inactive personnel from becoming impossible to return.
 
+## Custom 404 Page
+
+Cordell renders a custom 404 page for missing routes and missing records.
+
+The custom 404 page includes:
+
+- Portuguese message
+- consistent visual layout
+- button back to the dashboard
+- search shortcut for authenticated users
+
+Handlers should call the shared not found renderer instead of using Go's default `http.NotFound`.
+
+## Custom 404 Page Checklist
+
+- [ ] Unknown routes render custom 404 page.
+- [ ] Missing personnel records render custom 404 page.
+- [ ] Missing asset records render custom 404 page.
+- [ ] Missing custody receipts render custom 404 page.
+- [ ] Missing admin operator records render custom 404 page.
+- [ ] 404 page has a button back to the dashboard.
+- [ ] Authenticated 404 page includes search shortcut.
+- [ ] Default `http.NotFound` is not used directly in web handlers.
+
 ## Operational Form Eligibility Checklist
 
 - [ ] Checkout personnel selector lists active personnel only.
