@@ -241,6 +241,20 @@ func (r *fakeAssetRepository) Save(_ context.Context, asset domain.Asset) error 
 	return nil
 }
 
+func (r *fakeAssetRepository) Update(_ context.Context, asset domain.Asset) error {
+	if r.saveErr != nil {
+		return r.saveErr
+	}
+
+	if r.byID == nil {
+		r.byID = make(map[domain.AssetID]domain.Asset)
+	}
+
+	r.byID[asset.ID()] = asset
+
+	return nil
+}
+
 func (r *fakeAssetRepository) FindByID(_ context.Context, id domain.AssetID) (domain.Asset, error) {
 	asset, ok := r.byID[id]
 	if !ok {
@@ -248,6 +262,26 @@ func (r *fakeAssetRepository) FindByID(_ context.Context, id domain.AssetID) (do
 	}
 
 	return asset, nil
+}
+
+func (r *fakeAssetRepository) FindByNameExcludingID(
+	_ context.Context,
+	name string,
+	excludedID domain.AssetID,
+) (domain.Asset, bool, error) {
+	normalizedName := domain.NormalizeAssetName(name)
+
+	for _, asset := range r.byID {
+		if asset.ID() == excludedID {
+			continue
+		}
+
+		if strings.EqualFold(asset.Name(), normalizedName) {
+			return asset, true, nil
+		}
+	}
+
+	return domain.Asset{}, false, nil
 }
 
 func (r *fakeAssetRepository) List(

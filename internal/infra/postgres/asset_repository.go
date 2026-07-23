@@ -41,6 +41,23 @@ func (r *AssetRepository) Save(ctx context.Context, asset domain.Asset) error {
 	return nil
 }
 
+// Update updates editable asset fields.
+func (r *AssetRepository) Update(ctx context.Context, asset domain.Asset) error {
+	err := r.queries.UpdateAsset(ctx, db.UpdateAssetParams{
+		ID:   string(asset.ID()),
+		Name: asset.Name(),
+	})
+	if err != nil {
+		if isUniqueViolation(err, "assets_name_unique_idx") {
+			return domain.ErrDuplicateAssetName
+		}
+
+		return err
+	}
+
+	return nil
+}
+
 // FindByID retrieves an asset record by identifier.
 func (r *AssetRepository) FindByID(ctx context.Context, id domain.AssetID) (domain.Asset, error) {
 	row, err := r.queries.GetAsset(ctx, string(id))
@@ -52,6 +69,36 @@ func (r *AssetRepository) FindByID(ctx context.Context, id domain.AssetID) (doma
 		return domain.Asset{}, err
 	}
 
+	return assetFromRow(row)
+}
+
+// FindByNameExcludingID finds an asset by name excluding one asset ID.
+func (r *AssetRepository) FindByNameExcludingID(
+	ctx context.Context,
+	name string,
+	excludedID domain.AssetID,
+) (domain.Asset, bool, error) {
+	row, err := r.queries.FindAssetByNameExcludingID(ctx, db.FindAssetByNameExcludingIDParams{
+		Name:       domain.NormalizeAssetName(name),
+		ExcludedID: string(excludedID),
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.Asset{}, false, nil
+		}
+
+		return domain.Asset{}, false, err
+	}
+
+	asset, err := assetFromRow(row)
+	if err != nil {
+		return domain.Asset{}, false, err
+	}
+
+	return asset, true, nil
+}
+
+func assetFromRow(row db.Asset) (domain.Asset, error) {
 	return domain.ReconstituteAsset(
 		domain.AssetID(row.ID),
 		row.Name,
@@ -78,11 +125,7 @@ func (r *AssetRepository) Search(
 	assets := make([]domain.Asset, 0, len(rows))
 
 	for _, row := range rows {
-		item, err := domain.ReconstituteAsset(
-			domain.AssetID(row.ID),
-			row.Name,
-			row.Active,
-		)
+		item, err := assetFromRow(row)
 		if err != nil {
 			return nil, err
 		}
@@ -112,11 +155,7 @@ func (r *AssetRepository) List(
 	assets := make([]domain.Asset, 0, len(rows))
 
 	for _, row := range rows {
-		item, err := domain.ReconstituteAsset(
-			domain.AssetID(row.ID),
-			row.Name,
-			row.Active,
-		)
+		item, err := assetFromRow(row)
 		if err != nil {
 			return nil, err
 		}

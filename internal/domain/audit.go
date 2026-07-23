@@ -15,6 +15,7 @@ const (
 	AuditEventPersonnelUpdated         AuditEventType = "personnel.updated"
 	AuditEventPersonnelDeactivated     AuditEventType = "personnel.deactivated"
 	AuditEventPersonnelReactivated     AuditEventType = "personnel.reactivated"
+	AuditEventAssetUpdated             AuditEventType = "asset.updated"
 	AuditEventAssetDeactivated         AuditEventType = "asset.deactivated"
 	AuditEventAssetReactivated         AuditEventType = "asset.reactivated"
 	AuditEventCustodyCheckoutCreated   AuditEventType = "custody.checkout_created"

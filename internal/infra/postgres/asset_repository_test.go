@@ -277,6 +277,92 @@ func TestPostgresAssetRepositoryDuplicateNameStillRejectedAfterDeactivation(t *t
 	}
 }
 
+func TestPostgresAssetRepositoryUpdate(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+	repository := postgres.NewAssetRepository(queries)
+
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	if err := repository.Save(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error saving asset, got %v", err)
+	}
+
+	if err := asset.UpdateDetails("Updated Radio"); err != nil {
+		t.Fatalf("expected no error updating asset details, got %v", err)
+	}
+
+	if err := repository.Update(context.Background(), asset); err != nil {
+		t.Fatalf("expected no error updating asset, got %v", err)
+	}
+
+	found, err := repository.FindByID(context.Background(), asset.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding asset, got %v", err)
+	}
+
+	if found.Name() != "Updated Radio" {
+		t.Fatalf("expected updated name, got %q", found.Name())
+	}
+}
+
+func TestPostgresAssetRepositoryFindByNameExcludingID(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+	repository := postgres.NewAssetRepository(queries)
+
+	first, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid first asset, got %v", err)
+	}
+
+	second, err := domain.NewAsset("asset-2", "Helmet")
+	if err != nil {
+		t.Fatalf("expected valid second asset, got %v", err)
+	}
+
+	if err := repository.Save(context.Background(), first); err != nil {
+		t.Fatalf("expected no error saving first asset, got %v", err)
+	}
+
+	if err := repository.Save(context.Background(), second); err != nil {
+		t.Fatalf("expected no error saving second asset, got %v", err)
+	}
+
+	_, found, err := repository.FindByNameExcludingID(
+		context.Background(),
+		first.Name(),
+		first.ID(),
+	)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if found {
+		t.Fatal("expected not to find same asset when excluded")
+	}
+
+	duplicate, found, err := repository.FindByNameExcludingID(
+		context.Background(),
+		first.Name(),
+		second.ID(),
+	)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if !found {
+		t.Fatal("expected duplicate asset to be found")
+	}
+
+	if duplicate.ID() != first.ID() {
+		t.Fatalf("expected duplicate %s, got %s", first.ID(), duplicate.ID())
+	}
+}
+
 func TestPostgresAssetRepositorySearch(t *testing.T) {
 	pool := openTestPool(t)
 	queries := newTestQueries(pool)

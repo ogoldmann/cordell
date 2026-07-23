@@ -236,7 +236,9 @@ type PersonnelRepository interface {
 // AssetRepository persists and retrieves asset records.
 type AssetRepository interface {
 	Save(ctx context.Context, asset domain.Asset) error
+	Update(ctx context.Context, asset domain.Asset) error
 	FindByID(ctx context.Context, id domain.AssetID) (domain.Asset, error)
+	FindByNameExcludingID(ctx context.Context, name string, excludedID domain.AssetID) (domain.Asset, bool, error)
 	List(ctx context.Context, limit int, statusFilter RecordStatusFilter) ([]domain.Asset, error)
 	Search(ctx context.Context, query string, limit int, statusFilter RecordStatusFilter) ([]domain.Asset, error)
 	Deactivate(ctx context.Context, id domain.AssetID) (bool, error)

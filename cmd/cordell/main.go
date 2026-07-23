@@ -130,6 +130,9 @@ func main() {
 		GetAsset: app.NewGetAssetService(
 			assetRepository,
 		),
+		UpdateAsset: app.NewUpdateAssetService(
+			assetRepository,
+		),
 		ListAssets: app.NewListAssetsService(
 			assetRepository,
 		),

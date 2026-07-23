@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"cordell/internal/domain"
@@ -102,6 +103,74 @@ func TestGetAssetServiceRejectsEmptyID(t *testing.T) {
 	})
 	if err != domain.ErrEmptyAssetID {
 		t.Fatalf("expected ErrEmptyAssetID, got %v", err)
+	}
+}
+
+func TestUpdateAssetServiceUpdatesAsset(t *testing.T) {
+	asset, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	repository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			asset.ID(): asset,
+		},
+	}
+
+	service := NewUpdateAssetService(repository)
+
+	updated, err := service.Execute(context.Background(), UpdateAssetCommand{
+		ID:   asset.ID(),
+		Name: "Updated Radio",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if updated.Name() != "Updated Radio" {
+		t.Fatalf("expected updated name, got %q", updated.Name())
+	}
+}
+
+func TestUpdateAssetServiceReturnsNotFound(t *testing.T) {
+	service := NewUpdateAssetService(&fakeAssetRepository{})
+
+	_, err := service.Execute(context.Background(), UpdateAssetCommand{
+		ID:   "missing",
+		Name: "Radio",
+	})
+	if !errors.Is(err, ports.ErrNotFound) {
+		t.Fatalf("expected ErrNotFound, got %v", err)
+	}
+}
+
+func TestUpdateAssetServiceRejectsDuplicateName(t *testing.T) {
+	first, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid first asset, got %v", err)
+	}
+
+	second, err := domain.NewAsset("asset-2", "Helmet")
+	if err != nil {
+		t.Fatalf("expected valid second asset, got %v", err)
+	}
+
+	repository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			first.ID():  first,
+			second.ID(): second,
+		},
+	}
+
+	service := NewUpdateAssetService(repository)
+
+	_, err = service.Execute(context.Background(), UpdateAssetCommand{
+		ID:   second.ID(),
+		Name: first.Name(),
+	})
+	if !errors.Is(err, domain.ErrDuplicateAssetName) {
+		t.Fatalf("expected duplicate asset name, got %v", err)
 	}
 }
 

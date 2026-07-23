@@ -51,6 +51,56 @@ func (s *CreateAssetService) Execute(ctx context.Context, cmd CreateAssetCommand
 	return asset, nil
 }
 
+// UpdateAssetCommand contains the input data required to update an asset.
+type UpdateAssetCommand struct {
+	ID   domain.AssetID
+	Name string
+}
+
+// UpdateAssetService handles the asset update use case.
+type UpdateAssetService struct {
+	assetRepository ports.AssetRepository
+}
+
+// NewUpdateAssetService creates an UpdateAssetService.
+func NewUpdateAssetService(assetRepository ports.AssetRepository) *UpdateAssetService {
+	return &UpdateAssetService{
+		assetRepository: assetRepository,
+	}
+}
+
+// Execute updates editable asset details.
+func (s *UpdateAssetService) Execute(ctx context.Context, cmd UpdateAssetCommand) (domain.Asset, error) {
+	if cmd.ID == "" {
+		return domain.Asset{}, domain.ErrEmptyAssetID
+	}
+
+	asset, err := s.assetRepository.FindByID(ctx, cmd.ID)
+	if err != nil {
+		return domain.Asset{}, err
+	}
+
+	normalizedName := domain.NormalizeAssetName(cmd.Name)
+
+	_, duplicateFound, err := s.assetRepository.FindByNameExcludingID(ctx, normalizedName, cmd.ID)
+	if err != nil {
+		return domain.Asset{}, err
+	}
+	if duplicateFound {
+		return domain.Asset{}, domain.ErrDuplicateAssetName
+	}
+
+	if err := asset.UpdateDetails(normalizedName); err != nil {
+		return domain.Asset{}, err
+	}
+
+	if err := s.assetRepository.Update(ctx, asset); err != nil {
+		return domain.Asset{}, err
+	}
+
+	return asset, nil
+}
+
 const (
 	defaultAssetListLimit = 50
 	maxAssetListLimit     = 100

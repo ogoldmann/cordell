@@ -370,6 +370,34 @@ Personnel edits are audited.
 - [ ] Personnel edit writes audit event.
 - [ ] Missing personnel edit route renders custom 404.
 
+## Edit Asset
+
+Asset records can be edited after creation.
+
+Editable fields:
+
+- name
+
+Lifecycle state is not edited in this form.
+
+Activation and deactivation remain separate explicit actions.
+
+Updating an asset does not mutate custody transactions.
+
+Asset edits are audited.
+
+## Edit Asset Checklist
+
+- [ ] Asset detail page has edit action.
+- [ ] Asset edit form reuses asset form template.
+- [ ] Asset edit validates required name.
+- [ ] Asset edit allows keeping the same name.
+- [ ] Asset edit rejects name used by another asset.
+- [ ] Asset edit does not change active/inactive state.
+- [ ] Asset edit redirects to asset detail.
+- [ ] Asset edit writes audit event.
+- [ ] Missing asset edit route renders custom 404.
+
 ## Operational Form Eligibility Checklist
 
 - [ ] Checkout personnel selector lists active personnel only.

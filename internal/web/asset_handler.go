@@ -22,15 +22,16 @@ type assetIndexPageData struct {
 	StatusTabs   []statusFilterTabView
 }
 
-type assetNewPageData struct {
+type assetFormPageData struct {
 	privateLayoutData
 	Header         pageHeaderView
 	FormActions    formActionsView
 	Feedback       *feedbackMessageView
 	DetailsSection sectionHeaderView
+	ActionURL      string
 	Title          string
 	Error          string
-	Name           string
+	Form           assetFormView
 }
 
 type assetShowPageData struct {
@@ -61,6 +62,10 @@ type assetHolderView struct {
 	PersonnelActive      bool
 	PersonnelStatusLabel string
 	Quantity             int
+}
+
+type assetFormView struct {
+	Name string
 }
 
 func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
@@ -109,33 +114,9 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleNewAssetForm(w http.ResponseWriter, r *http.Request) {
-	data := assetNewPageData{
-		privateLayoutData: newPrivateLayoutData(r),
-		Title:             "Cadastrar material",
-		Header: newPageHeader(
-			assetPluralLabel(),
-			"Cadastrar material",
-			"Cadastre um material que poderá ser controlado por custódia.",
-			nil,
-		),
-		FormActions: newFormActions(
-			"Cadastrar material",
-			"Cancelar",
-			"/assets",
-		),
-		DetailsSection: newSectionHeader(
-			"Identificação",
-			"Dados do material",
-			"Informe o nome do material que será controlado por custódia.",
-		),
-	}
-	data.Breadcrumbs = []breadcrumbItemView{
-		homeBreadcrumb(),
-		assetsBreadcrumb(),
-		currentBreadcrumb("Cadastrar material"),
-	}
+	data := newAssetCreatePageData(r, assetFormView{}, "")
 
-	if err := s.renderer.Render(w, http.StatusOK, "assets_new.html", data); err != nil {
+	if err := s.renderer.Render(w, http.StatusOK, "asset_form.html", data); err != nil {
 		s.handleRenderError(w, err)
 	}
 }
@@ -174,6 +155,70 @@ func (s *Server) handleCreateAsset(w http.ResponseWriter, r *http.Request) {
 		fmt.Sprintf("/assets/%s", asset.ID()),
 		http.StatusSeeOther,
 	)
+}
+
+func (s *Server) handleEditAssetForm(w http.ResponseWriter, r *http.Request) {
+	id := domain.AssetID(chi.URLParam(r, "id"))
+
+	asset, err := s.services.GetAsset.Execute(r.Context(), app.GetAssetCommand{
+		ID: id,
+	})
+	if err != nil {
+		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyAssetID) {
+			s.renderNotFound(w, r)
+			return
+		}
+
+		s.logger.Error("failed to get asset for edit", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	data := newAssetEditPageData(r, newAssetView(asset), "")
+
+	if err := s.renderer.Render(w, http.StatusOK, "asset_form.html", data); err != nil {
+		s.handleRenderError(w, err)
+	}
+}
+
+func (s *Server) handleUpdateAsset(w http.ResponseWriter, r *http.Request) {
+	id := domain.AssetID(chi.URLParam(r, "id"))
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	asset, err := s.services.UpdateAsset.Execute(r.Context(), app.UpdateAssetCommand{
+		ID:   id,
+		Name: r.FormValue("name"),
+	})
+	if err != nil {
+		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyAssetID) {
+			s.renderNotFound(w, r)
+			return
+		}
+
+		data := newAssetEditPageDataFromRequest(r, id, humanizeAssetError(err))
+
+		if renderErr := s.renderer.Render(w, http.StatusUnprocessableEntity, "asset_form.html", data); renderErr != nil {
+			s.handleRenderError(w, renderErr)
+		}
+
+		return
+	}
+
+	s.recordAuditEventOrLog(
+		r,
+		domain.AuditEventAssetUpdated,
+		domain.AuditEntityAsset,
+		string(asset.ID()),
+		map[string]string{
+			"asset_id": string(asset.ID()),
+		},
+	)
+
+	http.Redirect(w, r, "/assets/"+string(asset.ID()), http.StatusSeeOther)
 }
 
 func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
@@ -318,7 +363,21 @@ func (s *Server) renderNewAssetFormWithError(
 	message string,
 	name string,
 ) {
-	data := assetNewPageData{
+	data := newAssetCreatePageData(r, assetFormView{
+		Name: name,
+	}, message)
+
+	if err := s.renderer.Render(w, status, "asset_form.html", data); err != nil {
+		s.handleRenderError(w, err)
+	}
+}
+
+func newAssetCreatePageData(
+	r *http.Request,
+	form assetFormView,
+	errorMessage string,
+) assetFormPageData {
+	data := assetFormPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Cadastrar material",
 		Header: newPageHeader(
@@ -332,14 +391,15 @@ func (s *Server) renderNewAssetFormWithError(
 			"Cancelar",
 			"/assets",
 		),
-		Feedback: newErrorFeedback(message),
+		Feedback: newErrorFeedback(errorMessage),
 		DetailsSection: newSectionHeader(
 			"Identificação",
 			"Dados do material",
 			"Informe o nome do material que será controlado por custódia.",
 		),
-		Error: message,
-		Name:  name,
+		ActionURL: "/assets",
+		Error:     errorMessage,
+		Form:      form,
 	}
 	data.Breadcrumbs = []breadcrumbItemView{
 		homeBreadcrumb(),
@@ -347,9 +407,91 @@ func (s *Server) renderNewAssetFormWithError(
 		currentBreadcrumb("Cadastrar material"),
 	}
 
-	if err := s.renderer.Render(w, status, "assets_new.html", data); err != nil {
-		s.handleRenderError(w, err)
+	return data
+}
+
+func newAssetEditPageData(
+	r *http.Request,
+	asset assetView,
+	errorMessage string,
+) assetFormPageData {
+	data := assetFormPageData{
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             "Editar material",
+		Header: newPageHeader(
+			assetPluralLabel(),
+			"Editar material",
+			"Atualize os dados cadastrais do material.",
+			nil,
+		),
+		FormActions: newFormActions(
+			"Salvar alterações",
+			"Cancelar",
+			"/assets/"+asset.ID,
+		),
+		Feedback: newErrorFeedback(errorMessage),
+		DetailsSection: newSectionHeader(
+			"Identificação",
+			"Dados do material",
+			"Atualize o nome do material.",
+		),
+		ActionURL: "/assets/" + asset.ID,
+		Error:     errorMessage,
+		Form: assetFormView{
+			Name: asset.Name,
+		},
 	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		assetsBreadcrumb(),
+		{
+			Label: asset.Name,
+			URL:   "/assets/" + asset.ID,
+		},
+		currentBreadcrumb("Editar"),
+	}
+
+	return data
+}
+
+func newAssetEditPageDataFromRequest(
+	r *http.Request,
+	id domain.AssetID,
+	errorMessage string,
+) assetFormPageData {
+	data := assetFormPageData{
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             "Editar material",
+		Header: newPageHeader(
+			assetPluralLabel(),
+			"Editar material",
+			"Atualize os dados cadastrais do material.",
+			nil,
+		),
+		FormActions: newFormActions(
+			"Salvar alterações",
+			"Cancelar",
+			"/assets/"+string(id),
+		),
+		Feedback: newErrorFeedback(errorMessage),
+		DetailsSection: newSectionHeader(
+			"Identificação",
+			"Dados do material",
+			"Atualize o nome do material.",
+		),
+		ActionURL: "/assets/" + string(id),
+		Error:     errorMessage,
+		Form: assetFormView{
+			Name: r.FormValue("name"),
+		},
+	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		assetsBreadcrumb(),
+		currentBreadcrumb("Editar material"),
+	}
+
+	return data
 }
 
 func humanizeAssetError(err error) string {

@@ -15,6 +15,25 @@ SELECT id, name, active, created_at, updated_at
 FROM assets
 WHERE id = @id;
 
+-- name: UpdateAsset :exec
+UPDATE assets
+SET
+    name = @name,
+    updated_at = now()
+WHERE id = @id;
+
+-- name: FindAssetByNameExcludingID :one
+SELECT
+    id,
+    name,
+    active,
+    created_at,
+    updated_at
+FROM assets
+WHERE lower(name) = lower(@name)
+  AND id <> @excluded_id
+LIMIT 1;
+
 -- name: ListAssets :many
 SELECT id, name, active, created_at, updated_at
 FROM assets

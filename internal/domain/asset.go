@@ -39,6 +39,18 @@ func buildAsset(id AssetID, name string, active bool) (Asset, error) {
 	}, nil
 }
 
+// UpdateDetails updates editable asset fields.
+func (a *Asset) UpdateDetails(name string) error {
+	name = NormalizeAssetName(name)
+	if name == "" {
+		return ErrEmptyAssetName
+	}
+
+	a.name = name
+
+	return nil
+}
+
 // NormalizeAssetName normalizes asset names for consistent identity.
 func NormalizeAssetName(value string) string {
 	return strings.Join(strings.Fields(value), " ")

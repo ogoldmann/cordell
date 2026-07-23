@@ -1,4 +1,4 @@
-{{define "assets_new.html"}}
+{{define "asset_form.html"}}
 {{template "layout_start" .}}
 
 {{template "page_header" .Header}}
@@ -8,7 +8,7 @@
 <form
   class="grid gap-6"
   method="post"
-  action="/assets"
+  action="{{.ActionURL}}"
 >
   <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
@@ -22,7 +22,7 @@
         id="name"
         name="name"
         type="text"
-        value="{{.Name}}"
+        value="{{.Form.Name}}"
         autocomplete="off"
         required
       >

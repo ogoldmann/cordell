@@ -1,6 +1,9 @@
 package domain
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestNewAsset(t *testing.T) {
 	asset, err := NewAsset("asset-1", "  Radio  ")
@@ -43,5 +46,33 @@ func TestNewAssetNormalizesName(t *testing.T) {
 
 	if asset.Name() != "Radio VHF" {
 		t.Fatalf("expected normalized name Radio VHF, got %q", asset.Name())
+	}
+}
+
+func TestAssetUpdateDetails(t *testing.T) {
+	asset, err := NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	err = asset.UpdateDetails("Updated Radio")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if asset.Name() != "Updated Radio" {
+		t.Fatalf("expected updated name, got %q", asset.Name())
+	}
+}
+
+func TestAssetUpdateDetailsRejectsEmptyName(t *testing.T) {
+	asset, err := NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid asset, got %v", err)
+	}
+
+	err = asset.UpdateDetails("   ")
+	if !errors.Is(err, ErrEmptyAssetName) {
+		t.Fatalf("expected ErrEmptyAssetName, got %v", err)
 	}
 }

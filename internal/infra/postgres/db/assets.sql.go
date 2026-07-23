@@ -62,6 +62,37 @@ func (q *Queries) DeactivateAsset(ctx context.Context, id string) (int32, error)
 	return column_1, err
 }
 
+const findAssetByNameExcludingID = `-- name: FindAssetByNameExcludingID :one
+SELECT
+    id,
+    name,
+    active,
+    created_at,
+    updated_at
+FROM assets
+WHERE lower(name) = lower($1)
+  AND id <> $2
+LIMIT 1
+`
+
+type FindAssetByNameExcludingIDParams struct {
+	Name       string `json:"name"`
+	ExcludedID string `json:"excluded_id"`
+}
+
+func (q *Queries) FindAssetByNameExcludingID(ctx context.Context, arg FindAssetByNameExcludingIDParams) (Asset, error) {
+	row := q.db.QueryRow(ctx, findAssetByNameExcludingID, arg.Name, arg.ExcludedID)
+	var i Asset
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Active,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getAsset = `-- name: GetAsset :one
 SELECT id, name, active, created_at, updated_at
 FROM assets
@@ -204,4 +235,22 @@ func (q *Queries) SearchAssets(ctx context.Context, arg SearchAssetsParams) ([]A
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateAsset = `-- name: UpdateAsset :exec
+UPDATE assets
+SET
+    name = $1,
+    updated_at = now()
+WHERE id = $2
+`
+
+type UpdateAssetParams struct {
+	Name string `json:"name"`
+	ID   string `json:"id"`
+}
+
+func (q *Queries) UpdateAsset(ctx context.Context, arg UpdateAssetParams) error {
+	_, err := q.db.Exec(ctx, updateAsset, arg.Name, arg.ID)
+	return err
 }
