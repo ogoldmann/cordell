@@ -29,4 +29,12 @@ func TestNewPersonnelViewUsesOperationalDisplayName(t *testing.T) {
 	if view.RankLabel != "Soldado (Sd)" {
 		t.Fatalf("expected rank label Soldado (Sd), got %q", view.RankLabel)
 	}
+
+	if view.SectionLabel != "3ª Seção / Operações (S3)" {
+		t.Fatalf("expected full section label, got %q", view.SectionLabel)
+	}
+
+	if view.SectionShortLabel != "S3" {
+		t.Fatalf("expected short section label S3, got %q", view.SectionShortLabel)
+	}
 }

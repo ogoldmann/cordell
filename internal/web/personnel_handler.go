@@ -55,6 +55,7 @@ type personnelView struct {
 	RegistrationID        string
 	Section               string
 	SectionLabel          string
+	SectionShortLabel     string
 	OrganizationUnit      string
 	OrganizationUnitLabel string
 	DisplayName           string
@@ -413,6 +414,7 @@ func newPersonnelView(personnel domain.Personnel) personnelView {
 		RegistrationID:        personnel.RegistrationID().String(),
 		Section:               string(personnel.Section()),
 		SectionLabel:          personnelSectionLabel(personnel.Section()),
+		SectionShortLabel:     personnel.Section().Abbreviation(),
 		OrganizationUnit:      string(personnel.OrganizationUnit()),
 		OrganizationUnitLabel: organizationUnitLabel(personnel.OrganizationUnit()),
 		DisplayName:           militaryDisplayName(personnel.Rank(), personnel.Alias()),
@@ -444,7 +446,7 @@ func sectionOptions() []selectOption {
 	for _, option := range options {
 		result = append(result, selectOption{
 			Value: string(option.Value),
-			Label: option.Label,
+			Label: option.Value.DisplayLabel(),
 		})
 	}
 
@@ -470,13 +472,7 @@ func personnelRankLabel(rank domain.PersonnelRank) string {
 }
 
 func personnelSectionLabel(section domain.PersonnelSection) string {
-	for _, option := range domain.PersonnelSectionOptions() {
-		if option.Value == section {
-			return option.Label
-		}
-	}
-
-	return string(section)
+	return section.DisplayLabel()
 }
 
 func organizationUnitLabel(unit domain.OrganizationUnit) string {

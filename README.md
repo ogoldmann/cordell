@@ -1562,3 +1562,60 @@ A future search milestone should support rank abbreviation tokens, such as:
 - `2º ten`
 
 This should be implemented in the search layer, not by changing stored rank values.
+
+## Section Catalog
+
+Cordell uses a predefined section catalog for personnel assignment.
+
+The catalog keeps internal section values in English and presents Portuguese operational labels in the UI.
+
+Each section has:
+
+- internal value
+- Portuguese label
+- abbreviation
+- display order
+
+Operational displays may use short abbreviations, such as:
+
+- `S1`
+- `S3`
+- `Almx`
+
+Detailed fields and select inputs may show full labels with abbreviations, such as:
+
+- `1ª Seção / Pessoal (S1)`
+- `3ª Seção / Operações (S3)`
+- `Almoxarifado (Almx)`
+
+The current section catalog is static.
+
+A future version may move section management to an administrative reference table if unit-specific customization becomes necessary.
+
+## Section Catalog Foundation
+
+- [ ] Section catalog has Portuguese labels.
+- [ ] Section catalog has abbreviations.
+- [ ] Section catalog preserves display order.
+- [ ] Personnel form shows full section label and abbreviation.
+- [ ] Personnel detail shows full section label and abbreviation.
+- [ ] Personnel list/card uses compact section abbreviation.
+- [ ] Personnel selectors use compact section abbreviation when appropriate.
+- [ ] Legacy section aliases remain valid where needed.
+- [ ] Section abbreviations are documented as future search tokens.
+- [ ] No database schema change is required.
+
+## Planned Section Search Tokens
+
+Section abbreviations are part of the UI presentation layer.
+
+A future search milestone should support section abbreviation tokens, such as:
+
+- `S1`
+- `S2`
+- `S3`
+- `S4`
+- `Almx`
+- `Res Armt`
+
+This should be implemented in the search layer, not by changing stored section values.

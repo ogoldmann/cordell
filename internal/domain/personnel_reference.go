@@ -156,30 +156,40 @@ func IsValidPersonnelRank(rank PersonnelRank) bool {
 type PersonnelSection string
 
 const (
-	// PersonnelSectionAdministration represents the administration section.
-	PersonnelSectionAdministration PersonnelSection = "administration"
+	PersonnelSectionCommand        PersonnelSection = "command"
+	PersonnelSectionPersonnel      PersonnelSection = "personnel"
+	PersonnelSectionIntelligence   PersonnelSection = "intelligence"
+	PersonnelSectionOperations     PersonnelSection = "operations"
+	PersonnelSectionLogistics      PersonnelSection = "logistics"
+	PersonnelSectionCommunications PersonnelSection = "communications"
+	PersonnelSectionSupply         PersonnelSection = "supply"
+	PersonnelSectionArmory         PersonnelSection = "armory"
+	PersonnelSectionMaintenance    PersonnelSection = "maintenance"
+	PersonnelSectionHealth         PersonnelSection = "health"
 
-	// PersonnelSectionOperations represents the operations section.
-	PersonnelSectionOperations PersonnelSection = "operations"
-
-	// PersonnelSectionLogistics represents the logistics section.
-	PersonnelSectionLogistics PersonnelSection = "logistics"
-
-	// PersonnelSectionMaintenance represents the maintenance section.
-	PersonnelSectionMaintenance PersonnelSection = "maintenance"
+	// Backward-compatible aliases kept for older tests/data and previous code.
+	PersonnelSectionAdministration PersonnelSection = PersonnelSectionPersonnel
 )
 
 // PersonnelSectionOption represents a selectable personnel section.
 type PersonnelSectionOption struct {
-	Value PersonnelSection
-	Label string
+	Value        PersonnelSection
+	Label        string
+	Abbreviation string
+	Order        int
 }
 
 var personnelSectionOptions = []PersonnelSectionOption{
-	{Value: PersonnelSectionAdministration, Label: "Administration"},
-	{Value: PersonnelSectionOperations, Label: "Operations"},
-	{Value: PersonnelSectionLogistics, Label: "Logistics"},
-	{Value: PersonnelSectionMaintenance, Label: "Maintenance"},
+	{Value: PersonnelSectionCommand, Label: "Comando", Abbreviation: "Cmdo", Order: 10},
+	{Value: PersonnelSectionPersonnel, Label: "1ª Seção / Pessoal", Abbreviation: "S1", Order: 20},
+	{Value: PersonnelSectionIntelligence, Label: "2ª Seção / Inteligência", Abbreviation: "S2", Order: 30},
+	{Value: PersonnelSectionOperations, Label: "3ª Seção / Operações", Abbreviation: "S3", Order: 40},
+	{Value: PersonnelSectionLogistics, Label: "4ª Seção / Logística", Abbreviation: "S4", Order: 50},
+	{Value: PersonnelSectionCommunications, Label: "Comunicações", Abbreviation: "Com", Order: 60},
+	{Value: PersonnelSectionSupply, Label: "Almoxarifado", Abbreviation: "Almx", Order: 70},
+	{Value: PersonnelSectionArmory, Label: "Reserva de Armamento", Abbreviation: "Res Armt", Order: 80},
+	{Value: PersonnelSectionMaintenance, Label: "Manutenção", Abbreviation: "Mnt", Order: 90},
+	{Value: PersonnelSectionHealth, Label: "Saúde", Abbreviation: "Sau", Order: 100},
 }
 
 // PersonnelSectionOptions returns the available personnel section options.
@@ -201,6 +211,12 @@ func IsValidPersonnelSection(section PersonnelSection) bool {
 	return false
 }
 
+// String returns the internal personnel section value.
+func (s PersonnelSection) String() string {
+	return string(s)
+}
+
+// Label returns the Portuguese full label for the personnel section.
 func (s PersonnelSection) Label() string {
 	for _, option := range personnelSectionOptions {
 		if option.Value == s {
@@ -209,6 +225,29 @@ func (s PersonnelSection) Label() string {
 	}
 
 	return string(s)
+}
+
+// Abbreviation returns the operational abbreviation for the personnel section.
+func (s PersonnelSection) Abbreviation() string {
+	for _, option := range personnelSectionOptions {
+		if option.Value == s {
+			return option.Abbreviation
+		}
+	}
+
+	return string(s)
+}
+
+// DisplayLabel returns the full personnel section label with its abbreviation.
+func (s PersonnelSection) DisplayLabel() string {
+	label := s.Label()
+	abbreviation := s.Abbreviation()
+
+	if abbreviation == "" || abbreviation == label {
+		return label
+	}
+
+	return label + " (" + abbreviation + ")"
 }
 
 // OrganizationUnit represents a predefined organization unit.
