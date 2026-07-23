@@ -14,6 +14,8 @@ import (
 
 type assetIndexPageData struct {
 	privateLayoutData
+	Header       pageHeaderView
+	EmptyState   emptyStateView
 	Title        string
 	Assets       []assetView
 	StatusFilter string
@@ -22,9 +24,11 @@ type assetIndexPageData struct {
 
 type assetNewPageData struct {
 	privateLayoutData
-	Title string
-	Error string
-	Name  string
+	Header      pageHeaderView
+	FormActions formActionsView
+	Title       string
+	Error       string
+	Name        string
 }
 
 type assetShowPageData struct {
@@ -70,10 +74,21 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 
 	data := assetIndexPageData{
 		privateLayoutData: newPrivateLayoutData(r),
-		Title:             assetPluralLabel(),
-		Assets:            make([]assetView, 0, len(assets)),
-		StatusFilter:      string(statusFilter),
-		StatusTabs:        newStatusFilterTabs("/assets", statusFilter),
+		Header: newPageHeader(
+			"Materiais",
+			assetPluralLabel(),
+			"Materiais que podem ser cautelados aos militares.",
+			newPageAction("Cadastrar material", "/assets/new"),
+		),
+		EmptyState: newEmptyState(
+			"Nenhum material cadastrado",
+			"Cadastre o primeiro material para começar a usar o Cordell.",
+			newPageAction("Cadastrar material", "/assets/new"),
+		),
+		Title:        assetPluralLabel(),
+		Assets:       make([]assetView, 0, len(assets)),
+		StatusFilter: string(statusFilter),
+		StatusTabs:   newStatusFilterTabs("/assets", statusFilter),
 	}
 	data.Breadcrumbs = []breadcrumbItemView{
 		homeBreadcrumb(),
@@ -93,6 +108,17 @@ func (s *Server) handleNewAssetForm(w http.ResponseWriter, r *http.Request) {
 	data := assetNewPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Cadastrar material",
+		Header: newPageHeader(
+			assetPluralLabel(),
+			"Cadastrar material",
+			"Cadastre um material que poderá ser controlado por custódia.",
+			nil,
+		),
+		FormActions: newFormActions(
+			"Cadastrar material",
+			"Cancelar",
+			"/assets",
+		),
 	}
 	data.Breadcrumbs = []breadcrumbItemView{
 		homeBreadcrumb(),
@@ -275,8 +301,19 @@ func (s *Server) renderNewAssetFormWithError(
 	data := assetNewPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Cadastrar material",
-		Error:             message,
-		Name:              name,
+		Header: newPageHeader(
+			assetPluralLabel(),
+			"Cadastrar material",
+			"Cadastre um material que poderá ser controlado por custódia.",
+			nil,
+		),
+		FormActions: newFormActions(
+			"Cadastrar material",
+			"Cancelar",
+			"/assets",
+		),
+		Error: message,
+		Name:  name,
 	}
 	data.Breadcrumbs = []breadcrumbItemView{
 		homeBreadcrumb(),

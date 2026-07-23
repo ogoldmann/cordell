@@ -1,0 +1,86 @@
+{{define "page_header"}}
+  <header class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      {{if .Eyebrow}}
+        <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+          {{.Eyebrow}}
+        </p>
+      {{end}}
+
+      <h1 class="m-0 text-3xl font-extrabold tracking-tight text-cordell-text dark:text-cordell-dark-text">
+        {{.Title}}
+      </h1>
+
+      {{if .Description}}
+        <p class="mt-3 max-w-3xl text-cordell-muted dark:text-cordell-dark-muted">
+          {{.Description}}
+        </p>
+      {{end}}
+    </div>
+
+    {{if .PrimaryAction}}
+      <a
+        class="inline-flex w-fit items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white no-underline transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+        href="{{.PrimaryAction.URL}}"
+      >
+        {{.PrimaryAction.Label}}
+      </a>
+    {{end}}
+  </header>
+{{end}}
+
+{{define "empty_state"}}
+  <section class="rounded-3xl border border-dashed border-cordell-border bg-cordell-surface p-8 text-center shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+    <h2 class="m-0 text-2xl font-extrabold text-cordell-text dark:text-cordell-dark-text">
+      {{.Title}}
+    </h2>
+
+    {{if .Description}}
+      <p class="mx-auto mt-3 max-w-2xl text-cordell-muted dark:text-cordell-dark-muted">
+        {{.Description}}
+      </p>
+    {{end}}
+
+    {{if .PrimaryAction}}
+      <a
+        class="mt-6 inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white no-underline transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+        href="{{.PrimaryAction.URL}}"
+      >
+        {{.PrimaryAction.Label}}
+      </a>
+    {{end}}
+  </section>
+{{end}}
+
+{{define "form_actions"}}
+  <div class="flex flex-col-reverse gap-3 border-t border-cordell-border pt-6 dark:border-cordell-dark-border sm:flex-row sm:items-center sm:justify-end">
+    {{if .SecondaryURL}}
+      <a
+        class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-5 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+        href="{{.SecondaryURL}}"
+      >
+        {{.SecondaryLabel}}
+      </a>
+    {{end}}
+
+    {{if .ShowSaveAndCreateAnother}}
+      <button
+        class="inline-flex items-center justify-center rounded-xl border border-cordell-primary/30 bg-white px-5 py-3 font-bold text-cordell-primary transition hover:border-cordell-primary dark:border-cordell-dark-primary/40 dark:bg-cordell-dark-background dark:text-cordell-dark-primary"
+        type="submit"
+        name="intent"
+        value="save_and_create_another"
+      >
+        {{.SaveAndCreateAnotherLabel}}
+      </button>
+    {{end}}
+
+    <button
+      class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+      type="submit"
+      name="intent"
+      value="save"
+    >
+      {{.PrimaryLabel}}
+    </button>
+  </div>
+{{end}}

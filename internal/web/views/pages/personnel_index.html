@@ -1,30 +1,7 @@
 {{define "personnel_index.html"}}
 {{template "layout_start" .}}
 
-<section class="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-  <div>
-    <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-      Militares
-    </p>
-
-    <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
-      Militares
-    </h1>
-
-    <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
-      Militares que podem receber materiais sob custódia.
-    </p>
-  </div>
-
-  <div>
-    <a
-      class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2.5 text-sm font-bold text-cordell-text no-underline shadow-sm transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
-      href="/personnel/new"
-    >
-      Cadastrar militar
-    </a>
-  </div>
-</section>
+{{template "page_header" .Header}}
 
 <nav class="mb-6 flex flex-wrap gap-2" aria-label="Filtro de status de militares">
   {{range .StatusTabs}}
@@ -44,17 +21,7 @@
     {{end}}
   </div>
 {{else}}
-  <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-8 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
-    <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Nenhum militar cadastrado</h2>
-    <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">Cadastre o primeiro militar para começar a usar o Cordell.</p>
-
-    <a
-      class="mt-5 inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2.5 text-sm font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
-      href="/personnel/new"
-    >
-      Cadastrar militar
-    </a>
-  </div>
+  {{template "empty_state" .EmptyState}}
 {{end}}
 
 {{template "layout_end" .}}

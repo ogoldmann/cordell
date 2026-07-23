@@ -14,6 +14,8 @@ import (
 
 type personnelNewPageData struct {
 	privateLayoutData
+	Header                   pageHeaderView
+	FormActions              formActionsView
 	Title                    string
 	Error                    string
 	FullName                 string
@@ -40,6 +42,8 @@ type personnelShowPageData struct {
 
 type personnelIndexPageData struct {
 	privateLayoutData
+	Header       pageHeaderView
+	EmptyState   emptyStateView
 	Title        string
 	Personnel    []personnelView
 	StatusFilter string
@@ -115,6 +119,17 @@ func (s *Server) handleNewPersonnelForm(w http.ResponseWriter, r *http.Request) 
 	data := newPersonnelNewPageData(personnelNewPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Cadastrar militar",
+		Header: newPageHeader(
+			personnelPluralLabel(),
+			"Cadastrar militar",
+			"Cadastre um militar que poderá receber materiais sob custódia.",
+			nil,
+		),
+		FormActions: newFormActions(
+			"Cadastrar militar",
+			"Cancelar",
+			"/personnel",
+		),
 	})
 	data.Breadcrumbs = []breadcrumbItemView{
 		homeBreadcrumb(),
@@ -337,8 +352,19 @@ func (s *Server) renderNewPersonnelFormWithError(
 	r *http.Request,
 ) {
 	data := newPersonnelNewPageData(personnelNewPageData{
-		privateLayoutData:        newPrivateLayoutData(r),
-		Title:                    "Cadastrar militar",
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             "Cadastrar militar",
+		Header: newPageHeader(
+			personnelPluralLabel(),
+			"Cadastrar militar",
+			"Cadastre um militar que poderá receber materiais sob custódia.",
+			nil,
+		),
+		FormActions: newFormActions(
+			"Cadastrar militar",
+			"Cancelar",
+			"/personnel",
+		),
 		Error:                    message,
 		FullName:                 r.FormValue("full_name"),
 		Alias:                    r.FormValue("alias"),
@@ -403,10 +429,21 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 
 	data := personnelIndexPageData{
 		privateLayoutData: newPrivateLayoutData(r),
-		Title:             personnelPluralLabel(),
-		Personnel:         make([]personnelView, 0, len(personnel)),
-		StatusFilter:      string(statusFilter),
-		StatusTabs:        newStatusFilterTabs("/personnel", statusFilter),
+		Header: newPageHeader(
+			"Militares",
+			personnelPluralLabel(),
+			"Militares que podem receber materiais sob custódia.",
+			newPageAction("Cadastrar militar", "/personnel/new"),
+		),
+		EmptyState: newEmptyState(
+			"Nenhum militar cadastrado",
+			"Cadastre o primeiro militar para começar a usar o Cordell.",
+			newPageAction("Cadastrar militar", "/personnel/new"),
+		),
+		Title:        personnelPluralLabel(),
+		Personnel:    make([]personnelView, 0, len(personnel)),
+		StatusFilter: string(statusFilter),
+		StatusTabs:   newStatusFilterTabs("/personnel", statusFilter),
 	}
 	data.Breadcrumbs = []breadcrumbItemView{
 		homeBreadcrumb(),
