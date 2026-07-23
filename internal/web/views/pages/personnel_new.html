@@ -3,31 +3,19 @@
 
 {{template "page_header" .Header}}
 
-{{if .Error}}
-  <div class="mb-4 rounded-2xl border border-cordell-danger-border bg-cordell-danger-surface px-4 py-3 font-medium text-cordell-danger-text">
-    {{.Error}}
-  </div>
-{{end}}
+{{template "feedback_message" .Feedback}}
 
 <form
-  class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface"
+  class="grid gap-6"
   method="post"
   action="/personnel"
 >
   <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
-  <section class="border-b border-cordell-border pb-6 dark:border-cordell-dark-border">
-    <div class="mb-4">
-      <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-        Identificação
-      </p>
+  <section class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+    {{template "section_header" .IdentitySection}}
 
-      <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">
-        Identificação do militar
-      </h2>
-    </div>
-
-    <div class="grid gap-4 md:grid-cols-3">
+    <div class="mt-5 grid gap-4 md:grid-cols-3">
       <div class="grid gap-2 md:col-span-2">
         <label class="text-sm font-bold" for="full_name">Nome completo</label>
         <input
@@ -69,18 +57,10 @@
     </div>
   </section>
 
-  <section class="pt-6">
-    <div class="mb-4">
-      <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-        Classificação
-      </p>
+  <section class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+    {{template "section_header" .AssignmentSection}}
 
-      <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">
-        Dados organizacionais
-      </h2>
-    </div>
-
-    <div class="grid gap-4 md:grid-cols-3">
+    <div class="mt-5 grid gap-4 md:grid-cols-3">
       <div class="grid gap-2">
         <label class="text-sm font-bold" for="rank">Posto/Graduação</label>
         <select

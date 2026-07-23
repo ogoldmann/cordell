@@ -84,3 +84,57 @@
     </button>
   </div>
 {{end}}
+
+{{define "feedback_message"}}
+  {{if .}}
+    <div
+      class="mb-6 rounded-2xl border px-4 py-3 text-sm font-bold
+      {{if eq .Kind "success"}}
+        border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200
+      {{else}}
+        border-red-200 bg-red-50 text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200
+      {{end}}"
+      role="alert"
+    >
+      {{if .Title}}
+        <p class="m-0 font-extrabold">{{.Title}}</p>
+      {{end}}
+
+      {{if .Message}}
+        <p class="m-0 {{if .Title}}mt-1{{end}}">{{.Message}}</p>
+      {{end}}
+    </div>
+  {{end}}
+{{end}}
+
+{{define "section_header"}}
+  <div>
+    {{if .Eyebrow}}
+      <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+        {{.Eyebrow}}
+      </p>
+    {{end}}
+
+    <h2 class="m-0 text-2xl font-extrabold text-cordell-text dark:text-cordell-dark-text">
+      {{.Title}}
+    </h2>
+
+    {{if .Description}}
+      <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+        {{.Description}}
+      </p>
+    {{end}}
+  </div>
+{{end}}
+
+{{define "detail_field"}}
+  <div class="rounded-2xl border border-cordell-border bg-cordell-background p-4 dark:border-cordell-dark-border dark:bg-cordell-dark-background">
+    <p class="m-0 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
+      {{.Label}}
+    </p>
+
+    <p class="mt-2 font-bold text-cordell-text dark:text-cordell-dark-text">
+      {{.Value}}
+    </p>
+  </div>
+{{end}}

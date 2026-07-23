@@ -26,6 +26,23 @@ type formActionsView struct {
 	ShowSaveAndCreateAnother  bool
 }
 
+type feedbackMessageView struct {
+	Kind    string
+	Title   string
+	Message string
+}
+
+type sectionHeaderView struct {
+	Eyebrow     string
+	Title       string
+	Description string
+}
+
+type detailFieldView struct {
+	Label string
+	Value string
+}
+
 func newPageAction(label string, url string) *pageActionView {
 	if label == "" || url == "" {
 		return nil
@@ -74,5 +91,44 @@ func newFormActionsWithSaveAndCreateAnother(
 		SecondaryURL:              secondaryURL,
 		SaveAndCreateAnotherLabel: saveAndCreateAnotherLabel,
 		ShowSaveAndCreateAnother:  true,
+	}
+}
+
+func newErrorFeedback(message string) *feedbackMessageView {
+	if message == "" {
+		return nil
+	}
+
+	return &feedbackMessageView{
+		Kind:    "error",
+		Title:   "Verifique as informações",
+		Message: message,
+	}
+}
+
+func newSuccessFeedback(message string) *feedbackMessageView {
+	if message == "" {
+		return nil
+	}
+
+	return &feedbackMessageView{
+		Kind:    "success",
+		Title:   "Operação concluída",
+		Message: message,
+	}
+}
+
+func newSectionHeader(eyebrow string, title string, description string) sectionHeaderView {
+	return sectionHeaderView{
+		Eyebrow:     eyebrow,
+		Title:       title,
+		Description: description,
+	}
+}
+
+func newDetailField(label string, value string) detailFieldView {
+	return detailFieldView{
+		Label: label,
+		Value: value,
 	}
 }

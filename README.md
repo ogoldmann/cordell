@@ -315,6 +315,27 @@ Handlers should call the shared not found renderer instead of using Go's default
 - [ ] Authenticated 404 page includes search shortcut.
 - [ ] Default `http.NotFound` is not used directly in web handlers.
 
+## UI Component Foundation
+
+Cordell uses small reusable server-rendered UI components for repeated visual patterns.
+
+Current shared components include:
+
+- page header
+- breadcrumbs
+- empty state
+- feedback message
+- form actions
+- section header
+- detail field
+- personnel card
+- asset card
+- custody line items
+
+Components should stay small and focused.
+
+Complex workflows should not be abstracted until their behavior stabilizes.
+
 ## Operational Form Eligibility Checklist
 
 - [ ] Checkout personnel selector lists active personnel only.

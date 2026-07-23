@@ -24,17 +24,21 @@ type assetIndexPageData struct {
 
 type assetNewPageData struct {
 	privateLayoutData
-	Header      pageHeaderView
-	FormActions formActionsView
-	Title       string
-	Error       string
-	Name        string
+	Header         pageHeaderView
+	FormActions    formActionsView
+	Feedback       *feedbackMessageView
+	DetailsSection sectionHeaderView
+	Title          string
+	Error          string
+	Name           string
 }
 
 type assetShowPageData struct {
 	privateLayoutData
 	Title                      string
 	Asset                      assetView
+	DetailsSection             sectionHeaderView
+	DetailsFields              []detailFieldView
 	Holders                    []assetHolderView
 	HasHolders                 bool
 	HasInactiveHolders         bool
@@ -119,6 +123,11 @@ func (s *Server) handleNewAssetForm(w http.ResponseWriter, r *http.Request) {
 			"Cancelar",
 			"/assets",
 		),
+		DetailsSection: newSectionHeader(
+			"Identificação",
+			"Dados do material",
+			"Informe o nome do material que será controlado por custódia.",
+		),
 	}
 	data.Breadcrumbs = []breadcrumbItemView{
 		homeBreadcrumb(),
@@ -198,11 +207,22 @@ func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	view := newAssetView(asset)
+
 	data := assetShowPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             asset.Name(),
-		Asset:             newAssetView(asset),
-		Holders:           make([]assetHolderView, 0, len(holders)),
+		Asset:             view,
+		DetailsSection: newSectionHeader(
+			"Identificação",
+			"Dados do material",
+			"Informações principais do material.",
+		),
+		DetailsFields: []detailFieldView{
+			newDetailField("Nome", view.Name),
+			newDetailField("Situação", view.StatusLabel),
+		},
+		Holders: make([]assetHolderView, 0, len(holders)),
 	}
 	data.Breadcrumbs = []breadcrumbItemView{
 		homeBreadcrumb(),
@@ -311,6 +331,12 @@ func (s *Server) renderNewAssetFormWithError(
 			"Cadastrar material",
 			"Cancelar",
 			"/assets",
+		),
+		Feedback: newErrorFeedback(message),
+		DetailsSection: newSectionHeader(
+			"Identificação",
+			"Dados do material",
+			"Informe o nome do material que será controlado por custódia.",
 		),
 		Error: message,
 		Name:  name,

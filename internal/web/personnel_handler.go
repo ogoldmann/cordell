@@ -16,6 +16,9 @@ type personnelNewPageData struct {
 	privateLayoutData
 	Header                   pageHeaderView
 	FormActions              formActionsView
+	Feedback                 *feedbackMessageView
+	IdentitySection          sectionHeaderView
+	AssignmentSection        sectionHeaderView
 	Title                    string
 	Error                    string
 	FullName                 string
@@ -33,6 +36,10 @@ type personnelShowPageData struct {
 	privateLayoutData
 	Title                          string
 	Personnel                      personnelView
+	IdentitySection                sectionHeaderView
+	AssignmentSection              sectionHeaderView
+	IdentityFields                 []detailFieldView
+	AssignmentFields               []detailFieldView
 	CurrentCustody                 []currentCustodyView
 	HasCurrentCustody              bool
 	ShowInactiveCustodyWarning     bool
@@ -129,6 +136,16 @@ func (s *Server) handleNewPersonnelForm(w http.ResponseWriter, r *http.Request) 
 			"Cadastrar militar",
 			"Cancelar",
 			"/personnel",
+		),
+		IdentitySection: newSectionHeader(
+			"Identificação",
+			"Identificação do militar",
+			"Informe os dados principais do militar.",
+		),
+		AssignmentSection: newSectionHeader(
+			"Classificação",
+			"Dados organizacionais",
+			"Informe posto/graduação, seção e organização.",
 		),
 	})
 	data.Breadcrumbs = []breadcrumbItemView{
@@ -227,11 +244,34 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	view := newPersonnelView(personnel)
+
 	data := personnelShowPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             personnel.FullName(),
-		Personnel:         newPersonnelView(personnel),
-		CurrentCustody:    make([]currentCustodyView, 0, len(currentCustody)),
+		Personnel:         view,
+		IdentitySection: newSectionHeader(
+			"Identificação",
+			"Identificação do militar",
+			"Dados principais do registro do militar.",
+		),
+		AssignmentSection: newSectionHeader(
+			"Classificação",
+			"Dados organizacionais",
+			"Posto/graduação, seção e organização do militar.",
+		),
+		IdentityFields: []detailFieldView{
+			newDetailField("Nome completo", view.FullName),
+			newDetailField("Nome de guerra", view.DisplayName),
+			newDetailField("Identidade", view.RegistrationID),
+			newDetailField("Situação", view.StatusLabel),
+		},
+		AssignmentFields: []detailFieldView{
+			newDetailField("Posto/Graduação", view.RankLabel),
+			newDetailField("Seção", view.SectionLabel),
+			newDetailField("Organização", view.OrganizationUnitLabel),
+		},
+		CurrentCustody: make([]currentCustodyView, 0, len(currentCustody)),
 	}
 	data.Breadcrumbs = []breadcrumbItemView{
 		homeBreadcrumb(),
@@ -364,6 +404,17 @@ func (s *Server) renderNewPersonnelFormWithError(
 			"Cadastrar militar",
 			"Cancelar",
 			"/personnel",
+		),
+		Feedback: newErrorFeedback(message),
+		IdentitySection: newSectionHeader(
+			"Identificação",
+			"Identificação do militar",
+			"Informe os dados principais do militar.",
+		),
+		AssignmentSection: newSectionHeader(
+			"Classificação",
+			"Dados organizacionais",
+			"Informe posto/graduação, seção e organização.",
 		),
 		Error:                    message,
 		FullName:                 r.FormValue("full_name"),

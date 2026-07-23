@@ -3,31 +3,31 @@
 
 {{template "page_header" .Header}}
 
-{{if .Error}}
-  <div class="mb-4 rounded-2xl border border-cordell-danger-border bg-cordell-danger-surface px-4 py-3 font-medium text-cordell-danger-text">
-    {{.Error}}
-  </div>
-{{end}}
+{{template "feedback_message" .Feedback}}
 
 <form
-  class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface"
+  class="grid gap-6"
   method="post"
   action="/assets"
 >
   <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
-  <div class="grid gap-2">
-    <label class="text-sm font-bold" for="name">Nome</label>
-    <input
-      class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-      id="name"
-      name="name"
-      type="text"
-      value="{{.Name}}"
-      autocomplete="off"
-      required
-    >
-  </div>
+  <section class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+    {{template "section_header" .DetailsSection}}
+
+    <div class="mt-5 grid gap-2">
+      <label class="text-sm font-bold" for="name">Nome</label>
+      <input
+        class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
+        id="name"
+        name="name"
+        type="text"
+        value="{{.Name}}"
+        autocomplete="off"
+        required
+      >
+    </div>
+  </section>
 
   {{template "form_actions" .FormActions}}
 </form>
