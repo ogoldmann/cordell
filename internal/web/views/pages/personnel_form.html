@@ -1,4 +1,4 @@
-{{define "personnel_new.html"}}
+{{define "personnel_form.html"}}
 {{template "layout_start" .}}
 
 {{template "page_header" .Header}}
@@ -8,7 +8,7 @@
 <form
   class="grid gap-6"
   method="post"
-  action="/personnel"
+  action="{{.ActionURL}}"
 >
   <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 

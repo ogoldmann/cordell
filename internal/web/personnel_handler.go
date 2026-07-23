@@ -12,13 +12,14 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type personnelNewPageData struct {
+type personnelFormPageData struct {
 	privateLayoutData
 	Header                   pageHeaderView
 	FormActions              formActionsView
 	Feedback                 *feedbackMessageView
 	IdentitySection          sectionHeaderView
 	AssignmentSection        sectionHeaderView
+	ActionURL                string
 	Title                    string
 	Error                    string
 	FullName                 string
@@ -110,7 +111,7 @@ type selectOption struct {
 	Label string
 }
 
-func newPersonnelNewPageData(data personnelNewPageData) personnelNewPageData {
+func newPersonnelFormPageData(data personnelFormPageData) personnelFormPageData {
 	data.RankOptions = rankOptions()
 	data.SectionOptions = sectionOptions()
 	data.OrganizationUnitOptions = organizationUnitOptions()
@@ -123,38 +124,9 @@ func newPersonnelNewPageData(data personnelNewPageData) personnelNewPageData {
 }
 
 func (s *Server) handleNewPersonnelForm(w http.ResponseWriter, r *http.Request) {
-	data := newPersonnelNewPageData(personnelNewPageData{
-		privateLayoutData: newPrivateLayoutData(r),
-		Title:             "Cadastrar militar",
-		Header: newPageHeader(
-			personnelPluralLabel(),
-			"Cadastrar militar",
-			"Cadastre um militar que poderá receber materiais sob custódia.",
-			nil,
-		),
-		FormActions: newFormActions(
-			"Cadastrar militar",
-			"Cancelar",
-			"/personnel",
-		),
-		IdentitySection: newSectionHeader(
-			"Identificação",
-			"Identificação do militar",
-			"Informe os dados principais do militar.",
-		),
-		AssignmentSection: newSectionHeader(
-			"Classificação",
-			"Dados organizacionais",
-			"Informe posto/graduação, seção e organização.",
-		),
-	})
-	data.Breadcrumbs = []breadcrumbItemView{
-		homeBreadcrumb(),
-		personnelBreadcrumb(),
-		currentBreadcrumb("Cadastrar militar"),
-	}
+	data := newPersonnelCreatePageData(r, personnelFormPageData{}, "")
 
-	if err := s.renderer.Render(w, http.StatusOK, "personnel_new.html", data); err != nil {
+	if err := s.renderer.Render(w, http.StatusOK, "personnel_form.html", data); err != nil {
 		s.handleRenderError(w, err)
 	}
 }
@@ -201,6 +173,75 @@ func (s *Server) handleCreatePersonnel(w http.ResponseWriter, r *http.Request) {
 		fmt.Sprintf("/personnel/%s", personnel.ID()),
 		http.StatusSeeOther,
 	)
+}
+
+func (s *Server) handleEditPersonnelForm(w http.ResponseWriter, r *http.Request) {
+	id := domain.PersonnelID(chi.URLParam(r, "id"))
+
+	personnel, err := s.services.GetPersonnel.Execute(r.Context(), app.GetPersonnelCommand{
+		ID: id,
+	})
+	if err != nil {
+		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyPersonnelID) {
+			s.renderNotFound(w, r)
+			return
+		}
+
+		s.logger.Error("failed to get personnel for edit", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	data := newPersonnelEditPageData(r, newPersonnelView(personnel), "")
+
+	if err := s.renderer.Render(w, http.StatusOK, "personnel_form.html", data); err != nil {
+		s.handleRenderError(w, err)
+	}
+}
+
+func (s *Server) handleUpdatePersonnel(w http.ResponseWriter, r *http.Request) {
+	id := domain.PersonnelID(chi.URLParam(r, "id"))
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	personnel, err := s.services.UpdatePersonnel.Execute(r.Context(), app.UpdatePersonnelCommand{
+		ID:               id,
+		FullName:         r.FormValue("full_name"),
+		Alias:            r.FormValue("alias"),
+		Rank:             domain.PersonnelRank(r.FormValue("rank")),
+		RegistrationID:   domain.RegistrationID(r.FormValue("registration_id")),
+		Section:          domain.PersonnelSection(r.FormValue("section")),
+		OrganizationUnit: domain.OrganizationUnit(r.FormValue("organization_unit")),
+	})
+	if err != nil {
+		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyPersonnelID) {
+			s.renderNotFound(w, r)
+			return
+		}
+
+		data := newPersonnelEditPageDataFromRequest(r, id, humanizePersonnelError(err))
+
+		if renderErr := s.renderer.Render(w, http.StatusUnprocessableEntity, "personnel_form.html", data); renderErr != nil {
+			s.handleRenderError(w, renderErr)
+		}
+
+		return
+	}
+
+	s.recordAuditEventOrLog(
+		r,
+		domain.AuditEventPersonnelUpdated,
+		domain.AuditEntityPersonnel,
+		string(personnel.ID()),
+		map[string]string{
+			"personnel_id": string(personnel.ID()),
+		},
+	)
+
+	http.Redirect(w, r, "/personnel/"+string(personnel.ID()), http.StatusSeeOther)
 }
 
 func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
@@ -391,48 +432,162 @@ func (s *Server) renderNewPersonnelFormWithError(
 	message string,
 	r *http.Request,
 ) {
-	data := newPersonnelNewPageData(personnelNewPageData{
-		privateLayoutData: newPrivateLayoutData(r),
-		Title:             "Cadastrar militar",
-		Header: newPageHeader(
-			personnelPluralLabel(),
-			"Cadastrar militar",
-			"Cadastre um militar que poderá receber materiais sob custódia.",
-			nil,
-		),
-		FormActions: newFormActions(
-			"Cadastrar militar",
-			"Cancelar",
-			"/personnel",
-		),
-		Feedback: newErrorFeedback(message),
-		IdentitySection: newSectionHeader(
-			"Identificação",
-			"Identificação do militar",
-			"Informe os dados principais do militar.",
-		),
-		AssignmentSection: newSectionHeader(
-			"Classificação",
-			"Dados organizacionais",
-			"Informe posto/graduação, seção e organização.",
-		),
-		Error:                    message,
+	data := newPersonnelCreatePageData(r, personnelFormPageData{
 		FullName:                 r.FormValue("full_name"),
 		Alias:                    r.FormValue("alias"),
 		RegistrationID:           r.FormValue("registration_id"),
 		SelectedRank:             r.FormValue("rank"),
 		SelectedSection:          r.FormValue("section"),
 		SelectedOrganizationUnit: r.FormValue("organization_unit"),
-	})
-	data.Breadcrumbs = []breadcrumbItemView{
+	}, message)
+
+	if err := s.renderer.Render(w, status, "personnel_form.html", data); err != nil {
+		s.handleRenderError(w, err)
+	}
+}
+
+func newPersonnelCreatePageData(
+	r *http.Request,
+	form personnelFormPageData,
+	errorMessage string,
+) personnelFormPageData {
+	form.privateLayoutData = newPrivateLayoutData(r)
+	form.Title = "Cadastrar militar"
+	form.Header = newPageHeader(
+		personnelPluralLabel(),
+		"Cadastrar militar",
+		"Cadastre um militar que poderá receber materiais sob custódia.",
+		nil,
+	)
+	form.FormActions = newFormActions(
+		"Cadastrar militar",
+		"Cancelar",
+		"/personnel",
+	)
+	form.Feedback = newErrorFeedback(errorMessage)
+	form.IdentitySection = newSectionHeader(
+		"Identificação",
+		"Identificação do militar",
+		"Informe os dados principais do militar.",
+	)
+	form.AssignmentSection = newSectionHeader(
+		"Classificação",
+		"Dados organizacionais",
+		"Informe posto/graduação, seção e organização.",
+	)
+	form.ActionURL = "/personnel"
+	form.Error = errorMessage
+	form.Breadcrumbs = []breadcrumbItemView{
 		homeBreadcrumb(),
 		personnelBreadcrumb(),
 		currentBreadcrumb("Cadastrar militar"),
 	}
 
-	if err := s.renderer.Render(w, status, "personnel_new.html", data); err != nil {
-		s.handleRenderError(w, err)
+	return newPersonnelFormPageData(form)
+}
+
+func newPersonnelEditPageData(
+	r *http.Request,
+	personnel personnelView,
+	errorMessage string,
+) personnelFormPageData {
+	data := personnelFormPageData{
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             "Editar militar",
+		Header: newPageHeader(
+			personnelPluralLabel(),
+			"Editar militar",
+			"Atualize os dados cadastrais do militar.",
+			nil,
+		),
+		FormActions: newFormActions(
+			"Salvar alterações",
+			"Cancelar",
+			"/personnel/"+personnel.ID,
+		),
+		Feedback: newErrorFeedback(errorMessage),
+		IdentitySection: newSectionHeader(
+			"Identificação",
+			"Identificação do militar",
+			"Atualize os dados principais do militar.",
+		),
+		AssignmentSection: newSectionHeader(
+			"Classificação",
+			"Dados organizacionais",
+			"Atualize posto/graduação, seção e organização.",
+		),
+		ActionURL:                "/personnel/" + personnel.ID,
+		Error:                    errorMessage,
+		FullName:                 personnel.FullName,
+		Alias:                    personnel.Alias,
+		RegistrationID:           personnel.RegistrationID,
+		SelectedRank:             personnel.Rank,
+		SelectedSection:          personnel.Section,
+		SelectedOrganizationUnit: personnel.OrganizationUnit,
 	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		personnelBreadcrumb(),
+		{
+			Label: personnel.DisplayName,
+			URL:   "/personnel/" + personnel.ID,
+		},
+		currentBreadcrumb("Editar"),
+	}
+
+	return newPersonnelFormPageData(data)
+}
+
+func newPersonnelEditPageDataFromRequest(
+	r *http.Request,
+	id domain.PersonnelID,
+	errorMessage string,
+) personnelFormPageData {
+	data := personnelFormPageData{
+		privateLayoutData: newPrivateLayoutData(r),
+		Title:             "Editar militar",
+		Header: newPageHeader(
+			personnelPluralLabel(),
+			"Editar militar",
+			"Atualize os dados cadastrais do militar.",
+			nil,
+		),
+		FormActions: newFormActions(
+			"Salvar alterações",
+			"Cancelar",
+			"/personnel/"+string(id),
+		),
+		Feedback: newErrorFeedback(errorMessage),
+		IdentitySection: newSectionHeader(
+			"Identificação",
+			"Identificação do militar",
+			"Atualize os dados principais do militar.",
+		),
+		AssignmentSection: newSectionHeader(
+			"Classificação",
+			"Dados organizacionais",
+			"Atualize posto/graduação, seção e organização.",
+		),
+		ActionURL:                "/personnel/" + string(id),
+		Error:                    errorMessage,
+		FullName:                 r.FormValue("full_name"),
+		Alias:                    r.FormValue("alias"),
+		RegistrationID:           r.FormValue("registration_id"),
+		SelectedRank:             r.FormValue("rank"),
+		SelectedSection:          r.FormValue("section"),
+		SelectedOrganizationUnit: r.FormValue("organization_unit"),
+	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		personnelBreadcrumb(),
+		{
+			Label: string(id),
+			URL:   "/personnel/" + string(id),
+		},
+		currentBreadcrumb("Editar"),
+	}
+
+	return newPersonnelFormPageData(data)
 }
 
 func (s *Server) handleRenderError(w http.ResponseWriter, err error) {

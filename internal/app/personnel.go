@@ -67,6 +67,72 @@ func (s *CreatePersonnelService) Execute(ctx context.Context, cmd CreatePersonne
 	return personnel, nil
 }
 
+// UpdatePersonnelCommand contains the input data required to update personnel.
+type UpdatePersonnelCommand struct {
+	ID               domain.PersonnelID
+	FullName         string
+	Alias            string
+	Rank             domain.PersonnelRank
+	RegistrationID   domain.RegistrationID
+	Section          domain.PersonnelSection
+	OrganizationUnit domain.OrganizationUnit
+}
+
+// UpdatePersonnelService handles the personnel update use case.
+type UpdatePersonnelService struct {
+	personnelRepository ports.PersonnelRepository
+}
+
+// NewUpdatePersonnelService creates an UpdatePersonnelService.
+func NewUpdatePersonnelService(personnelRepository ports.PersonnelRepository) *UpdatePersonnelService {
+	return &UpdatePersonnelService{
+		personnelRepository: personnelRepository,
+	}
+}
+
+// Execute updates editable personnel details.
+func (s *UpdatePersonnelService) Execute(ctx context.Context, cmd UpdatePersonnelCommand) (domain.Personnel, error) {
+	if cmd.ID == "" {
+		return domain.Personnel{}, domain.ErrEmptyPersonnelID
+	}
+
+	personnel, err := s.personnelRepository.FindByID(ctx, cmd.ID)
+	if err != nil {
+		return domain.Personnel{}, err
+	}
+
+	normalizedRegistrationID := domain.RegistrationID(domain.NormalizeRegistrationID(string(cmd.RegistrationID)))
+
+	_, duplicateFound, err := s.personnelRepository.FindByRegistrationIDExcludingID(
+		ctx,
+		normalizedRegistrationID,
+		cmd.ID,
+	)
+	if err != nil {
+		return domain.Personnel{}, err
+	}
+	if duplicateFound {
+		return domain.Personnel{}, domain.ErrDuplicateRegistrationID
+	}
+
+	if err := personnel.UpdateDetails(
+		cmd.FullName,
+		cmd.Alias,
+		cmd.Rank,
+		normalizedRegistrationID,
+		cmd.Section,
+		cmd.OrganizationUnit,
+	); err != nil {
+		return domain.Personnel{}, err
+	}
+
+	if err := s.personnelRepository.Update(ctx, personnel); err != nil {
+		return domain.Personnel{}, err
+	}
+
+	return personnel, nil
+}
+
 // GetPersonnelCommand contains the input data required to retrieve personnel.
 type GetPersonnelCommand struct {
 	ID domain.PersonnelID

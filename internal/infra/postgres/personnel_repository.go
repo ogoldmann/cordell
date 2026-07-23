@@ -47,6 +47,28 @@ func (r *PersonnelRepository) Save(ctx context.Context, personnel domain.Personn
 	return nil
 }
 
+// Update updates editable personnel fields.
+func (r *PersonnelRepository) Update(ctx context.Context, personnel domain.Personnel) error {
+	err := r.queries.UpdatePersonnel(ctx, db.UpdatePersonnelParams{
+		ID:               string(personnel.ID()),
+		FullName:         personnel.FullName(),
+		Alias:            personnel.Alias(),
+		Rank:             string(personnel.Rank()),
+		RegistrationID:   personnel.RegistrationID().String(),
+		Section:          string(personnel.Section()),
+		OrganizationUnit: string(personnel.OrganizationUnit()),
+	})
+	if err != nil {
+		if isUniqueViolation(err, "personnel_registration_id_unique") {
+			return domain.ErrDuplicateRegistrationID
+		}
+
+		return err
+	}
+
+	return nil
+}
+
 // FindByID retrieves a personnel record by identifier.
 func (r *PersonnelRepository) FindByID(ctx context.Context, id domain.PersonnelID) (domain.Personnel, error) {
 	row, err := r.queries.GetPersonnel(ctx, string(id))
@@ -58,6 +80,36 @@ func (r *PersonnelRepository) FindByID(ctx context.Context, id domain.PersonnelI
 		return domain.Personnel{}, err
 	}
 
+	return personnelFromRow(row)
+}
+
+// FindByRegistrationIDExcludingID finds personnel by registration ID excluding one personnel ID.
+func (r *PersonnelRepository) FindByRegistrationIDExcludingID(
+	ctx context.Context,
+	registrationID domain.RegistrationID,
+	excludedID domain.PersonnelID,
+) (domain.Personnel, bool, error) {
+	row, err := r.queries.FindPersonnelByRegistrationIDExcludingID(ctx, db.FindPersonnelByRegistrationIDExcludingIDParams{
+		RegistrationID: registrationID.String(),
+		ExcludedID:     string(excludedID),
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.Personnel{}, false, nil
+		}
+
+		return domain.Personnel{}, false, err
+	}
+
+	personnel, err := personnelFromRow(row)
+	if err != nil {
+		return domain.Personnel{}, false, err
+	}
+
+	return personnel, true, nil
+}
+
+func personnelFromRow(row db.Personnel) (domain.Personnel, error) {
 	registrationID, err := domain.NewRegistrationID(row.RegistrationID)
 	if err != nil {
 		return domain.Personnel{}, err
@@ -94,21 +146,7 @@ func (r *PersonnelRepository) List(
 	personnel := make([]domain.Personnel, 0, len(rows))
 
 	for _, row := range rows {
-		registrationID, err := domain.NewRegistrationID(row.RegistrationID)
-		if err != nil {
-			return nil, err
-		}
-
-		item, err := domain.ReconstitutePersonnel(
-			domain.PersonnelID(row.ID),
-			row.FullName,
-			row.Alias,
-			domain.PersonnelRank(row.Rank),
-			registrationID,
-			domain.PersonnelSection(row.Section),
-			domain.OrganizationUnit(row.OrganizationUnit),
-			row.Active,
-		)
+		item, err := personnelFromRow(row)
 		if err != nil {
 			return nil, err
 		}
@@ -139,21 +177,7 @@ func (r *PersonnelRepository) Search(
 	personnel := make([]domain.Personnel, 0, len(rows))
 
 	for _, row := range rows {
-		registrationID, err := domain.NewRegistrationID(row.RegistrationID)
-		if err != nil {
-			return nil, err
-		}
-
-		item, err := domain.ReconstitutePersonnel(
-			domain.PersonnelID(row.ID),
-			row.FullName,
-			row.Alias,
-			domain.PersonnelRank(row.Rank),
-			registrationID,
-			domain.PersonnelSection(row.Section),
-			domain.OrganizationUnit(row.OrganizationUnit),
-			row.Active,
-		)
+		item, err := personnelFromRow(row)
 		if err != nil {
 			return nil, err
 		}

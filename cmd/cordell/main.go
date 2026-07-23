@@ -108,6 +108,9 @@ func main() {
 		GetPersonnel: app.NewGetPersonnelService(
 			personnelRepository,
 		),
+		UpdatePersonnel: app.NewUpdatePersonnelService(
+			personnelRepository,
+		),
 		ListPersonnel: app.NewListPersonnelService(
 			personnelRepository,
 		),

@@ -77,6 +77,47 @@ func (q *Queries) DeactivatePersonnel(ctx context.Context, id string) (int32, er
 	return column_1, err
 }
 
+const findPersonnelByRegistrationIDExcludingID = `-- name: FindPersonnelByRegistrationIDExcludingID :one
+SELECT
+    id,
+    full_name,
+    alias,
+    rank,
+    registration_id,
+    section,
+    organization_unit,
+    active,
+    created_at,
+    updated_at
+FROM personnel
+WHERE registration_id = $1
+  AND id <> $2
+LIMIT 1
+`
+
+type FindPersonnelByRegistrationIDExcludingIDParams struct {
+	RegistrationID string `json:"registration_id"`
+	ExcludedID     string `json:"excluded_id"`
+}
+
+func (q *Queries) FindPersonnelByRegistrationIDExcludingID(ctx context.Context, arg FindPersonnelByRegistrationIDExcludingIDParams) (Personnel, error) {
+	row := q.db.QueryRow(ctx, findPersonnelByRegistrationIDExcludingID, arg.RegistrationID, arg.ExcludedID)
+	var i Personnel
+	err := row.Scan(
+		&i.ID,
+		&i.FullName,
+		&i.Alias,
+		&i.Rank,
+		&i.RegistrationID,
+		&i.Section,
+		&i.OrganizationUnit,
+		&i.Active,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getPersonnel = `-- name: GetPersonnel :one
 SELECT
     id,
@@ -276,4 +317,40 @@ func (q *Queries) SearchPersonnel(ctx context.Context, arg SearchPersonnelParams
 		return nil, err
 	}
 	return items, nil
+}
+
+const updatePersonnel = `-- name: UpdatePersonnel :exec
+UPDATE personnel
+SET
+    full_name = $1,
+    alias = $2,
+    rank = $3,
+    registration_id = $4,
+    section = $5,
+    organization_unit = $6,
+    updated_at = now()
+WHERE id = $7
+`
+
+type UpdatePersonnelParams struct {
+	FullName         string `json:"full_name"`
+	Alias            string `json:"alias"`
+	Rank             string `json:"rank"`
+	RegistrationID   string `json:"registration_id"`
+	Section          string `json:"section"`
+	OrganizationUnit string `json:"organization_unit"`
+	ID               string `json:"id"`
+}
+
+func (q *Queries) UpdatePersonnel(ctx context.Context, arg UpdatePersonnelParams) error {
+	_, err := q.db.Exec(ctx, updatePersonnel,
+		arg.FullName,
+		arg.Alias,
+		arg.Rank,
+		arg.RegistrationID,
+		arg.Section,
+		arg.OrganizationUnit,
+		arg.ID,
+	)
+	return err
 }

@@ -12,6 +12,7 @@ const (
 	AuditEventOperatorReactivated      AuditEventType = "operator.reactivated"
 	AuditEventOperatorRoleChanged      AuditEventType = "operator.role_changed"
 	AuditEventOperatorPasswordReset    AuditEventType = "operator.password_reset"
+	AuditEventPersonnelUpdated         AuditEventType = "personnel.updated"
 	AuditEventPersonnelDeactivated     AuditEventType = "personnel.deactivated"
 	AuditEventPersonnelReactivated     AuditEventType = "personnel.reactivated"
 	AuditEventAssetDeactivated         AuditEventType = "asset.deactivated"

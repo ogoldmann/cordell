@@ -223,6 +223,116 @@ func TestPostgresPersonnelRepositoryRejectsDuplicateRegistrationID(t *testing.T)
 	}
 }
 
+func TestPostgresPersonnelRepositoryUpdate(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+	repository := postgres.NewPersonnelRepository(queries)
+
+	personnel := mustNewTestPersonnel(
+		t,
+		"personnel-1",
+		"John Doe",
+		"John",
+		domain.PersonnelRankSoldier,
+		"52998224725",
+	)
+
+	if err := repository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	err := personnel.UpdateDetails(
+		"John Updated",
+		"Updated",
+		domain.PersonnelRankCorporal,
+		domain.RegistrationID("93541134780"),
+		domain.PersonnelSectionOperations,
+		domain.OrganizationUnitDefault,
+	)
+	if err != nil {
+		t.Fatalf("expected no error updating personnel details, got %v", err)
+	}
+
+	if err := repository.Update(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error updating personnel, got %v", err)
+	}
+
+	found, err := repository.FindByID(context.Background(), personnel.ID())
+	if err != nil {
+		t.Fatalf("expected no error finding personnel, got %v", err)
+	}
+
+	if found.FullName() != "John Updated" {
+		t.Fatalf("expected updated full name, got %q", found.FullName())
+	}
+
+	if found.Rank() != domain.PersonnelRankCorporal {
+		t.Fatalf("expected updated rank, got %s", found.Rank())
+	}
+}
+
+func TestPostgresPersonnelRepositoryFindByRegistrationIDExcludingID(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+	repository := postgres.NewPersonnelRepository(queries)
+
+	first := mustNewTestPersonnel(
+		t,
+		"personnel-1",
+		"John Doe",
+		"John",
+		domain.PersonnelRankSoldier,
+		"52998224725",
+	)
+
+	second := mustNewTestPersonnel(
+		t,
+		"personnel-2",
+		"Jane Doe",
+		"Jane",
+		domain.PersonnelRankCorporal,
+		"93541134780",
+	)
+
+	if err := repository.Save(context.Background(), first); err != nil {
+		t.Fatalf("expected no error saving first personnel, got %v", err)
+	}
+
+	if err := repository.Save(context.Background(), second); err != nil {
+		t.Fatalf("expected no error saving second personnel, got %v", err)
+	}
+
+	_, found, err := repository.FindByRegistrationIDExcludingID(
+		context.Background(),
+		first.RegistrationID(),
+		first.ID(),
+	)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if found {
+		t.Fatal("expected not to find same personnel when excluded")
+	}
+
+	duplicate, found, err := repository.FindByRegistrationIDExcludingID(
+		context.Background(),
+		first.RegistrationID(),
+		second.ID(),
+	)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if !found {
+		t.Fatal("expected duplicate personnel to be found")
+	}
+
+	if duplicate.ID() != first.ID() {
+		t.Fatalf("expected duplicate %s, got %s", first.ID(), duplicate.ID())
+	}
+}
+
 func TestPostgresPersonnelRepositorySearch(t *testing.T) {
 	pool := openTestPool(t)
 	queries := newTestQueries(pool)

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"cordell/internal/domain"
@@ -92,6 +93,81 @@ func TestGetPersonnelServiceRejectsEmptyID(t *testing.T) {
 	})
 	if err != domain.ErrEmptyPersonnelID {
 		t.Fatalf("expected ErrEmptyPersonnelID, got %v", err)
+	}
+}
+
+func TestUpdatePersonnelServiceUpdatesPersonnel(t *testing.T) {
+	personnel := mustBuildPersonnel(t, "personnel-1")
+
+	repository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			personnel.ID(): personnel,
+		},
+	}
+
+	service := NewUpdatePersonnelService(repository)
+
+	updated, err := service.Execute(context.Background(), UpdatePersonnelCommand{
+		ID:               personnel.ID(),
+		FullName:         "John Updated",
+		Alias:            "Updated",
+		Rank:             domain.PersonnelRankCorporal,
+		RegistrationID:   domain.RegistrationID("93541134780"),
+		Section:          domain.PersonnelSectionOperations,
+		OrganizationUnit: domain.OrganizationUnitDefault,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if updated.FullName() != "John Updated" {
+		t.Fatalf("expected updated full name, got %q", updated.FullName())
+	}
+
+	if updated.Alias() != "Updated" {
+		t.Fatalf("expected updated alias, got %q", updated.Alias())
+	}
+
+	if updated.Rank() != domain.PersonnelRankCorporal {
+		t.Fatalf("expected updated rank, got %s", updated.Rank())
+	}
+}
+
+func TestUpdatePersonnelServiceReturnsNotFound(t *testing.T) {
+	service := NewUpdatePersonnelService(&fakePersonnelRepository{})
+
+	_, err := service.Execute(context.Background(), UpdatePersonnelCommand{
+		ID: "missing",
+	})
+	if !errors.Is(err, ports.ErrNotFound) {
+		t.Fatalf("expected ErrNotFound, got %v", err)
+	}
+}
+
+func TestUpdatePersonnelServiceRejectsDuplicateRegistrationID(t *testing.T) {
+	first := mustBuildPersonnelWithRegistrationID(t, "personnel-1", "52998224725")
+	second := mustBuildPersonnelWithRegistrationID(t, "personnel-2", "93541134780")
+
+	repository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			first.ID():  first,
+			second.ID(): second,
+		},
+	}
+
+	service := NewUpdatePersonnelService(repository)
+
+	_, err := service.Execute(context.Background(), UpdatePersonnelCommand{
+		ID:               second.ID(),
+		FullName:         second.FullName(),
+		Alias:            second.Alias(),
+		Rank:             second.Rank(),
+		RegistrationID:   first.RegistrationID(),
+		Section:          second.Section(),
+		OrganizationUnit: second.OrganizationUnit(),
+	})
+	if !errors.Is(err, domain.ErrDuplicateRegistrationID) {
+		t.Fatalf("expected duplicate registration id, got %v", err)
 	}
 }
 

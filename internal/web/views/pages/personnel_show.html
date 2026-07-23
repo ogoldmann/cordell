@@ -21,6 +21,13 @@
   </div>
 
   <div class="flex flex-col gap-3 sm:flex-row">
+    <a
+      class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2.5 text-sm font-bold text-cordell-text no-underline shadow-sm transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+      href="/personnel/{{.Personnel.ID}}/edit"
+    >
+      Editar militar
+    </a>
+
     {{if .Personnel.Active}}
       <a
         class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2.5 text-sm font-bold text-cordell-text no-underline shadow-sm transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"

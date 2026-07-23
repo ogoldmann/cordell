@@ -224,7 +224,9 @@ type IDGenerator interface {
 // PersonnelRepository persists and retrieves personnel records.
 type PersonnelRepository interface {
 	Save(ctx context.Context, personnel domain.Personnel) error
+	Update(ctx context.Context, personnel domain.Personnel) error
 	FindByID(ctx context.Context, id domain.PersonnelID) (domain.Personnel, error)
+	FindByRegistrationIDExcludingID(ctx context.Context, registrationID domain.RegistrationID, excludedID domain.PersonnelID) (domain.Personnel, bool, error)
 	List(ctx context.Context, limit int, statusFilter RecordStatusFilter) ([]domain.Personnel, error)
 	Search(ctx context.Context, query string, limit int, statusFilter RecordStatusFilter) ([]domain.Personnel, error)
 	Deactivate(ctx context.Context, id domain.PersonnelID) (bool, error)

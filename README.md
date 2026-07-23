@@ -336,6 +336,40 @@ Components should stay small and focused.
 
 Complex workflows should not be abstracted until their behavior stabilizes.
 
+## Edit Personnel
+
+Personnel records can be edited after creation.
+
+Editable fields:
+
+- full name
+- alias
+- rank
+- registration ID
+- section
+- organization unit
+
+Lifecycle state is not edited in this form.
+
+Activation and deactivation remain separate explicit actions.
+
+Updating personnel does not mutate custody transactions.
+
+Personnel edits are audited.
+
+## Edit Personnel Checklist
+
+- [ ] Personnel detail page has edit action.
+- [ ] Personnel edit form reuses personnel form template.
+- [ ] Personnel edit validates required fields.
+- [ ] Personnel edit validates registration ID.
+- [ ] Personnel edit allows keeping the same registration ID.
+- [ ] Personnel edit rejects registration ID used by another personnel.
+- [ ] Personnel edit does not change active/inactive state.
+- [ ] Personnel edit redirects to personnel detail.
+- [ ] Personnel edit writes audit event.
+- [ ] Missing personnel edit route renders custom 404.
+
 ## Operational Form Eligibility Checklist
 
 - [ ] Checkout personnel selector lists active personnel only.

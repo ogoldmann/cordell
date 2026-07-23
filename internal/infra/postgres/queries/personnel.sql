@@ -34,6 +34,35 @@ SELECT
 FROM personnel
 WHERE id = @id;
 
+-- name: UpdatePersonnel :exec
+UPDATE personnel
+SET
+    full_name = @full_name,
+    alias = @alias,
+    rank = @rank,
+    registration_id = @registration_id,
+    section = @section,
+    organization_unit = @organization_unit,
+    updated_at = now()
+WHERE id = @id;
+
+-- name: FindPersonnelByRegistrationIDExcludingID :one
+SELECT
+    id,
+    full_name,
+    alias,
+    rank,
+    registration_id,
+    section,
+    organization_unit,
+    active,
+    created_at,
+    updated_at
+FROM personnel
+WHERE registration_id = @registration_id
+  AND id <> @excluded_id
+LIMIT 1;
+
 -- name: ListPersonnel :many
 SELECT
     id,

@@ -114,6 +114,52 @@ func buildPersonnel(
 	}, nil
 }
 
+// UpdateDetails updates editable personnel fields.
+func (p *Personnel) UpdateDetails(
+	fullName string,
+	alias string,
+	rank PersonnelRank,
+	registrationID RegistrationID,
+	section PersonnelSection,
+	organizationUnit OrganizationUnit,
+) error {
+	fullName = strings.TrimSpace(fullName)
+	if fullName == "" {
+		return ErrEmptyPersonnelName
+	}
+
+	alias = strings.TrimSpace(alias)
+	if alias == "" {
+		return ErrEmptyPersonnelAlias
+	}
+
+	if !IsValidPersonnelRank(rank) {
+		return ErrInvalidPersonnelRank
+	}
+
+	normalizedRegistrationID, err := NewRegistrationID(string(registrationID))
+	if err != nil {
+		return err
+	}
+
+	if !IsValidPersonnelSection(section) {
+		return ErrInvalidPersonnelSection
+	}
+
+	if !IsValidOrganizationUnit(organizationUnit) {
+		return ErrInvalidOrganizationUnit
+	}
+
+	p.fullName = fullName
+	p.alias = alias
+	p.rank = rank
+	p.registrationID = normalizedRegistrationID
+	p.section = section
+	p.organizationUnit = organizationUnit
+
+	return nil
+}
+
 // ID returns the personnel identifier.
 func (p Personnel) ID() PersonnelID {
 	return p.id

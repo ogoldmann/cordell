@@ -38,6 +38,16 @@ func (r *fakePersonnelRepository) Save(_ context.Context, personnel domain.Perso
 	return nil
 }
 
+func (r *fakePersonnelRepository) Update(_ context.Context, personnel domain.Personnel) error {
+	if r.byID == nil {
+		r.byID = make(map[domain.PersonnelID]domain.Personnel)
+	}
+
+	r.byID[personnel.ID()] = personnel
+
+	return nil
+}
+
 func (r *fakePersonnelRepository) FindByID(_ context.Context, id domain.PersonnelID) (domain.Personnel, error) {
 	personnel, ok := r.byID[id]
 	if !ok {
@@ -45,6 +55,24 @@ func (r *fakePersonnelRepository) FindByID(_ context.Context, id domain.Personne
 	}
 
 	return personnel, nil
+}
+
+func (r *fakePersonnelRepository) FindByRegistrationIDExcludingID(
+	_ context.Context,
+	registrationID domain.RegistrationID,
+	excludedID domain.PersonnelID,
+) (domain.Personnel, bool, error) {
+	for _, personnel := range r.byID {
+		if personnel.ID() == excludedID {
+			continue
+		}
+
+		if personnel.RegistrationID() == registrationID {
+			return personnel, true, nil
+		}
+	}
+
+	return domain.Personnel{}, false, nil
 }
 
 func (r *fakePersonnelRepository) List(
@@ -537,7 +565,13 @@ func custodyBalanceKey(personnelID domain.PersonnelID, assetID domain.AssetID) s
 func mustBuildPersonnel(t *testing.T, id string) domain.Personnel {
 	t.Helper()
 
-	registrationID, err := domain.NewRegistrationID("52998224725")
+	return mustBuildPersonnelWithRegistrationID(t, id, "52998224725")
+}
+
+func mustBuildPersonnelWithRegistrationID(t *testing.T, id string, registrationIDValue string) domain.Personnel {
+	t.Helper()
+
+	registrationID, err := domain.NewRegistrationID(registrationIDValue)
 	if err != nil {
 		t.Fatalf("expected valid registration id, got %v", err)
 	}
