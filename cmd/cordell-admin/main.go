@@ -102,7 +102,7 @@ func runCreateOperator(ctx context.Context, args []string) error {
 	fmt.Fprintf(
 		os.Stdout,
 		"Operator created successfully: %s %s (%s, %s)\n",
-		operator.Rank().Label(),
+		operator.Rank().DisplayLabel(),
 		operator.Alias(),
 		operator.RegistrationID().String(),
 		operator.Role().Label(),

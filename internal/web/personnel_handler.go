@@ -430,7 +430,7 @@ func rankOptions() []selectOption {
 	for _, option := range options {
 		result = append(result, selectOption{
 			Value: string(option.Value),
-			Label: option.Label,
+			Label: option.Value.DisplayLabel(),
 		})
 	}
 
@@ -466,13 +466,7 @@ func organizationUnitOptions() []selectOption {
 }
 
 func personnelRankLabel(rank domain.PersonnelRank) string {
-	for _, option := range domain.PersonnelRankOptions() {
-		if option.Value == rank {
-			return option.Label
-		}
-	}
-
-	return string(rank)
+	return rank.DisplayLabel()
 }
 
 func personnelSectionLabel(section domain.PersonnelSection) string {

@@ -412,7 +412,7 @@ func newOperatorRankOptionViews(selectedRank string) []operatorRankOptionView {
 	for _, rank := range domain.RankOptions() {
 		options = append(options, operatorRankOptionView{
 			Value:    rank.Value.String(),
-			Label:    rank.Label,
+			Label:    rank.Value.DisplayLabel(),
 			Selected: rank.Value.String() == selectedRank,
 		})
 	}

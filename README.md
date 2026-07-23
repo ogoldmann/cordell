@@ -928,6 +928,8 @@ Or through Make:
 make admin-create-operator REGISTRATION_ID=52998224725 ALIAS=silva RANK=sergeant ROLE=admin
 ```
 
+The `sergeant` rank value remains valid for compatibility and is displayed as `3º Sgt`.
+
 The Make target automatically loads .env when the file exists.
 
 Create a regular operator:
@@ -1499,3 +1501,51 @@ Examples:
 - [ ] Active/Inactive are shown as Ativo/Inativo.
 - [ ] Operator roles are shown in Portuguese.
 - [ ] HTML language is pt-BR.
+
+## Rank Catalog
+
+Cordell uses a shared rank catalog for personnel and operators.
+
+The catalog keeps internal rank values in English and presents Portuguese military labels in the UI.
+
+Each rank has:
+
+- internal value
+- Portuguese label
+- abbreviation
+- display order
+
+Operational displays use abbreviations, such as:
+
+- `3º Sgt Silva`
+- `Cb Oliveira`
+- `Sd EV Santos`
+
+Detailed fields and select inputs may show the full label with abbreviation, such as:
+
+- `Terceiro-Sargento (3º Sgt)`
+- `Soldado do Efetivo Variável (Sd EV)`
+
+The same rank catalog is used by:
+
+- personnel forms
+- operator forms
+- navbar current operator display
+- receipts
+- custody ledger
+- custody history
+- audit UI
+
+## Rank Catalog with Abbreviations
+
+- [ ] Personnel and operators use the same rank catalog.
+- [ ] Rank catalog includes Portuguese labels.
+- [ ] Rank catalog includes abbreviations.
+- [ ] Rank catalog preserves display order.
+- [ ] Personnel form shows rank label and abbreviation.
+- [ ] Operator form shows rank label and abbreviation.
+- [ ] Operational display uses rank abbreviation.
+- [ ] Navbar current operator display uses rank abbreviation.
+- [ ] Receipts use rank abbreviation in display names.
+- [ ] Ledger uses rank abbreviation in display names.
+- [ ] Existing rank aliases remain valid where needed.

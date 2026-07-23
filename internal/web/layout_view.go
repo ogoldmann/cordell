@@ -14,13 +14,13 @@ type currentOperatorView struct {
 }
 
 func newCurrentOperatorView(operator domain.Operator) currentOperatorView {
-	displayName := operator.Rank().Label() + " " + operator.Alias()
+	displayName := militaryDisplayName(operator.Rank(), operator.Alias())
 
 	return currentOperatorView{
 		ID:                 string(operator.ID()),
 		RegistrationID:     operator.RegistrationID().String(),
 		Alias:              operator.Alias(),
-		RankLabel:          operator.Rank().Label(),
+		RankLabel:          operator.Rank().DisplayLabel(),
 		DisplayName:        displayName,
 		Role:               operator.Role().String(),
 		RoleLabel:          operatorRoleLabel(operator.Role()),

@@ -50,7 +50,7 @@ func newOperatorSummaryView(operator ports.OperatorSummary) operatorSummaryView 
 		RegistrationID: operator.RegistrationID.String(),
 		Alias:          operator.Alias,
 		Rank:           operator.Rank.String(),
-		RankLabel:      operator.Rank.Label(),
+		RankLabel:      operator.Rank.DisplayLabel(),
 		DisplayName:    operatorDisplayName(operator.Rank, operator.Alias),
 		Role:           operator.Role.String(),
 		RoleLabel:      operatorRoleLabel(operator.Role),
@@ -68,7 +68,7 @@ func newOperatorDetailView(
 		RegistrationID:   operator.RegistrationID.String(),
 		Alias:            operator.Alias,
 		Rank:             operator.Rank.String(),
-		RankLabel:        operator.Rank.Label(),
+		RankLabel:        operator.Rank.DisplayLabel(),
 		DisplayName:      operatorDisplayName(operator.Rank, operator.Alias),
 		Role:             operator.Role.String(),
 		RoleLabel:        operatorRoleLabel(operator.Role),
@@ -105,9 +105,5 @@ func formatTimestamp(value time.Time) string {
 }
 
 func operatorDisplayName(rank domain.Rank, alias string) string {
-	if alias == "" {
-		return rank.Label()
-	}
-
-	return rank.Label() + " " + alias
+	return militaryDisplayName(rank, alias)
 }

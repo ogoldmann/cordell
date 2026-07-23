@@ -8,9 +8,15 @@ import (
 
 func militaryDisplayName(rank domain.Rank, alias string) string {
 	alias = strings.TrimSpace(alias)
-	if alias == "" {
-		return rank.Label()
+
+	rankLabel := rank.Abbreviation()
+	if rankLabel == "" {
+		rankLabel = rank.Label()
 	}
 
-	return rank.Label() + " " + alias
+	if alias == "" {
+		return rankLabel
+	}
+
+	return rankLabel + " " + alias
 }

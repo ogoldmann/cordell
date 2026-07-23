@@ -35,7 +35,7 @@ func searchLabel() string {
 }
 
 func dashboardLabel() string {
-	return "Painel"
+	return "Home"
 }
 
 func adminLabel() string {

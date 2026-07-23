@@ -224,7 +224,7 @@ A system user who performs actions inside Cordell.
 
 Operators authenticate with a unique operator registration ID and password.
 
-Operator display names use rank and alias, such as "sergeant silva".
+Operator display names use rank abbreviation and alias, such as "3º Sgt Silva".
 
 ## Operator Attribution
 
