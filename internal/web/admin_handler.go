@@ -49,10 +49,16 @@ type operatorRankOptionView struct {
 }
 
 func (s *Server) handleAdminIndex(w http.ResponseWriter, r *http.Request) {
-	if err := s.renderer.Render(w, http.StatusOK, "admin_index.html", adminIndexPageData{
+	data := adminIndexPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Admin",
-	}); err != nil {
+	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		currentBreadcrumb(adminLabel()),
+	}
+
+	if err := s.renderer.Render(w, http.StatusOK, "admin_index.html", data); err != nil {
 		s.handleRenderError(w, err)
 	}
 }
@@ -81,6 +87,11 @@ func (s *Server) renderAdminOperatorsIndex(
 		Title:             "Operators",
 		Error:             message,
 		Operators:         make([]operatorSummaryView, 0, len(operators)),
+	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		adminBreadcrumb(),
+		currentBreadcrumb("Operadores"),
 	}
 
 	for _, operator := range operators {
@@ -130,6 +141,15 @@ func (s *Server) renderAdminOperatorShow(
 		Title:             operatorDisplayName(operator.Rank, operator.Alias),
 		Error:             message,
 		Operator:          newOperatorDetailView(operator, currentOperator.ID()),
+	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		adminBreadcrumb(),
+		{
+			Label: "Operadores",
+			URL:   "/admin/operators",
+		},
+		currentBreadcrumb(data.Operator.DisplayName),
 	}
 
 	if err := s.renderer.Render(w, status, "admin_operator_show.html", data); err != nil {

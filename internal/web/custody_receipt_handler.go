@@ -43,6 +43,11 @@ func (s *Server) handleShowCustodyReceipt(w http.ResponseWriter, r *http.Request
 		Receipt:                   view,
 		IsHistoricalReadModelNote: true,
 	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		custodyTransactionsBreadcrumb(),
+		currentBreadcrumb("Recibo #" + view.ID),
+	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "custody_receipt_show.html", data); err != nil {
 		s.handleRenderError(w, err)

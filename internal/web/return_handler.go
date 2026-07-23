@@ -165,6 +165,10 @@ func (s *Server) buildReturnFormPageData(
 	}
 
 	data.privateLayoutData = newPrivateLayoutData(r)
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		currentBreadcrumb(returnLabel()),
+	}
 
 	sectionShortLabels, err := s.returnPersonnelSectionShortLabels(r, personnelList)
 	if err != nil {

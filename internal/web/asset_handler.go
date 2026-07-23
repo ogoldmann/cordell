@@ -75,6 +75,10 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 		StatusFilter:      string(statusFilter),
 		StatusTabs:        newStatusFilterTabs("/assets", statusFilter),
 	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		currentBreadcrumb(assetPluralLabel()),
+	}
 
 	for _, item := range assets {
 		data.Assets = append(data.Assets, newAssetView(item))
@@ -89,6 +93,11 @@ func (s *Server) handleNewAssetForm(w http.ResponseWriter, r *http.Request) {
 	data := assetNewPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Cadastrar material",
+	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		assetsBreadcrumb(),
+		currentBreadcrumb("Cadastrar material"),
 	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "assets_new.html", data); err != nil {
@@ -168,6 +177,11 @@ func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
 		Title:             asset.Name(),
 		Asset:             newAssetView(asset),
 		Holders:           make([]assetHolderView, 0, len(holders)),
+	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		assetsBreadcrumb(),
+		currentBreadcrumb(data.Asset.Name),
 	}
 
 	for _, holder := range holders {
@@ -263,6 +277,11 @@ func (s *Server) renderNewAssetFormWithError(
 		Title:             "Cadastrar material",
 		Error:             message,
 		Name:              name,
+	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		assetsBreadcrumb(),
+		currentBreadcrumb("Cadastrar material"),
 	}
 
 	if err := s.renderer.Render(w, status, "assets_new.html", data); err != nil {

@@ -6,6 +6,7 @@ type privateLayoutData struct {
 	CSRFToken       string
 	CurrentOperator currentOperatorView
 	HasOperator     bool
+	Breadcrumbs     []breadcrumbItemView
 }
 
 func newPrivateLayoutData(r *http.Request) privateLayoutData {

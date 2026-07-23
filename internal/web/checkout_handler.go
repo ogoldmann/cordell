@@ -156,6 +156,10 @@ func (s *Server) buildCheckoutNewPageData(
 	data checkoutNewPageData,
 ) (checkoutNewPageData, error) {
 	data.privateLayoutData = newPrivateLayoutData(r)
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		currentBreadcrumb(checkoutLabel()),
+	}
 	if data.TransactionID == "" {
 		transactionID, err := newFormTransactionID()
 		if err != nil {

@@ -1,0 +1,28 @@
+{{define "breadcrumbs"}}
+  {{if .Breadcrumbs}}
+    <nav class="mb-6 text-sm" aria-label="Breadcrumb">
+      <ol class="flex flex-wrap items-center gap-2 text-cordell-muted dark:text-cordell-dark-muted">
+        {{range $index, $item := .Breadcrumbs}}
+          <li class="flex items-center gap-2">
+            {{if $index}}
+              <span class="text-cordell-muted/60 dark:text-cordell-dark-muted/60" aria-hidden="true">/</span>
+            {{end}}
+
+            {{if .Current}}
+              <span class="font-extrabold text-cordell-text dark:text-cordell-dark-text" aria-current="page">
+                {{.Label}}
+              </span>
+            {{else}}
+              <a
+                class="font-bold text-cordell-muted no-underline transition hover:text-cordell-primary dark:text-cordell-dark-muted dark:hover:text-cordell-dark-primary"
+                href="{{.URL}}"
+              >
+                {{.Label}}
+              </a>
+            {{end}}
+          </li>
+        {{end}}
+      </ol>
+    </nav>
+  {{end}}
+{{end}}

@@ -281,6 +281,11 @@ func (s *Server) newCustodyTransactionEditPageData(
 		AssetOptions:     newCustodyAssetOptions(assets),
 		LineRows:         state.LineRows,
 	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		custodyTransactionsBreadcrumb(),
+		currentBreadcrumb(custodyTransactionTypeActionLabel(receipt.TransactionType)),
+	}
 
 	return data, nil
 }

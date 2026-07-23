@@ -116,6 +116,11 @@ func (s *Server) handleNewPersonnelForm(w http.ResponseWriter, r *http.Request) 
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Cadastrar militar",
 	})
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		personnelBreadcrumb(),
+		currentBreadcrumb("Cadastrar militar"),
+	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "personnel_new.html", data); err != nil {
 		s.handleRenderError(w, err)
@@ -212,6 +217,11 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 		Title:             personnel.FullName(),
 		Personnel:         newPersonnelView(personnel),
 		CurrentCustody:    make([]currentCustodyView, 0, len(currentCustody)),
+	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		personnelBreadcrumb(),
+		currentBreadcrumb(data.Personnel.DisplayName),
 	}
 
 	for _, item := range currentCustody {
@@ -337,6 +347,11 @@ func (s *Server) renderNewPersonnelFormWithError(
 		SelectedSection:          r.FormValue("section"),
 		SelectedOrganizationUnit: r.FormValue("organization_unit"),
 	})
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		personnelBreadcrumb(),
+		currentBreadcrumb("Cadastrar militar"),
+	}
 
 	if err := s.renderer.Render(w, status, "personnel_new.html", data); err != nil {
 		s.handleRenderError(w, err)
@@ -392,6 +407,10 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 		Personnel:         make([]personnelView, 0, len(personnel)),
 		StatusFilter:      string(statusFilter),
 		StatusTabs:        newStatusFilterTabs("/personnel", statusFilter),
+	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		currentBreadcrumb(personnelPluralLabel()),
 	}
 
 	for _, item := range personnel {

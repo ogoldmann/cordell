@@ -179,6 +179,10 @@ func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.R
 		NextPageURL:     nextPageURL,
 		Transactions:    newCustodyTransactionSummaryViews(transactionPage.Items),
 	}
+	data.Breadcrumbs = []breadcrumbItemView{
+		homeBreadcrumb(),
+		currentBreadcrumb(custodyLedgerLabel()),
+	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "custody_transactions_index.html", data); err != nil {
 		s.handleRenderError(w, err)
