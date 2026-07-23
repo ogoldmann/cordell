@@ -8,13 +8,13 @@
       >
         {{if .CurrentAssetLabel}}
           <div class="md:col-span-3 rounded-xl border border-cordell-border bg-cordell-surface px-3 py-2 text-sm dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
-            <p class="m-0 font-bold">Current effective asset</p>
+            <p class="m-0 font-bold">Material efetivo atual</p>
 
             <p class="mt-1 text-cordell-muted dark:text-cordell-dark-muted">
               {{.CurrentAssetLabel}}
               {{if .NeedsReplacement}}
                 <span class="ml-2 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                  Inactive
+                  Inativo
                 </span>
               {{end}}
             </p>
@@ -22,7 +22,7 @@
         {{end}}
 
         <label>
-          <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Asset</span>
+          <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Material</span>
 
           <select
             class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
@@ -30,7 +30,7 @@
             required
             data-custody-asset-select
           >
-            <option value="">Select asset</option>
+            <option value="">Selecione o material</option>
             {{$selectedAssetID := .AssetID}}
             {{range $.AssetOptions}}
               <option
@@ -45,7 +45,7 @@
         </label>
 
         <label>
-          <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Quantity</span>
+          <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Quantidade</span>
 
           <input
             class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
@@ -62,7 +62,7 @@
           class="mt-7 inline-flex h-12 w-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 font-bold text-red-700 transition hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200"
           type="button"
           data-remove-custody-line
-          aria-label="Remove line"
+          aria-label="Remover linha"
         >
           <span aria-hidden="true">🗑</span>
         </button>
@@ -75,7 +75,7 @@
     type="button"
     data-add-custody-line
   >
-    + Add line
+    + Adicionar linha
   </button>
 
   <template data-custody-line-template>
@@ -84,7 +84,7 @@
       data-custody-line-row
     >
       <label>
-        <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Asset</span>
+        <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Material</span>
 
         <select
           class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
@@ -92,7 +92,7 @@
           required
           data-custody-asset-select
         >
-          <option value="">Select asset</option>
+          <option value="">Selecione o material</option>
           {{range .AssetOptions}}
             <option
               value="{{.ID}}"
@@ -105,7 +105,7 @@
       </label>
 
       <label>
-        <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Quantity</span>
+        <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Quantidade</span>
 
         <input
           class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
@@ -122,7 +122,7 @@
         class="mt-7 inline-flex h-12 w-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 font-bold text-red-700 transition hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200"
         type="button"
         data-remove-custody-line
-        aria-label="Remove line"
+        aria-label="Remover linha"
       >
         <span aria-hidden="true">🗑</span>
       </button>

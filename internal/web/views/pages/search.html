@@ -3,15 +3,15 @@
 
 <section class="mb-6">
   <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-    Global search
+    Pesquisa global
   </p>
 
   <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
-    Search Cordell
+    Pesquisar no Cordell
   </h1>
 
   <p class="mt-3 max-w-2xl text-cordell-muted dark:text-cordell-dark-muted">
-    Search personnel and assets using names, aliases, registration IDs, ranks, sections, organization units, and asset names.
+    Pesquise militares e materiais por nome, nome de guerra, identidade, posto/graduação, seção, organização ou nome do material.
   </p>
 </section>
 
@@ -23,14 +23,14 @@
   <input type="hidden" name="status" value="{{.StatusFilter}}">
 
   <div class="grid gap-2">
-    <label class="text-sm font-bold" for="global_search">Search</label>
+    <label class="text-sm font-bold" for="global_search">Pesquisar</label>
     <input
       class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
       id="global_search"
       name="q"
       type="search"
       value="{{.SearchQuery}}"
-      placeholder="Search by alias, rank, registration ID, asset name..."
+      placeholder="Pesquise por nome, nome de guerra, identidade, material..."
       autofocus
     >
   </div>
@@ -40,7 +40,7 @@
       class="inline-flex cursor-pointer items-center justify-center rounded-xl border-0 bg-cordell-primary px-4 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
       type="submit"
     >
-      Search
+      Pesquisar
     </button>
 
     {{if .SearchQuery}}
@@ -48,13 +48,13 @@
         class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
         href="/search"
       >
-        Clear
+        Limpar
       </a>
     {{end}}
   </div>
 </form>
 
-<nav class="mb-6 flex flex-wrap gap-2" aria-label="Search status filter">
+<nav class="mb-6 flex flex-wrap gap-2" aria-label="Filtro de status da pesquisa">
   {{range .StatusTabs}}
     <a
       class="inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-bold no-underline transition {{if .Active}}border-cordell-primary bg-cordell-primary text-white dark:border-cordell-dark-primary dark:bg-cordell-dark-primary dark:text-cordell-dark-background{{else}}border-cordell-border bg-cordell-surface text-cordell-text hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60{{end}}"
@@ -66,7 +66,7 @@
 </nav>
 
 <p class="mb-6 text-sm text-cordell-muted dark:text-cordell-dark-muted">
-  Search defaults to active records to keep daily operations focused. Use Inactive or All when reviewing archived records.
+  A pesquisa prioriza registros ativos para manter a operação diária focada. Use Inativo ou Todos para revisar registros arquivados.
 </p>
 
 {{if .HasQuery}}
@@ -76,17 +76,17 @@
         <div class="mb-4 flex items-end justify-between gap-4">
           <div>
             <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-              Results
+              Resultados
             </p>
 
             <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">
-              Personnel
+              Militares
             </h2>
           </div>
 
           {{if .Personnel}}
             <a class="text-sm font-bold text-cordell-primary no-underline dark:text-cordell-dark-primary" href="/personnel?q={{queryEscape .SearchQuery}}">
-              View in personnel
+              Ver todos os militares encontrados
             </a>
           {{end}}
         </div>
@@ -99,7 +99,7 @@
           </div>
         {{else}}
           <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-6 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
-            <p class="m-0 text-cordell-muted dark:text-cordell-dark-muted">No personnel results.</p>
+            <p class="m-0 text-cordell-muted dark:text-cordell-dark-muted">Nenhum militar encontrado.</p>
           </div>
         {{end}}
       </div>
@@ -108,17 +108,17 @@
         <div class="mb-4 flex items-end justify-between gap-4">
           <div>
             <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-              Results
+              Resultados
             </p>
 
             <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">
-              Assets
+              Materiais
             </h2>
           </div>
 
           {{if .Assets}}
             <a class="text-sm font-bold text-cordell-primary no-underline dark:text-cordell-dark-primary" href="/assets?q={{queryEscape .SearchQuery}}">
-              View in assets
+              Ver todos os materiais encontrados
             </a>
           {{end}}
         </div>
@@ -131,24 +131,24 @@
           </div>
         {{else}}
           <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-6 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
-            <p class="m-0 text-cordell-muted dark:text-cordell-dark-muted">No asset results.</p>
+            <p class="m-0 text-cordell-muted dark:text-cordell-dark-muted">Nenhum material encontrado.</p>
           </div>
         {{end}}
       </div>
     </section>
   {{else}}
     <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-8 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
-      <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">No results found</h2>
+      <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Nenhum resultado encontrado</h2>
       <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
-        No personnel or assets matched your search.
+        Nenhum militar ou material correspondeu à pesquisa.
       </p>
     </div>
   {{end}}
 {{else}}
   <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-8 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
-    <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Start with a search term</h2>
+    <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Comece com um termo de pesquisa</h2>
     <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
-      Try searching for an alias, rank, section, registration ID, or asset name.
+      Tente pesquisar por nome de guerra, posto/graduação, seção, identidade ou nome do material.
     </p>
   </div>
 {{end}}

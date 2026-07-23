@@ -60,7 +60,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, domain.ErrInvalidCredentials) {
 			s.loginRateLimiter.recordFailure(r, registrationID, now)
-			s.renderLoginError(w, http.StatusUnauthorized, registrationID, returnTo, "Invalid registration ID or password.")
+			s.renderLoginError(w, http.StatusUnauthorized, registrationID, returnTo, "Identidade ou senha inválida.")
 			return
 		}
 

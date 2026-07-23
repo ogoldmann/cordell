@@ -23,7 +23,7 @@ func newCurrentOperatorView(operator domain.Operator) currentOperatorView {
 		RankLabel:          operator.Rank().Label(),
 		DisplayName:        displayName,
 		Role:               operator.Role().String(),
-		RoleLabel:          operator.Role().Label(),
+		RoleLabel:          operatorRoleLabel(operator.Role()),
 		CanManageOperators: operator.Role().CanManageOperators(),
 	}
 }

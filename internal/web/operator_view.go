@@ -53,7 +53,7 @@ func newOperatorSummaryView(operator ports.OperatorSummary) operatorSummaryView 
 		RankLabel:      operator.Rank.Label(),
 		DisplayName:    operatorDisplayName(operator.Rank, operator.Alias),
 		Role:           operator.Role.String(),
-		RoleLabel:      operator.Role.Label(),
+		RoleLabel:      operatorRoleLabel(operator.Role),
 		Active:         operator.Active,
 		CreatedAt:      formatTimestamp(operator.CreatedAt),
 	}
@@ -71,7 +71,7 @@ func newOperatorDetailView(
 		RankLabel:        operator.Rank.Label(),
 		DisplayName:      operatorDisplayName(operator.Rank, operator.Alias),
 		Role:             operator.Role.String(),
-		RoleLabel:        operator.Role.Label(),
+		RoleLabel:        operatorRoleLabel(operator.Role),
 		Active:           operator.Active,
 		CreatedAt:        formatTimestamp(operator.CreatedAt),
 		CanDeactivate:    operator.Active && operator.ID != currentOperatorID,
@@ -88,7 +88,7 @@ func newOperatorRoleOptionViews(selectedRole string) []operatorRoleOptionView {
 	for _, role := range domain.OperatorRoleOptions() {
 		options = append(options, operatorRoleOptionView{
 			Value:    role.String(),
-			Label:    role.Label(),
+			Label:    operatorRoleLabel(role),
 			Selected: role.String() == selectedRole,
 		})
 	}
@@ -101,7 +101,7 @@ func formatTimestamp(value time.Time) string {
 		return ""
 	}
 
-	return value.UTC().Format("2006-01-02 15:04 UTC")
+	return value.Local().Format("02/01/2006 15:04")
 }
 
 func operatorDisplayName(rank domain.Rank, alias string) string {

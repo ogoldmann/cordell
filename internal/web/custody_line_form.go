@@ -70,13 +70,13 @@ func parseCustodyLineCommandsFromRequest(r *http.Request) ([]app.CustodyLineComm
 func humanizeCustodyLineFormError(err error) string {
 	switch {
 	case errors.Is(err, errNoCustodyLineSubmitted):
-		return "Add at least one asset line."
+		return "Adicione pelo menos uma linha de material."
 	case errors.Is(err, domain.ErrEmptyAssetID):
-		return "Each asset line must have an asset."
+		return "Cada linha deve ter um material."
 	case errors.Is(err, domain.ErrInvalidQuantity):
-		return "Each asset line must have a valid positive quantity."
+		return "Cada linha deve ter uma quantidade válida."
 	default:
-		return "Review the asset lines and try again."
+		return "Revise as linhas de materiais e tente novamente."
 	}
 }
 
@@ -157,9 +157,9 @@ func newReturnAssetOptions(items []app.CurrentCustodyItem) []custodyAssetOptionV
 	options := make([]custodyAssetOptionView, 0, len(items))
 
 	for _, item := range items {
-		label := item.AssetName + " · available " + strconv.Itoa(item.Quantity)
+		label := item.AssetName + " · disponível " + strconv.Itoa(item.Quantity)
 		if !item.AssetActive {
-			label += " · Inactive"
+			label += " · " + activeStatusLabel(false)
 		}
 
 		options = append(options, custodyAssetOptionView{

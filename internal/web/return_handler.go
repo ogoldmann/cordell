@@ -39,7 +39,7 @@ type returnPersonnelOptionView struct {
 
 func (s *Server) handleNewReturnForm(w http.ResponseWriter, r *http.Request) {
 	data, err := s.buildReturnFormPageData(r, returnNewPageData{
-		Title:               "Register return",
+		Title:               returnLabel(),
 		SelectedPersonnelID: r.URL.Query().Get("personnel_id"),
 		LineRows:            defaultCustodyLineFormRows(),
 	})
@@ -74,7 +74,7 @@ func (s *Server) handleCreateReturn(w http.ResponseWriter, r *http.Request) {
 			r,
 			http.StatusBadRequest,
 			personnelID,
-			"Form transaction ID is missing. Please reload the page and try again.",
+			"O ID da transação está ausente. Recarregue a página e tente novamente.",
 		)
 		return
 	}
@@ -137,7 +137,7 @@ func (s *Server) renderReturnFormError(
 	message string,
 ) {
 	data, err := s.buildReturnFormPageData(r, returnNewPageData{
-		Title:               "Register return",
+		Title:               returnLabel(),
 		Error:               message,
 		SelectedPersonnelID: string(personnelID),
 		LineRows:            custodyLineFormRowsFromRequest(r),
@@ -221,7 +221,7 @@ func newReturnPersonnelOptions(
 		label += " - " + strconv.Itoa(item.TotalQuantity) + " item(s)"
 
 		if !item.Active {
-			label += " - Inactive"
+			label += " - " + activeStatusLabel(false)
 		}
 
 		options = append(options, returnPersonnelOptionView{
@@ -237,18 +237,18 @@ func newReturnPersonnelOptions(
 func humanizeReturnWebError(err error) string {
 	switch {
 	case errors.Is(err, domain.ErrEmptyPersonnelID):
-		return "Personnel is required."
+		return "Selecione um militar."
 	case errors.Is(err, domain.ErrEmptyOperatorID):
-		return "Authenticated operator is required."
+		return "O operador autenticado é obrigatório."
 	case errors.Is(err, domain.ErrEmptyAssetID):
-		return "Asset is required."
+		return "Selecione pelo menos um material."
 	case errors.Is(err, domain.ErrInvalidQuantity):
-		return "Quantity must be a positive number."
+		return "Informe uma quantidade válida."
 	case errors.Is(err, domain.ErrInsufficientCustodyBalance):
-		return "Return quantity is greater than the available custody balance."
+		return "A quantidade informada é maior que a custódia atual disponível."
 	case errors.Is(err, ports.ErrNotFound):
-		return "Personnel or asset not found."
+		return "Militar ou material não foi encontrado."
 	default:
-		return "Could not register return."
+		return "Não foi possível registrar a descautela."
 	}
 }

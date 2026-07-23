@@ -3,7 +3,7 @@
 
 <section class="mb-8">
   <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-    Custody transaction
+    Transação de custódia
   </p>
 
   <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -17,7 +17,7 @@
       </p>
 
       <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
-        Created at {{.Receipt.CreatedAt}}
+        Criada em {{.Receipt.CreatedAt}}
       </p>
     </div>
 
@@ -29,11 +29,11 @@
 
 <div class="mb-6 grid gap-3">
   <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
-    This edit will not overwrite the original transaction. Cordell will store an append-only correction and update custody balances safely.
+    Esta edição não sobrescreverá a transação original. O Cordell armazenará uma correção no histórico e atualizará os saldos de custódia com segurança.
   </div>
 
   <div class="rounded-2xl border border-cordell-border bg-cordell-surface px-4 py-3 text-sm text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-muted">
-    You are editing the current effective interpretation of this transaction. If this transaction was already edited before, this form uses the latest edit as its starting point.
+    Você está editando a interpretação efetiva atual desta transação. Se ela já foi editada antes, este formulário usa a edição mais recente como ponto de partida.
   </div>
 </div>
 
@@ -51,7 +51,7 @@
 
 <section class="mb-6 rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
   <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-    Edit base
+    Base da edição
   </p>
 
   <h2 class="m-0 text-xl font-extrabold">
@@ -68,38 +68,38 @@
   method="post"
   action="{{.FormAction}}"
   data-submit-confirm-trigger
-  data-submit-confirm-title="Save this edit?"
-  data-submit-confirm-description="Cordell will keep the original transaction and store this edit as an append-only correction."
-  data-submit-confirm-warning="This can change current custody balances. If the edit cannot be applied safely, Cordell will reject it."
-  data-submit-confirm-label="Save edit"
+  data-submit-confirm-title="Salvar esta edição?"
+  data-submit-confirm-description="O Cordell manterá a transação original e armazenará esta edição como uma correção no histórico."
+  data-submit-confirm-warning="Isso pode alterar saldos atuais de custódia. Se a edição não puder ser aplicada com segurança, o Cordell recusará a operação."
+  data-submit-confirm-label="Salvar edição"
 >
   <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
   <input type="hidden" name="correction_id" value="{{.CorrectionID}}">
 
   <section class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
-    <h2 class="m-0 text-xl font-extrabold">Corrected personnel</h2>
+    <h2 class="m-0 text-xl font-extrabold">Militar corrigido</h2>
 
     <div class="mt-4 rounded-2xl border border-cordell-border bg-cordell-background px-4 py-3 text-sm dark:border-cordell-dark-border dark:bg-cordell-dark-background">
-      <p class="m-0 font-bold">Current effective personnel</p>
+      <p class="m-0 font-bold">Militar efetivo atual</p>
       <p class="mt-1 text-cordell-muted dark:text-cordell-dark-muted">
         {{.EffectivePersonnelLabel}}
         {{if not .EffectivePersonnelIsActive}}
           <span class="ml-2 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-            Inactive
+            Inativo
           </span>
         {{end}}
       </p>
     </div>
 
     <label class="mt-5 block">
-      <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Personnel</span>
+      <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Militar</span>
 
       <select
         class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
         name="corrected_personnel_id"
         required
       >
-        <option value="">Select active personnel</option>
+        <option value="">Selecione o militar ativo</option>
         {{range .PersonnelOptions}}
           <option value="{{.ID}}" {{if .Selected}}selected{{end}}>{{.Label}}</option>
         {{end}}
@@ -110,13 +110,13 @@
   <section class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
     <div>
       <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-        Corrected lines
+        Linhas corrigidas
       </p>
 
-      <h2 class="m-0 text-2xl font-extrabold">Assets</h2>
+      <h2 class="m-0 text-2xl font-extrabold">Materiais</h2>
 
       <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
-        Choose the active asset lines that represent the corrected effective state.
+        Escolha as linhas de materiais ativos que representam o estado efetivo corrigido.
       </p>
     </div>
 
@@ -126,10 +126,10 @@
   </section>
 
   <section class="mt-6 rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
-    <h2 class="m-0 text-xl font-extrabold">Corrected notes</h2>
+    <h2 class="m-0 text-xl font-extrabold">Observações corrigidas</h2>
 
     <label class="mt-5 block">
-      <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Notes</span>
+      <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">Observações</span>
 
       <textarea
         class="mt-2 min-h-32 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
@@ -143,14 +143,14 @@
       class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white transition hover:bg-cordell-primary-hover disabled:cursor-not-allowed disabled:opacity-50 dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
       type="submit"
     >
-      Save edit
+      Salvar edição
     </button>
 
     <a
       class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-5 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
       href="/custody/transactions/{{.Receipt.ID}}"
     >
-      Cancel
+      Cancelar
     </a>
   </div>
 </form>

@@ -8,38 +8,38 @@
     </p>
 
     <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
-      Custody management dashboard
+      Painel de gestão de custódia
     </h1>
 
     <p class="mt-3 max-w-2xl text-cordell-muted dark:text-cordell-dark-muted">
-      Manage personnel, assets, checkouts, returns, and current custody status.
+      Gerencie militares, materiais, cautelas, descautelas e a custódia atual.
     </p>
   </div>
 </section>
 
 <section class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
   <a class="rounded-2xl border border-cordell-border bg-cordell-surface p-5 no-underline shadow-lg shadow-slate-900/5 transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:hover:border-cordell-dark-primary/60" href="/personnel/new">
-    <span class="block text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Personnel</span>
-    <strong class="mt-2 block text-lg">Create personnel</strong>
-    <small class="mt-2 block text-sm text-cordell-muted dark:text-cordell-dark-muted">Register a person who can receive assets.</small>
+    <span class="block text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Militares</span>
+    <strong class="mt-2 block text-lg">Cadastrar militar</strong>
+    <small class="mt-2 block text-sm text-cordell-muted dark:text-cordell-dark-muted">Cadastre um militar que poderá receber materiais.</small>
   </a>
 
   <a class="rounded-2xl border border-cordell-border bg-cordell-surface p-5 no-underline shadow-lg shadow-slate-900/5 transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:hover:border-cordell-dark-primary/60" href="/assets/new">
-    <span class="block text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Assets</span>
-    <strong class="mt-2 block text-lg">Create asset</strong>
-    <small class="mt-2 block text-sm text-cordell-muted dark:text-cordell-dark-muted">Register a material or item.</small>
+    <span class="block text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Materiais</span>
+    <strong class="mt-2 block text-lg">Cadastrar material</strong>
+    <small class="mt-2 block text-sm text-cordell-muted dark:text-cordell-dark-muted">Cadastre um material.</small>
   </a>
 
   <a class="rounded-2xl border border-cordell-border bg-cordell-surface p-5 no-underline shadow-lg shadow-slate-900/5 transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:hover:border-cordell-dark-primary/60" href="/custody/checkouts/new">
-    <span class="block text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Custody</span>
-    <strong class="mt-2 block text-lg">Register checkout</strong>
-    <small class="mt-2 block text-sm text-cordell-muted dark:text-cordell-dark-muted">Assign assets under custody.</small>
+    <span class="block text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Custódia</span>
+    <strong class="mt-2 block text-lg">Cautela</strong>
+    <small class="mt-2 block text-sm text-cordell-muted dark:text-cordell-dark-muted">Registre materiais sob custódia.</small>
   </a>
 
   <a class="rounded-2xl border border-cordell-border bg-cordell-surface p-5 no-underline shadow-lg shadow-slate-900/5 transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:hover:border-cordell-dark-primary/60" href="/custody/returns/new">
-    <span class="block text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Custody</span>
-    <strong class="mt-2 block text-lg">Register return</strong>
-    <small class="mt-2 block text-sm text-cordell-muted dark:text-cordell-dark-muted">Return assets from custody.</small>
+    <span class="block text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Custódia</span>
+    <strong class="mt-2 block text-lg">Descautela</strong>
+    <small class="mt-2 block text-sm text-cordell-muted dark:text-cordell-dark-muted">Registre a descautela de materiais.</small>
   </a>
 </section>
 
@@ -47,11 +47,11 @@
   <div class="rounded-3xl border border-cordell-border bg-white/70 p-5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/80">
     <div class="mb-4 flex items-start justify-between gap-4">
       <div>
-        <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Recent</p>
-        <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Personnel</h2>
+        <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Recentes</p>
+        <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Militares</h2>
       </div>
 
-      <a class="text-sm font-bold text-cordell-primary no-underline dark:text-cordell-dark-primary" href="/personnel">View all</a>
+      <a class="text-sm font-bold text-cordell-primary no-underline dark:text-cordell-dark-primary" href="/personnel">Ver todos</a>
     </div>
 
     {{if .RecentPersonnel}}
@@ -62,8 +62,8 @@
       </div>
     {{else}}
       <div class="rounded-2xl border border-dashed border-cordell-border bg-white/55 p-5 dark:border-cordell-dark-border dark:bg-cordell-dark-background/60">
-        <h2 class="m-0 text-xl font-bold">No personnel yet</h2>
-        <p class="mt-2 text-cordell-muted dark:text-cordell-dark-muted">Create the first personnel record.</p>
+        <h2 class="m-0 text-xl font-bold">Nenhum militar ainda</h2>
+        <p class="mt-2 text-cordell-muted dark:text-cordell-dark-muted">Cadastre o primeiro militar.</p>
       </div>
     {{end}}
   </div>
@@ -71,11 +71,11 @@
   <div class="rounded-3xl border border-cordell-border bg-white/70 p-5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/80">
     <div class="mb-4 flex items-start justify-between gap-4">
       <div>
-        <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Recent</p>
-        <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Assets</h2>
+        <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Recentes</p>
+        <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Materiais</h2>
       </div>
 
-      <a class="text-sm font-bold text-cordell-primary no-underline dark:text-cordell-dark-primary" href="/assets">View all</a>
+      <a class="text-sm font-bold text-cordell-primary no-underline dark:text-cordell-dark-primary" href="/assets">Ver todos</a>
     </div>
 
     {{if .RecentAssets}}
@@ -86,8 +86,8 @@
       </div>
     {{else}}
       <div class="rounded-2xl border border-dashed border-cordell-border bg-white/55 p-5 dark:border-cordell-dark-border dark:bg-cordell-dark-background/60">
-        <h2 class="m-0 text-xl font-bold">No assets yet</h2>
-        <p class="mt-2 text-cordell-muted dark:text-cordell-dark-muted">Create the first asset record.</p>
+        <h2 class="m-0 text-xl font-bold">Nenhum material ainda</h2>
+        <p class="mt-2 text-cordell-muted dark:text-cordell-dark-muted">Cadastre o primeiro material.</p>
       </div>
     {{end}}
   </div>

@@ -7,9 +7,9 @@ func editCountLabel(editCount int) string {
 		return ""
 	}
 
-	label := "Edited " + strconv.Itoa(editCount) + " time"
+	label := "Editado " + strconv.Itoa(editCount) + " vez"
 	if editCount != 1 {
-		label += "s"
+		label += "es"
 	}
 
 	return label

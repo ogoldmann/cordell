@@ -112,7 +112,7 @@ func newPersonnelNewPageData(data personnelNewPageData) personnelNewPageData {
 func (s *Server) handleNewPersonnelForm(w http.ResponseWriter, r *http.Request) {
 	data := newPersonnelNewPageData(personnelNewPageData{
 		privateLayoutData: newPrivateLayoutData(r),
-		Title:             "Create personnel",
+		Title:             "Cadastrar militar",
 	})
 
 	if err := s.renderer.Render(w, http.StatusOK, "personnel_new.html", data); err != nil {
@@ -125,7 +125,7 @@ func (s *Server) handleCreatePersonnel(w http.ResponseWriter, r *http.Request) {
 		s.renderNewPersonnelFormWithError(
 			w,
 			http.StatusBadRequest,
-			"Invalid form submission.",
+			"Envio de formulário inválido.",
 			r,
 		)
 		return
@@ -213,10 +213,7 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, item := range currentCustody {
-		assetStatusLabel := "Inactive"
-		if item.AssetActive {
-			assetStatusLabel = "Active"
-		}
+		assetStatusLabel := activeStatusLabel(item.AssetActive)
 
 		if !item.AssetActive {
 			data.HasInactiveAssetCurrentCustody = true
@@ -242,7 +239,7 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 			OperatorID:      string(entry.OperatorID),
 			OperatorDisplay: militaryDisplayName(entry.OperatorRank, entry.OperatorAlias),
 			Notes:           entry.Notes,
-			CreatedAt:       entry.CreatedAt.Local().Format("2006-01-02 15:04"),
+			CreatedAt:       entry.CreatedAt.Local().Format("02/01/2006 15:04"),
 			Lines:           make([]custodyHistoryLineView, 0, len(entry.Lines)),
 			HasCorrection:   entry.HasCorrection,
 			EditCount:       entry.EditCount,
@@ -329,7 +326,7 @@ func (s *Server) renderNewPersonnelFormWithError(
 ) {
 	data := newPersonnelNewPageData(personnelNewPageData{
 		privateLayoutData:        newPrivateLayoutData(r),
-		Title:                    "Create personnel",
+		Title:                    "Cadastrar militar",
 		Error:                    message,
 		FullName:                 r.FormValue("full_name"),
 		Alias:                    r.FormValue("alias"),
@@ -352,25 +349,25 @@ func (s *Server) handleRenderError(w http.ResponseWriter, err error) {
 func humanizePersonnelError(err error) string {
 	switch {
 	case errors.Is(err, domain.ErrEmptyPersonnelName):
-		return "Full name is required."
+		return "O nome completo é obrigatório."
 	case errors.Is(err, domain.ErrEmptyPersonnelAlias):
-		return "Alias is required."
+		return "O nome de guerra é obrigatório."
 	case errors.Is(err, domain.ErrEmptyRegistrationID):
-		return "Registration ID is required."
+		return "A identidade é obrigatória."
 	case errors.Is(err, domain.ErrInvalidRegistrationID):
-		return "Registration ID is invalid."
+		return "A identidade informada é inválida."
 	case errors.Is(err, domain.ErrDuplicateRegistrationID):
-		return "Registration ID is already registered."
+		return "Esta identidade já está cadastrada."
 	case errors.Is(err, domain.ErrInvalidPersonnelRank):
-		return "Rank is required."
+		return "O posto ou graduação é obrigatório."
 	case errors.Is(err, domain.ErrInvalidPersonnelSection):
-		return "Section is required."
+		return "A seção é obrigatória."
 	case errors.Is(err, domain.ErrInvalidOrganizationUnit):
-		return "Organization unit is required."
+		return "A organização é obrigatória."
 	case errors.Is(err, domain.ErrEmptyPersonnelID):
-		return "Personnel ID is required."
+		return "O militar é obrigatório."
 	default:
-		return "Could not create personnel."
+		return "Não foi possível cadastrar o militar."
 	}
 }
 
@@ -389,7 +386,7 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 
 	data := personnelIndexPageData{
 		privateLayoutData: newPrivateLayoutData(r),
-		Title:             "Personnel",
+		Title:             personnelPluralLabel(),
 		Personnel:         make([]personnelView, 0, len(personnel)),
 		StatusFilter:      string(statusFilter),
 		StatusTabs:        newStatusFilterTabs("/personnel", statusFilter),
@@ -404,22 +401,8 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func custodyTransactionTypeLabel(transactionType domain.CustodyTransactionType) string {
-	switch transactionType {
-	case domain.CustodyTransactionTypeCheckout:
-		return "Checkout"
-	case domain.CustodyTransactionTypeReturn:
-		return "Return"
-	default:
-		return "Unknown"
-	}
-}
-
 func newPersonnelView(personnel domain.Personnel) personnelView {
-	statusLabel := "Inactive"
-	if personnel.Active() {
-		statusLabel = "Active"
-	}
+	statusLabel := activeStatusLabel(personnel.Active())
 
 	return personnelView{
 		ID:                    string(personnel.ID()),

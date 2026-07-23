@@ -70,7 +70,7 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 
 	data := assetIndexPageData{
 		privateLayoutData: newPrivateLayoutData(r),
-		Title:             "Assets",
+		Title:             assetPluralLabel(),
 		Assets:            make([]assetView, 0, len(assets)),
 		StatusFilter:      string(statusFilter),
 		StatusTabs:        newStatusFilterTabs("/assets", statusFilter),
@@ -88,7 +88,7 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleNewAssetForm(w http.ResponseWriter, r *http.Request) {
 	data := assetNewPageData{
 		privateLayoutData: newPrivateLayoutData(r),
-		Title:             "Create asset",
+		Title:             "Cadastrar material",
 	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "assets_new.html", data); err != nil {
@@ -102,7 +102,7 @@ func (s *Server) handleCreateAsset(w http.ResponseWriter, r *http.Request) {
 			w,
 			r,
 			http.StatusBadRequest,
-			"Invalid form submission.",
+			"Envio de formulário inválido.",
 			"",
 		)
 		return
@@ -171,10 +171,7 @@ func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, holder := range holders {
-		statusLabel := "Inactive"
-		if holder.PersonnelActive {
-			statusLabel = "Active"
-		}
+		statusLabel := activeStatusLabel(holder.PersonnelActive)
 
 		if !holder.PersonnelActive {
 			data.HasInactiveHolders = true
@@ -263,7 +260,7 @@ func (s *Server) renderNewAssetFormWithError(
 ) {
 	data := assetNewPageData{
 		privateLayoutData: newPrivateLayoutData(r),
-		Title:             "Create asset",
+		Title:             "Cadastrar material",
 		Error:             message,
 		Name:              name,
 	}
@@ -276,12 +273,12 @@ func (s *Server) renderNewAssetFormWithError(
 func humanizeAssetError(err error) string {
 	switch {
 	case errors.Is(err, domain.ErrEmptyAssetName):
-		return "Asset name is required."
+		return "O nome do material é obrigatório."
 	case errors.Is(err, domain.ErrDuplicateAssetName):
-		return "Asset name is already registered."
+		return "Este material já está cadastrado."
 	case errors.Is(err, domain.ErrEmptyAssetID):
-		return "Asset ID is required."
+		return "O material é obrigatório."
 	default:
-		return "Could not create asset."
+		return "Não foi possível cadastrar o material."
 	}
 }

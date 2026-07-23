@@ -122,7 +122,7 @@ func newCustodyReceiptView(receipt app.CustodyReceipt) custodyReceiptView {
 		ID:                      string(receipt.ID),
 		TypeLabel:               typeLabel,
 		EditURL:                 "/custody/transactions/" + string(receipt.ID) + "/edit",
-		EditLabel:               "Edit " + strings.ToLower(typeLabel),
+		EditLabel:               custodyTransactionTypeActionLabel(receipt.TransactionType),
 		PersonnelID:             string(receipt.PersonnelID),
 		PersonnelDisplay:        militaryDisplayName(receipt.PersonnelRank, receipt.PersonnelAlias),
 		PersonnelFullName:       receipt.PersonnelFullName,
@@ -131,7 +131,7 @@ func newCustodyReceiptView(receipt app.CustodyReceipt) custodyReceiptView {
 		PersonnelStatusLabel:    activeStatusLabel(receipt.PersonnelActive),
 		OperatorID:              string(receipt.OperatorID),
 		OperatorDisplay:         militaryDisplayName(receipt.OperatorRank, receipt.OperatorAlias),
-		OperatorRoleLabel:       receipt.OperatorRole.Label(),
+		OperatorRoleLabel:       operatorRoleLabel(receipt.OperatorRole),
 		OperatorActive:          receipt.OperatorActive,
 		OperatorStatusLabel:     activeStatusLabel(receipt.OperatorActive),
 		Notes:                   receipt.Notes,
@@ -256,13 +256,13 @@ func newCustodyReceiptEditHistory(receipt app.CustodyReceipt) []custodyReceiptEd
 	history := []custodyReceiptEditHistoryEntryView{
 		{
 			Kind:           "original",
-			Title:          "Original transaction",
+			Title:          "Transação original",
 			CreatedAt:      formatDateTime(receipt.CreatedAt),
 			OperatorLabel:  militaryDisplayName(receipt.OperatorRank, receipt.OperatorAlias),
 			OperatorStatus: activeStatusLabel(receipt.OperatorActive),
 			Changes: []custodyReceiptEditChangeView{
 				{
-					Label: "Initial state",
+					Label: "Estado inicial",
 					From:  "",
 					To:    custodyReceiptInterpretationSummary(original),
 				},
@@ -279,7 +279,7 @@ func newCustodyReceiptEditHistory(receipt app.CustodyReceipt) []custodyReceiptEd
 
 		entry := custodyReceiptEditHistoryEntryView{
 			Kind:           "edit",
-			Title:          "Edit #" + strconv.Itoa(index+1),
+			Title:          "Edição #" + strconv.Itoa(index+1),
 			CreatedAt:      formatDateTime(correction.CreatedAt),
 			OperatorLabel:  militaryDisplayName(correction.OperatorRank, correction.OperatorAlias),
 			OperatorStatus: activeStatusLabel(correction.OperatorActive),
@@ -303,7 +303,7 @@ func custodyReceiptChanges(
 
 	if previous.PersonnelID != current.PersonnelID {
 		changes = append(changes, custodyReceiptEditChangeView{
-			Label: "Personnel changed",
+			Label: "Militar alterado",
 			From:  previous.PersonnelDisplay,
 			To:    current.PersonnelDisplay,
 		})
@@ -311,7 +311,7 @@ func custodyReceiptChanges(
 
 	if strings.TrimSpace(previous.Notes) != strings.TrimSpace(current.Notes) {
 		changes = append(changes, custodyReceiptEditChangeView{
-			Label: "Notes changed",
+			Label: "Observações alteradas",
 			From:  custodyNotesChangeLabel(previous.Notes),
 			To:    custodyNotesChangeLabel(current.Notes),
 		})
@@ -325,7 +325,7 @@ func custodyReceiptChanges(
 func custodyNotesChangeLabel(notes string) string {
 	trimmed := strings.TrimSpace(notes)
 	if trimmed == "" {
-		return "No notes"
+		return "Sem observações"
 	}
 
 	return trimmed
@@ -364,21 +364,21 @@ func custodyReceiptLineChanges(
 		switch {
 		case !hadPrevious && hasCurrent:
 			changes = append(changes, custodyReceiptEditChangeView{
-				Label: "Asset added",
+				Label: "Material adicionado",
 				From:  "—",
 				To:    custodyReceiptLineSummary(currentLine),
 			})
 
 		case hadPrevious && !hasCurrent:
 			changes = append(changes, custodyReceiptEditChangeView{
-				Label: "Asset removed",
+				Label: "Material removido",
 				From:  custodyReceiptLineSummary(previousLine),
 				To:    "—",
 			})
 
 		case hadPrevious && hasCurrent && previousLine.Quantity != currentLine.Quantity:
 			changes = append(changes, custodyReceiptEditChangeView{
-				Label: "Quantity changed",
+				Label: "Quantidade alterada",
 				From:  custodyReceiptLineSummary(previousLine),
 				To:    custodyReceiptLineSummary(currentLine),
 			})
@@ -410,7 +410,7 @@ func custodyReceiptLineSummary(line custodyReceiptLineView) string {
 }
 
 func custodyReceiptInterpretationSummary(interpretation custodyReceiptInterpretationView) string {
-	return interpretation.PersonnelDisplay + " · " + strconv.Itoa(custodyReceiptTotalQuantity(interpretation.Lines)) + " item(s)"
+	return interpretation.PersonnelDisplay + " · " + strconv.Itoa(custodyReceiptTotalQuantity(interpretation.Lines)) + " item(ns)"
 }
 
 func custodyReceiptTotalQuantity(lines []custodyReceiptLineView) int {
@@ -434,7 +434,7 @@ func newCustodyReceiptCorrectionView(correction app.CustodyCorrectionContext) cu
 		CorrectedPersonnelStatusLabel:    activeStatusLabel(correction.CorrectedPersonnelActive),
 		OperatorID:                       string(correction.OperatorID),
 		OperatorDisplay:                  militaryDisplayName(correction.OperatorRank, correction.OperatorAlias),
-		OperatorRoleLabel:                correction.OperatorRole.Label(),
+		OperatorRoleLabel:                operatorRoleLabel(correction.OperatorRole),
 		OperatorActive:                   correction.OperatorActive,
 		OperatorStatusLabel:              activeStatusLabel(correction.OperatorActive),
 		CorrectedNotes:                   correction.CorrectedNotes,
@@ -463,12 +463,4 @@ func newCustodyReceiptCorrectionView(correction app.CustodyCorrectionContext) cu
 	}
 
 	return view
-}
-
-func activeStatusLabel(active bool) string {
-	if active {
-		return "Active"
-	}
-
-	return "Inactive"
 }

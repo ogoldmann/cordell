@@ -3,15 +3,15 @@
 
 <section class="mb-6">
   <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-    Custody
+    Custódia
   </p>
 
   <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
-    Register checkout
+    Cautela
   </h1>
 
   <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
-    Register a new custody responsibility for active personnel and active assets.
+    Registre uma nova cautela para militares e materiais ativos.
   </p>
 </section>
 
@@ -23,13 +23,13 @@
 
 {{if not .Personnel}}
   <div class="mb-4 rounded-2xl border border-cordell-border bg-cordell-surface px-4 py-3 text-sm text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-muted">
-    No active personnel records are available for checkout.
+    Nenhum militar ativo está disponível para cautela.
   </div>
 {{end}}
 
 {{if not .AssetOptions}}
   <div class="mb-4 rounded-2xl border border-cordell-border bg-cordell-surface px-4 py-3 text-sm text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-muted">
-    No active assets are available for checkout.
+    Nenhum material ativo está disponível para cautela.
   </div>
 {{end}}
 
@@ -43,14 +43,14 @@
 
   <div class="grid gap-4">
     <div class="grid gap-2">
-      <label class="text-sm font-bold" for="personnel_id">Personnel</label>
+      <label class="text-sm font-bold" for="personnel_id">Militar</label>
       <select
         class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
         id="personnel_id"
         name="personnel_id"
         required
       >
-        <option value="">Select personnel</option>
+        <option value="">Selecione o militar</option>
         {{range .Personnel}}
           <option value="{{.ID}}" {{if eq $.SelectedPersonnelID .ID}}selected{{end}}>
             {{.RankLabel}} {{.Alias}} — {{.FullName}}
@@ -63,13 +63,13 @@
   <section class="mt-6 rounded-3xl border border-cordell-border bg-cordell-background p-6 dark:border-cordell-dark-border dark:bg-cordell-dark-background">
     <div>
       <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-        Checkout lines
+        Linhas da cautela
       </p>
 
-      <h2 class="m-0 text-2xl font-extrabold">Assets</h2>
+      <h2 class="m-0 text-2xl font-extrabold">Materiais</h2>
 
       <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
-        Add one or more active assets to this checkout transaction.
+        Adicione um ou mais materiais ativos para esta cautela.
       </p>
     </div>
 
@@ -79,7 +79,7 @@
   </section>
 
   <div class="mt-4 grid gap-2">
-    <label class="text-sm font-bold" for="notes">Notes</label>
+    <label class="text-sm font-bold" for="notes">Observações</label>
     <textarea
       class="min-h-28 w-full resize-y rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
       id="notes"
@@ -93,14 +93,14 @@
       class="inline-flex cursor-pointer items-center justify-center rounded-xl border-0 bg-cordell-primary px-4 py-3 font-bold text-white transition hover:bg-cordell-primary-hover disabled:cursor-not-allowed disabled:opacity-50 dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
       type="submit" {{if or (not .Personnel) (not .AssetOptions)}}disabled{{end}}
     >
-      Register checkout
+      Registrar cautela
     </button>
 
     <a
       class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
       href="/personnel"
     >
-      Cancel
+      Cancelar
     </a>
   </div>
 </form>

@@ -38,7 +38,7 @@ func (s *Server) handleGlobalSearch(w http.ResponseWriter, r *http.Request) {
 
 	data := globalSearchPageData{
 		privateLayoutData: newPrivateLayoutData(r),
-		Title:             "Search",
+		Title:             searchLabel(),
 		SearchQuery:       result.Query,
 		StatusFilter:      string(statusFilter),
 		StatusTabs:        newSearchStatusFilterTabs(result.Query, statusFilter),
@@ -63,10 +63,7 @@ func (s *Server) handleGlobalSearch(w http.ResponseWriter, r *http.Request) {
 }
 
 func newAssetView(asset domain.Asset) assetView {
-	statusLabel := "Inactive"
-	if asset.Active() {
-		statusLabel = "Active"
-	}
+	statusLabel := activeStatusLabel(asset.Active())
 
 	return assetView{
 		ID:            string(asset.ID()),

@@ -1463,3 +1463,39 @@ Edit history shows before/after values for changed fields.
 Notes changes show the note content before and after the edit.
 
 When no correction exists, the edit history section shows an empty state instead of listing the original transaction as a correction history entry.
+
+## UI Language Strategy
+
+Cordell keeps internal code, packages, database columns, and domain terminology in English.
+
+The user interface is presented in Portuguese for operational use.
+
+This separation preserves:
+
+- portfolio readability
+- neutral domain naming
+- military operational clarity
+- future localization flexibility
+
+Examples:
+
+- `personnel` is shown as `Militar`
+- `asset` is shown as `Material`
+- `checkout` is shown as `Cautela`
+- `return` is shown as `Descautela`
+- `active` is shown as `Ativo`
+- `inactive` is shown as `Inativo`
+
+## UI Portuguese Presentation Layer
+
+- [ ] Internal code remains in English.
+- [ ] Database schema remains in English.
+- [ ] Domain terms remain neutral.
+- [ ] UI shows Portuguese operational labels.
+- [ ] Personnel is shown as Militar.
+- [ ] Asset is shown as Material.
+- [ ] Checkout is shown as Cautela.
+- [ ] Return is shown as Descautela.
+- [ ] Active/Inactive are shown as Ativo/Inativo.
+- [ ] Operator roles are shown in Portuguese.
+- [ ] HTML language is pt-BR.

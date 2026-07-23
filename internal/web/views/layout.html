@@ -1,6 +1,6 @@
 {{define "layout_start"}}
 <!doctype html>
-<html lang="en" data-theme="light" class="min-h-full">
+<html lang="pt-BR" data-theme="light" class="min-h-full">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -37,16 +37,16 @@
 
       <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
         <nav class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium text-cordell-muted dark:text-cordell-dark-muted">
-          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/">Dashboard</a>
-          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/personnel">Personnel</a>
-          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/assets">Assets</a>
-          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/transactions">Transactions</a>
-          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/checkouts/new">Checkout</a>
-          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/returns/new">Return</a>
-          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/search">Search</a>
+          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/">Painel</a>
+          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/personnel">Militares</a>
+          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/assets">Materiais</a>
+          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/transactions">Transações</a>
+          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/checkouts/new">Cautela</a>
+          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/returns/new">Descautela</a>
+          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/search">Pesquisa</a>
           {{if .CurrentOperator.CanManageOperators}}
             <a class="rounded-full px-3 py-1.5 text-sm font-bold text-cordell-muted no-underline transition hover:bg-cordell-primary/10 hover:text-cordell-primary dark:text-cordell-dark-muted dark:hover:bg-cordell-dark-primary/10 dark:hover:text-cordell-dark-primary" href="/admin">
-              Admin
+              Administração
             </a>
           {{end}}
         </nav>
@@ -58,13 +58,13 @@
           aria-pressed="false"
           aria-label="Switch theme"
         >
-          Theme: Light
+          Tema: Claro
         </button>
 
         {{if .HasOperator}}
           <div class="flex flex-col gap-2 md:flex-row md:items-center">
             <span class="text-xs font-bold text-cordell-muted dark:text-cordell-dark-muted">
-              Signed in as
+              Logado como
               <span class="text-cordell-text dark:text-cordell-dark-text">{{.CurrentOperator.DisplayName}}</span>
               ·
               <span class="text-cordell-primary dark:text-cordell-dark-primary">{{.CurrentOperator.RoleLabel}}</span>
@@ -77,7 +77,7 @@
                 class="inline-flex w-fit cursor-pointer items-center justify-center rounded-full border border-cordell-border bg-white px-3 py-1.5 text-xs font-bold text-cordell-text transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
                 type="submit"
               >
-                Logout
+                Sair
               </button>
             </form>
           </div>
@@ -102,7 +102,7 @@
 
 {{define "public_layout_start"}}
 <!doctype html>
-<html lang="en" data-theme="light" class="min-h-full">
+<html lang="pt-BR" data-theme="light" class="min-h-full">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">

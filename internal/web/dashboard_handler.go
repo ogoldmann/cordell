@@ -37,7 +37,7 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 
 	data := dashboardPageData{
 		privateLayoutData: newPrivateLayoutData(r),
-		Title:             "Dashboard",
+		Title:             dashboardLabel(),
 		RecentPersonnel:   make([]personnelView, 0, len(personnel)),
 		RecentAssets:      make([]assetView, 0, len(assets)),
 	}

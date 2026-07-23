@@ -98,7 +98,7 @@ func (s *Server) handleCreateCustodyCorrection(w http.ResponseWriter, r *http.Re
 			r,
 			http.StatusBadRequest,
 			transactionID,
-			"Form correction ID is missing. Please reload the page and try again.",
+			"O ID da correção está ausente. Recarregue a página e tente novamente.",
 		)
 		return
 	}
@@ -197,16 +197,16 @@ func (s *Server) newCustodyTransactionEditPageData(
 		return custodyTransactionEditPageData{}, err
 	}
 
-	baseTitle := "Editing original transaction"
-	baseDescription := "This transaction has no previous edit. The form is based on the original receipt."
+	baseTitle := "Editando transação original"
+	baseDescription := "Esta transação não possui edição anterior. O formulário é baseado no recibo original."
 
 	effectivePersonnelID := receipt.PersonnelID
 	effectiveNotes := receipt.Notes
 	effectiveLines := correctionLineRowsFromReceiptLines(receipt.Lines)
 
 	if receipt.HasCorrection {
-		baseTitle = "Editing latest edit"
-		baseDescription = "This transaction already has an edit. The form is based on the latest correction, not directly on the original transaction."
+		baseTitle = "Editando edição mais recente"
+		baseDescription = "Esta transação já possui uma edição. O formulário é baseado na correção mais recente, não diretamente na transação original."
 		effectivePersonnelID = receipt.Correction.CorrectedPersonnelID
 		effectiveNotes = receipt.Correction.CorrectedNotes
 		effectiveLines = correctionLineRowsFromCorrectionLines(receipt.Correction.Lines)
@@ -248,18 +248,18 @@ func (s *Server) newCustodyTransactionEditPageData(
 
 	switch {
 	case !effectivePersonnelIsActive && hasInactiveEffectiveAsset:
-		inactiveEffectiveWarning = "This transaction currently references inactive personnel and inactive assets. Choose active replacements to save this edit, or reactivate the inactive records first."
+		inactiveEffectiveWarning = "Esta transação referencia atualmente militar e materiais inativos. Escolha substitutos ativos para salvar esta edição ou reative primeiro os registros inativos."
 	case !effectivePersonnelIsActive:
-		inactiveEffectiveWarning = "This transaction currently references an inactive personnel. Choose an active personnel to save this edit, or reactivate the current personnel first."
+		inactiveEffectiveWarning = "Esta transação referencia atualmente um militar inativo. Escolha um militar ativo para salvar esta edição ou reative primeiro o militar atual."
 	case hasInactiveEffectiveAsset:
-		inactiveEffectiveWarning = "This transaction currently references inactive assets. Choose active asset replacements to save this edit, or reactivate the inactive assets first."
+		inactiveEffectiveWarning = "Esta transação referencia atualmente materiais inativos. Escolha materiais ativos substitutos para salvar esta edição ou reative primeiro os materiais inativos."
 	}
 
 	typeLabel := custodyTransactionTypeLabel(receipt.TransactionType)
 
 	data := custodyTransactionEditPageData{
 		privateLayoutData:           newPrivateLayoutData(r),
-		Title:                       "Edit " + strings.ToLower(typeLabel),
+		Title:                       custodyTransactionTypeActionLabel(receipt.TransactionType),
 		Error:                       state.Error,
 		BaseTitle:                   baseTitle,
 		BaseDescription:             baseDescription,
@@ -274,7 +274,7 @@ func (s *Server) newCustodyTransactionEditPageData(
 		Receipt: custodyEditReceiptView{
 			ID:        string(receipt.ID),
 			TypeLabel: typeLabel,
-			EditLabel: "Edit " + strings.ToLower(typeLabel),
+			EditLabel: custodyTransactionTypeActionLabel(receipt.TransactionType),
 			CreatedAt: formatDateTime(receipt.CreatedAt),
 		},
 		PersonnelOptions: newCorrectionPersonnelOptions(personnel, state.CorrectedPersonnelID),
@@ -452,27 +452,27 @@ func (s *Server) renderCustodyCorrectionFormErrorWithState(
 func humanizeCustodyCorrectionError(err error) string {
 	switch {
 	case errors.Is(err, ports.ErrNotFound):
-		return "The transaction, personnel, asset, or operator could not be found."
+		return "A transação, militar, material ou operador não foi encontrado."
 	case errors.Is(err, domain.ErrInactiveOperator):
-		return "Inactive operators cannot register custody corrections."
+		return "Operadores inativos não podem registrar correções de custódia."
 	case errors.Is(err, domain.ErrInactivePersonnel):
-		return "This edit would assign checkout custody to an inactive personnel. Reactivate the personnel first or choose an active personnel."
+		return "Esta edição atribuiria custódia de cautela a um militar inativo. Reative o militar primeiro ou escolha um militar ativo."
 	case errors.Is(err, domain.ErrInactiveAsset):
-		return "This edit would assign checkout custody to an inactive asset. Reactivate the asset first or choose an active asset."
+		return "Esta edição atribuiria custódia de cautela a um material inativo. Reative o material primeiro ou escolha um material ativo."
 	case errors.Is(err, domain.ErrInsufficientCustodyBalance):
-		return "This edit cannot be applied because it would make a custody balance negative. This can happen when later custody activity already consumed part of the balance affected by the edit."
+		return "Esta edição não pode ser aplicada porque deixaria um saldo de custódia negativo. Isso pode acontecer quando uma atividade posterior já consumiu parte do saldo afetado pela edição."
 	case errors.Is(err, domain.ErrEmptyPersonnelID):
-		return "Corrected personnel is required."
+		return "O militar corrigido é obrigatório."
 	case errors.Is(err, domain.ErrEmptyAssetID):
-		return "Each correction line must include an asset."
+		return "Cada linha de correção deve incluir um material."
 	case errors.Is(err, errNoCustodyLineSubmitted):
-		return "At least one correction line is required."
+		return "Pelo menos uma linha de correção é obrigatória."
 	case errors.Is(err, domain.ErrEmptyTransactionLines):
-		return "At least one correction line is required."
+		return "Pelo menos uma linha de correção é obrigatória."
 	case errors.Is(err, domain.ErrInvalidQuantity):
-		return "Each correction quantity must be a positive number."
+		return "Cada quantidade da correção deve ser positiva."
 	default:
-		return "Could not save this edit. Please review the corrected personnel, assets, quantities, and current custody state."
+		return "Não foi possível salvar esta edição. Revise o militar corrigido, materiais, quantidades e estado atual da custódia."
 	}
 }
 

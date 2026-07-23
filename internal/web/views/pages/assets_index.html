@@ -4,15 +4,15 @@
 <section class="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
   <div>
     <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-      Assets
+      Materiais
     </p>
 
     <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
-      Assets
+      Materiais
     </h1>
 
     <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
-      Materials and items that can be assigned under custody.
+      Materiais que podem ser cautelados aos militares.
     </p>
   </div>
 
@@ -21,12 +21,12 @@
       class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2.5 text-sm font-bold text-cordell-text no-underline shadow-sm transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
       href="/assets/new"
     >
-      Create asset
+      Cadastrar material
     </a>
   </div>
 </section>
 
-<nav class="mb-6 flex flex-wrap gap-2" aria-label="Asset status filter">
+<nav class="mb-6 flex flex-wrap gap-2" aria-label="Filtro de status de materiais">
   {{range .StatusTabs}}
     <a
       class="inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-bold no-underline transition {{if .Active}}border-cordell-primary bg-cordell-primary text-white dark:border-cordell-dark-primary dark:bg-cordell-dark-primary dark:text-cordell-dark-background{{else}}border-cordell-border bg-cordell-surface text-cordell-text hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60{{end}}"
@@ -45,14 +45,14 @@
   </div>
 {{else}}
   <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-8 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
-    <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">No assets registered yet</h2>
-    <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">Create the first asset record to start using Cordell.</p>
+    <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Nenhum material cadastrado</h2>
+    <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">Cadastre o primeiro material para começar a usar o Cordell.</p>
 
     <a
       class="mt-5 inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2.5 text-sm font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
       href="/assets/new"
     >
-      Create asset
+      Cadastrar material
     </a>
   </div>
 {{end}}

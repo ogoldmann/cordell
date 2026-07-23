@@ -7,5 +7,5 @@ func formatDateTime(value time.Time) string {
 		return ""
 	}
 
-	return value.Format("2006-01-02 15:04:05 MST")
+	return value.Local().Format("02/01/2006 15:04")
 }

@@ -17,19 +17,19 @@ type statusFilterTabView struct {
 func newStatusFilterTabs(basePath string, selected ports.RecordStatusFilter) []statusFilterTabView {
 	return []statusFilterTabView{
 		{
-			Label:  "Active",
+			Label:  activeStatusLabel(true),
 			Value:  string(ports.RecordStatusFilterActive),
 			URL:    basePath + "?status=active",
 			Active: selected == ports.RecordStatusFilterActive,
 		},
 		{
-			Label:  "Inactive",
+			Label:  activeStatusLabel(false),
 			Value:  string(ports.RecordStatusFilterInactive),
 			URL:    basePath + "?status=inactive",
 			Active: selected == ports.RecordStatusFilterInactive,
 		},
 		{
-			Label:  "All",
+			Label:  allStatusLabel(),
 			Value:  string(ports.RecordStatusFilterAll),
 			URL:    basePath + "?status=all",
 			Active: selected == ports.RecordStatusFilterAll,
@@ -39,9 +39,9 @@ func newStatusFilterTabs(basePath string, selected ports.RecordStatusFilter) []s
 
 func newSearchStatusFilterTabs(query string, selected ports.RecordStatusFilter) []statusFilterTabView {
 	return []statusFilterTabView{
-		newSearchStatusFilterTab("Active", ports.RecordStatusFilterActive, query, selected),
-		newSearchStatusFilterTab("Inactive", ports.RecordStatusFilterInactive, query, selected),
-		newSearchStatusFilterTab("All", ports.RecordStatusFilterAll, query, selected),
+		newSearchStatusFilterTab(activeStatusLabel(true), ports.RecordStatusFilterActive, query, selected),
+		newSearchStatusFilterTab(activeStatusLabel(false), ports.RecordStatusFilterInactive, query, selected),
+		newSearchStatusFilterTab(allStatusLabel(), ports.RecordStatusFilterAll, query, selected),
 	}
 }
 

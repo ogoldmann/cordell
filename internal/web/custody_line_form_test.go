@@ -100,7 +100,7 @@ func TestNewReturnAssetOptionsUsesCurrentCustodyQuantityAsMax(t *testing.T) {
 		t.Fatalf("expected asset-1, got %s", option.ID)
 	}
 
-	if option.Label != "Battery · available 3 · Inactive" {
+	if option.Label != "Battery · disponível 3 · Inativo" {
 		t.Fatalf("expected inactive custody label, got %q", option.Label)
 	}
 

@@ -33,7 +33,7 @@ func (s *Server) handleNewCheckoutForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data, err := s.buildCheckoutNewPageData(r, checkoutNewPageData{
-		Title:               "Register checkout",
+		Title:               checkoutLabel(),
 		SelectedPersonnelID: r.URL.Query().Get("personnel_id"),
 		LineRows:            lineRows,
 	})
@@ -54,7 +54,7 @@ func (s *Server) handleCreateCheckout(w http.ResponseWriter, r *http.Request) {
 			w,
 			r,
 			http.StatusBadRequest,
-			"Invalid form submission.",
+			"Envio de formulário inválido.",
 		)
 		return
 	}
@@ -67,7 +67,7 @@ func (s *Server) handleCreateCheckout(w http.ResponseWriter, r *http.Request) {
 			w,
 			r,
 			http.StatusBadRequest,
-			"Form transaction ID is missing. Please reload the page and try again.",
+			"O ID da transação está ausente. Recarregue a página e tente novamente.",
 		)
 		return
 	}
@@ -133,7 +133,7 @@ func (s *Server) renderCheckoutFormWithError(
 	message string,
 ) {
 	data, err := s.buildCheckoutNewPageData(r, checkoutNewPageData{
-		Title:               "Register checkout",
+		Title:               checkoutLabel(),
 		Error:               message,
 		SelectedPersonnelID: r.FormValue("personnel_id"),
 		LineRows:            custodyLineFormRowsFromRequest(r),
@@ -201,18 +201,18 @@ func (s *Server) buildCheckoutNewPageData(
 func humanizeCheckoutError(err error) string {
 	switch {
 	case errors.Is(err, domain.ErrEmptyPersonnelID):
-		return "Personnel is required."
+		return "Selecione um militar."
 	case errors.Is(err, domain.ErrInactivePersonnel):
-		return "Selected personnel is inactive and cannot receive a new checkout."
+		return "Este militar está inativo e não pode receber nova cautela."
 	case errors.Is(err, domain.ErrInactiveAsset):
-		return "Selected asset is inactive and cannot be checked out."
+		return "Um dos materiais selecionados está inativo e não pode ser cautelado."
 	case errors.Is(err, domain.ErrEmptyAssetID):
-		return "Asset is required."
+		return "Selecione pelo menos um material."
 	case errors.Is(err, domain.ErrInvalidQuantity):
-		return "Quantity must be greater than zero."
+		return "Informe uma quantidade válida."
 	case errors.Is(err, ports.ErrNotFound):
-		return "Selected personnel or asset could not be found."
+		return "Militar ou material selecionado não foi encontrado."
 	default:
-		return "Could not register checkout."
+		return "Não foi possível registrar a cautela."
 	}
 }

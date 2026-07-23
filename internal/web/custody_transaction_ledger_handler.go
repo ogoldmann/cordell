@@ -143,7 +143,7 @@ func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.R
 
 	data := custodyTransactionLedgerPageData{
 		privateLayoutData:   newPrivateLayoutData(r),
-		Title:               "Custody transactions",
+		Title:               custodyLedgerLabel(),
 		Query:               query,
 		TypeFilter:          typeFilter,
 		EditStatusFilter:    editStatusFilter,
@@ -294,12 +294,10 @@ func normalizedLedgerEditStatusFilter(value string) string {
 
 func ledgerPeriodLabel(year int, month int) string {
 	if year <= 0 || month < 1 || month > 12 {
-		return "All periods"
+		return "Todos os períodos"
 	}
 
-	t := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
-
-	return t.Format("January 2006")
+	return ledgerMonthLabel(month) + " de " + strconv.Itoa(year)
 }
 
 func custodyLedgerURL(
@@ -382,7 +380,7 @@ func newCustodyLedgerYearOptions(
 
 	options = append(options, custodyLedgerYearOptionView{
 		Value:    "all",
-		Label:    "All periods",
+		Label:    "Todos os períodos",
 		Selected: selectedPeriodValue == "all",
 	})
 
@@ -426,12 +424,25 @@ func newCustodyLedgerMonthOptions(
 
 func ledgerMonthLabel(month int) string {
 	if month < 1 || month > 12 {
-		return "Unknown"
+		return unknownLabel()
 	}
 
-	t := time.Date(2000, time.Month(month), 1, 0, 0, 0, 0, time.Local)
+	monthLabels := map[int]string{
+		1:  "Janeiro",
+		2:  "Fevereiro",
+		3:  "Março",
+		4:  "Abril",
+		5:  "Maio",
+		6:  "Junho",
+		7:  "Julho",
+		8:  "Agosto",
+		9:  "Setembro",
+		10: "Outubro",
+		11: "Novembro",
+		12: "Dezembro",
+	}
 
-	return t.Format("January")
+	return monthLabels[month]
 }
 
 func monthValue(value string) int {
@@ -475,7 +486,7 @@ func newCustodyLedgerPeriodViews(
 	views = append(views, custodyLedgerPeriodView{
 		Year:             0,
 		Month:            0,
-		Label:            "All periods",
+		Label:            "Todos os períodos",
 		URL:              custodyLedgerURL(query, typeFilter, editStatusFilter, "all", 1),
 		Selected:         selectedPeriodValue == "all",
 		TransactionCount: 0,
@@ -558,11 +569,11 @@ func newCustodyTransactionSummaryViews(
 }
 
 func ledgerDateLabel(t time.Time) string {
-	return t.Format("02 Jan 2006")
+	return t.Local().Format("02/01/2006")
 }
 
 func ledgerTimeLabel(t time.Time) string {
-	return t.Format("15:04")
+	return t.Local().Format("15:04")
 }
 
 func ledgerSequenceLabel(sequenceNumber int) string {
