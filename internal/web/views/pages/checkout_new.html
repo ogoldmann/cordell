@@ -53,7 +53,7 @@
         <option value="">Selecione o militar</option>
         {{range .Personnel}}
           <option value="{{.ID}}" {{if eq $.SelectedPersonnelID .ID}}selected{{end}}>
-            {{.DisplayName}} — {{.FullName}}
+            {{.Label}}
           </option>
         {{end}}
       </select>

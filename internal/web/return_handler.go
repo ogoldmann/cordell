@@ -165,7 +165,17 @@ func (s *Server) buildReturnFormPageData(
 	}
 
 	data.privateLayoutData = newPrivateLayoutData(r)
-	data.PersonnelOptions = newReturnPersonnelOptions(personnelList, data.SelectedPersonnelID)
+
+	sectionShortLabels, err := s.returnPersonnelSectionShortLabels(r, personnelList)
+	if err != nil {
+		return returnNewPageData{}, err
+	}
+
+	data.PersonnelOptions = newReturnPersonnelOptions(
+		personnelList,
+		data.SelectedPersonnelID,
+		sectionShortLabels,
+	)
 	data.LineRows = ensureAtLeastOneCustodyLineFormRow(data.LineRows)
 
 	if data.TransactionID == "" {
@@ -213,12 +223,16 @@ func (s *Server) buildReturnFormPageData(
 func newReturnPersonnelOptions(
 	personnel []app.PersonnelWithCurrentCustody,
 	selectedID string,
+	sectionShortLabels map[string]string,
 ) []returnPersonnelOptionView {
 	options := make([]returnPersonnelOptionView, 0, len(personnel))
 
 	for _, item := range personnel {
-		label := militaryDisplayName(item.Rank, item.Alias) + " - " + item.FullName
-		label += " - " + strconv.Itoa(item.TotalQuantity) + " item(s)"
+		label := newPersonnelOptionLabel(
+			militaryDisplayName(item.Rank, item.Alias),
+			item.FullName,
+			sectionShortLabels[string(item.ID)],
+		)
 
 		if !item.Active {
 			label += " - " + activeStatusLabel(false)
@@ -232,6 +246,26 @@ func newReturnPersonnelOptions(
 	}
 
 	return options
+}
+
+func (s *Server) returnPersonnelSectionShortLabels(
+	r *http.Request,
+	personnel []app.PersonnelWithCurrentCustody,
+) (map[string]string, error) {
+	labels := make(map[string]string, len(personnel))
+
+	for _, item := range personnel {
+		personnelRecord, err := s.services.GetPersonnel.Execute(r.Context(), app.GetPersonnelCommand{
+			ID: item.ID,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		labels[string(item.ID)] = personnelRecord.Section().Abbreviation()
+	}
+
+	return labels, nil
 }
 
 func humanizeReturnWebError(err error) string {

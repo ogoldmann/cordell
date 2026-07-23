@@ -59,6 +59,7 @@ type personnelView struct {
 	OrganizationUnit      string
 	OrganizationUnitLabel string
 	DisplayName           string
+	Label                 string
 	Active                bool
 	StatusLabel           string
 	CanDeactivate         bool
@@ -404,6 +405,8 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 
 func newPersonnelView(personnel domain.Personnel) personnelView {
 	statusLabel := activeStatusLabel(personnel.Active())
+	displayName := militaryDisplayName(personnel.Rank(), personnel.Alias())
+	sectionShortLabel := personnel.Section().Abbreviation()
 
 	return personnelView{
 		ID:                    string(personnel.ID()),
@@ -414,10 +417,11 @@ func newPersonnelView(personnel domain.Personnel) personnelView {
 		RegistrationID:        personnel.RegistrationID().String(),
 		Section:               string(personnel.Section()),
 		SectionLabel:          personnelSectionLabel(personnel.Section()),
-		SectionShortLabel:     personnel.Section().Abbreviation(),
+		SectionShortLabel:     sectionShortLabel,
 		OrganizationUnit:      string(personnel.OrganizationUnit()),
 		OrganizationUnitLabel: organizationUnitLabel(personnel.OrganizationUnit()),
-		DisplayName:           militaryDisplayName(personnel.Rank(), personnel.Alias()),
+		DisplayName:           displayName,
+		Label:                 newPersonnelOptionLabel(displayName, personnel.FullName(), sectionShortLabel),
 		Active:                personnel.Active(),
 		StatusLabel:           statusLabel,
 		CanDeactivate:         personnel.Active(),

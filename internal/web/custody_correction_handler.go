@@ -292,9 +292,12 @@ func newCorrectionPersonnelOptions(
 	options := make([]correctionPersonnelOptionView, 0, len(personnel))
 
 	for _, item := range personnel {
+		displayName := militaryDisplayName(item.Rank(), item.Alias())
+		sectionShortLabel := item.Section().Abbreviation()
+
 		options = append(options, correctionPersonnelOptionView{
 			ID:       string(item.ID()),
-			Label:    militaryDisplayName(item.Rank(), item.Alias()) + " - " + item.FullName(),
+			Label:    newPersonnelOptionLabel(displayName, item.FullName(), sectionShortLabel),
 			Selected: string(item.ID()) == selectedID,
 		})
 	}
