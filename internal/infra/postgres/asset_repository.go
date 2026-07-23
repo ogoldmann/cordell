@@ -72,6 +72,28 @@ func (r *AssetRepository) FindByID(ctx context.Context, id domain.AssetID) (doma
 	return assetFromRow(row)
 }
 
+// FindByName finds an asset by name.
+func (r *AssetRepository) FindByName(
+	ctx context.Context,
+	name string,
+) (domain.Asset, bool, error) {
+	row, err := r.queries.FindAssetByName(ctx, domain.NormalizeAssetName(name))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.Asset{}, false, nil
+		}
+
+		return domain.Asset{}, false, err
+	}
+
+	asset, err := assetFromRow(row)
+	if err != nil {
+		return domain.Asset{}, false, err
+	}
+
+	return asset, true, nil
+}
+
 // FindByNameExcludingID finds an asset by name excluding one asset ID.
 func (r *AssetRepository) FindByNameExcludingID(
 	ctx context.Context,

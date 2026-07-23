@@ -114,7 +114,7 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleNewAssetForm(w http.ResponseWriter, r *http.Request) {
-	data := newAssetCreatePageData(r, assetFormView{}, "")
+	data := newAssetCreatePageData(r, assetFormView{}, nil)
 
 	if err := s.renderer.Render(w, http.StatusOK, "asset_form.html", data); err != nil {
 		s.handleRenderError(w, err)
@@ -123,13 +123,10 @@ func (s *Server) handleNewAssetForm(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleCreateAsset(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		s.renderNewAssetFormWithError(
-			w,
-			r,
-			http.StatusBadRequest,
-			"Envio de formulário inválido.",
-			"",
-		)
+		data := newAssetCreatePageDataFromMessage(r, "Envio de formulário inválido.")
+		if renderErr := s.renderer.Render(w, http.StatusBadRequest, "asset_form.html", data); renderErr != nil {
+			s.handleRenderError(w, renderErr)
+		}
 		return
 	}
 
@@ -143,7 +140,7 @@ func (s *Server) handleCreateAsset(w http.ResponseWriter, r *http.Request) {
 			w,
 			r,
 			http.StatusBadRequest,
-			humanizeAssetError(err),
+			err,
 			name,
 		)
 		return
@@ -174,7 +171,7 @@ func (s *Server) handleEditAssetForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := newAssetEditPageData(r, newAssetView(asset), "")
+	data := newAssetEditPageData(r, newAssetView(asset), nil)
 
 	if err := s.renderer.Render(w, http.StatusOK, "asset_form.html", data); err != nil {
 		s.handleRenderError(w, err)
@@ -199,7 +196,7 @@ func (s *Server) handleUpdateAsset(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		data := newAssetEditPageDataFromRequest(r, id, humanizeAssetError(err))
+		data := newAssetEditPageDataFromRequest(r, id, err)
 
 		if renderErr := s.renderer.Render(w, http.StatusUnprocessableEntity, "asset_form.html", data); renderErr != nil {
 			s.handleRenderError(w, renderErr)
@@ -360,23 +357,38 @@ func (s *Server) renderNewAssetFormWithError(
 	w http.ResponseWriter,
 	r *http.Request,
 	status int,
-	message string,
+	err error,
 	name string,
 ) {
 	data := newAssetCreatePageData(r, assetFormView{
 		Name: name,
-	}, message)
+	}, err)
 
 	if err := s.renderer.Render(w, status, "asset_form.html", data); err != nil {
 		s.handleRenderError(w, err)
 	}
 }
 
+func newAssetCreatePageDataFromMessage(r *http.Request, message string) assetFormPageData {
+	data := newAssetCreatePageData(r, assetFormView{
+		Name: r.FormValue("name"),
+	}, nil)
+	data.Error = message
+	data.Feedback = newErrorFeedback(message)
+
+	return data
+}
+
 func newAssetCreatePageData(
 	r *http.Request,
 	form assetFormView,
-	errorMessage string,
+	err error,
 ) assetFormPageData {
+	errorMessage := ""
+	if err != nil {
+		errorMessage = duplicateAssetErrorMessage(err)
+	}
+
 	data := assetFormPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Cadastrar material",
@@ -391,7 +403,7 @@ func newAssetCreatePageData(
 			"Cancelar",
 			"/assets",
 		),
-		Feedback: newErrorFeedback(errorMessage),
+		Feedback: assetFeedbackFromError(err),
 		DetailsSection: newSectionHeader(
 			"Identificação",
 			"Dados do material",
@@ -413,8 +425,13 @@ func newAssetCreatePageData(
 func newAssetEditPageData(
 	r *http.Request,
 	asset assetView,
-	errorMessage string,
+	err error,
 ) assetFormPageData {
+	errorMessage := ""
+	if err != nil {
+		errorMessage = duplicateAssetErrorMessage(err)
+	}
+
 	data := assetFormPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Editar material",
@@ -429,7 +446,7 @@ func newAssetEditPageData(
 			"Cancelar",
 			"/assets/"+asset.ID,
 		),
-		Feedback: newErrorFeedback(errorMessage),
+		Feedback: assetFeedbackFromError(err),
 		DetailsSection: newSectionHeader(
 			"Identificação",
 			"Dados do material",
@@ -457,8 +474,13 @@ func newAssetEditPageData(
 func newAssetEditPageDataFromRequest(
 	r *http.Request,
 	id domain.AssetID,
-	errorMessage string,
+	err error,
 ) assetFormPageData {
+	errorMessage := ""
+	if err != nil {
+		errorMessage = duplicateAssetErrorMessage(err)
+	}
+
 	data := assetFormPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Editar material",
@@ -473,7 +495,7 @@ func newAssetEditPageDataFromRequest(
 			"Cancelar",
 			"/assets/"+string(id),
 		),
-		Feedback: newErrorFeedback(errorMessage),
+		Feedback: assetFeedbackFromError(err),
 		DetailsSection: newSectionHeader(
 			"Identificação",
 			"Dados do material",

@@ -124,7 +124,7 @@ func newPersonnelFormPageData(data personnelFormPageData) personnelFormPageData 
 }
 
 func (s *Server) handleNewPersonnelForm(w http.ResponseWriter, r *http.Request) {
-	data := newPersonnelCreatePageData(r, personnelFormPageData{}, "")
+	data := newPersonnelCreatePageData(r, personnelFormPageData{}, nil)
 
 	if err := s.renderer.Render(w, http.StatusOK, "personnel_form.html", data); err != nil {
 		s.handleRenderError(w, err)
@@ -133,12 +133,10 @@ func (s *Server) handleNewPersonnelForm(w http.ResponseWriter, r *http.Request) 
 
 func (s *Server) handleCreatePersonnel(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		s.renderNewPersonnelFormWithError(
-			w,
-			http.StatusBadRequest,
-			"Envio de formulário inválido.",
-			r,
-		)
+		data := newPersonnelCreatePageDataFromMessage(r, "Envio de formulário inválido.")
+		if renderErr := s.renderer.Render(w, http.StatusBadRequest, "personnel_form.html", data); renderErr != nil {
+			s.handleRenderError(w, renderErr)
+		}
 		return
 	}
 
@@ -161,7 +159,7 @@ func (s *Server) handleCreatePersonnel(w http.ResponseWriter, r *http.Request) {
 		s.renderNewPersonnelFormWithError(
 			w,
 			http.StatusBadRequest,
-			humanizePersonnelError(err),
+			err,
 			r,
 		)
 		return
@@ -192,7 +190,7 @@ func (s *Server) handleEditPersonnelForm(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	data := newPersonnelEditPageData(r, newPersonnelView(personnel), "")
+	data := newPersonnelEditPageData(r, newPersonnelView(personnel), nil)
 
 	if err := s.renderer.Render(w, http.StatusOK, "personnel_form.html", data); err != nil {
 		s.handleRenderError(w, err)
@@ -222,7 +220,7 @@ func (s *Server) handleUpdatePersonnel(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		data := newPersonnelEditPageDataFromRequest(r, id, humanizePersonnelError(err))
+		data := newPersonnelEditPageDataFromRequest(r, id, err)
 
 		if renderErr := s.renderer.Render(w, http.StatusUnprocessableEntity, "personnel_form.html", data); renderErr != nil {
 			s.handleRenderError(w, renderErr)
@@ -429,7 +427,7 @@ func (s *Server) handleReactivatePersonnel(w http.ResponseWriter, r *http.Reques
 func (s *Server) renderNewPersonnelFormWithError(
 	w http.ResponseWriter,
 	status int,
-	message string,
+	err error,
 	r *http.Request,
 ) {
 	data := newPersonnelCreatePageData(r, personnelFormPageData{
@@ -439,18 +437,38 @@ func (s *Server) renderNewPersonnelFormWithError(
 		SelectedRank:             r.FormValue("rank"),
 		SelectedSection:          r.FormValue("section"),
 		SelectedOrganizationUnit: r.FormValue("organization_unit"),
-	}, message)
+	}, err)
 
 	if err := s.renderer.Render(w, status, "personnel_form.html", data); err != nil {
 		s.handleRenderError(w, err)
 	}
 }
 
+func newPersonnelCreatePageDataFromMessage(r *http.Request, message string) personnelFormPageData {
+	data := newPersonnelCreatePageData(r, personnelFormPageData{
+		FullName:                 r.FormValue("full_name"),
+		Alias:                    r.FormValue("alias"),
+		RegistrationID:           r.FormValue("registration_id"),
+		SelectedRank:             r.FormValue("rank"),
+		SelectedSection:          r.FormValue("section"),
+		SelectedOrganizationUnit: r.FormValue("organization_unit"),
+	}, nil)
+	data.Error = message
+	data.Feedback = newErrorFeedback(message)
+
+	return data
+}
+
 func newPersonnelCreatePageData(
 	r *http.Request,
 	form personnelFormPageData,
-	errorMessage string,
+	err error,
 ) personnelFormPageData {
+	errorMessage := ""
+	if err != nil {
+		errorMessage = duplicatePersonnelErrorMessage(err)
+	}
+
 	form.privateLayoutData = newPrivateLayoutData(r)
 	form.Title = "Cadastrar militar"
 	form.Header = newPageHeader(
@@ -464,7 +482,7 @@ func newPersonnelCreatePageData(
 		"Cancelar",
 		"/personnel",
 	)
-	form.Feedback = newErrorFeedback(errorMessage)
+	form.Feedback = personnelFeedbackFromError(err)
 	form.IdentitySection = newSectionHeader(
 		"Identificação",
 		"Identificação do militar",
@@ -489,8 +507,13 @@ func newPersonnelCreatePageData(
 func newPersonnelEditPageData(
 	r *http.Request,
 	personnel personnelView,
-	errorMessage string,
+	err error,
 ) personnelFormPageData {
+	errorMessage := ""
+	if err != nil {
+		errorMessage = duplicatePersonnelErrorMessage(err)
+	}
+
 	data := personnelFormPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Editar militar",
@@ -505,7 +528,7 @@ func newPersonnelEditPageData(
 			"Cancelar",
 			"/personnel/"+personnel.ID,
 		),
-		Feedback: newErrorFeedback(errorMessage),
+		Feedback: personnelFeedbackFromError(err),
 		IdentitySection: newSectionHeader(
 			"Identificação",
 			"Identificação do militar",
@@ -541,8 +564,13 @@ func newPersonnelEditPageData(
 func newPersonnelEditPageDataFromRequest(
 	r *http.Request,
 	id domain.PersonnelID,
-	errorMessage string,
+	err error,
 ) personnelFormPageData {
+	errorMessage := ""
+	if err != nil {
+		errorMessage = duplicatePersonnelErrorMessage(err)
+	}
+
 	data := personnelFormPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Editar militar",
@@ -557,7 +585,7 @@ func newPersonnelEditPageDataFromRequest(
 			"Cancelar",
 			"/personnel/"+string(id),
 		),
-		Feedback: newErrorFeedback(errorMessage),
+		Feedback: personnelFeedbackFromError(err),
 		IdentitySection: newSectionHeader(
 			"Identificação",
 			"Identificação do militar",

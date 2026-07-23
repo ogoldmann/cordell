@@ -34,6 +34,22 @@ SELECT
 FROM personnel
 WHERE id = @id;
 
+-- name: FindPersonnelByRegistrationID :one
+SELECT
+    id,
+    full_name,
+    alias,
+    rank,
+    registration_id,
+    section,
+    organization_unit,
+    active,
+    created_at,
+    updated_at
+FROM personnel
+WHERE registration_id = @registration_id
+LIMIT 1;
+
 -- name: UpdatePersonnel :exec
 UPDATE personnel
 SET

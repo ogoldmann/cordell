@@ -57,6 +57,19 @@ func (r *fakePersonnelRepository) FindByID(_ context.Context, id domain.Personne
 	return personnel, nil
 }
 
+func (r *fakePersonnelRepository) FindByRegistrationID(
+	_ context.Context,
+	registrationID domain.RegistrationID,
+) (domain.Personnel, bool, error) {
+	for _, personnel := range r.byID {
+		if personnel.RegistrationID() == registrationID {
+			return personnel, true, nil
+		}
+	}
+
+	return domain.Personnel{}, false, nil
+}
+
 func (r *fakePersonnelRepository) FindByRegistrationIDExcludingID(
 	_ context.Context,
 	registrationID domain.RegistrationID,
@@ -262,6 +275,21 @@ func (r *fakeAssetRepository) FindByID(_ context.Context, id domain.AssetID) (do
 	}
 
 	return asset, nil
+}
+
+func (r *fakeAssetRepository) FindByName(
+	_ context.Context,
+	name string,
+) (domain.Asset, bool, error) {
+	normalizedName := domain.NormalizeAssetName(name)
+
+	for _, asset := range r.byID {
+		if strings.EqualFold(asset.Name(), normalizedName) {
+			return asset, true, nil
+		}
+	}
+
+	return domain.Asset{}, false, nil
 }
 
 func (r *fakeAssetRepository) FindByNameExcludingID(

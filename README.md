@@ -398,6 +398,30 @@ Asset edits are audited.
 - [ ] Asset edit writes audit event.
 - [ ] Missing asset edit route renders custom 404.
 
+## Duplicate Error Links
+
+When a create or edit operation detects a duplicate record, Cordell returns a contextual error with a link to the existing record.
+
+Examples:
+
+- duplicate personnel registration ID links to the existing personnel detail page
+- duplicate asset name links to the existing asset detail page
+
+The application layer returns typed duplicate errors that wrap the domain validation errors.
+
+This keeps `errors.Is` compatibility while preserving the existing record ID for the web layer.
+
+## Duplicate Error Links Checklist
+
+- [ ] Duplicate personnel registration ID links to existing personnel.
+- [ ] Duplicate asset name links to existing asset.
+- [ ] Create personnel duplicate shows existing personnel link.
+- [ ] Edit personnel duplicate shows existing personnel link.
+- [ ] Create asset duplicate shows existing asset link.
+- [ ] Edit asset duplicate shows existing asset link.
+- [ ] Duplicate application errors wrap domain errors.
+- [ ] Existing `errors.Is` checks still work.
+
 ## Operational Form Eligibility Checklist
 
 - [ ] Checkout personnel selector lists active personnel only.

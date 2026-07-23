@@ -38,8 +38,19 @@ func (s *CreateAssetService) Execute(ctx context.Context, cmd CreateAssetCommand
 	}
 
 	assetID := domain.AssetID(id)
+	normalizedName := domain.NormalizeAssetName(cmd.Name)
 
-	asset, err := domain.NewAsset(assetID, cmd.Name)
+	existingAsset, found, err := s.assetRepository.FindByName(ctx, normalizedName)
+	if err != nil {
+		return domain.Asset{}, err
+	}
+	if found {
+		return domain.Asset{}, DuplicateAssetNameError{
+			ExistingAssetID: existingAsset.ID(),
+		}
+	}
+
+	asset, err := domain.NewAsset(assetID, normalizedName)
 	if err != nil {
 		return domain.Asset{}, err
 	}
@@ -82,12 +93,14 @@ func (s *UpdateAssetService) Execute(ctx context.Context, cmd UpdateAssetCommand
 
 	normalizedName := domain.NormalizeAssetName(cmd.Name)
 
-	_, duplicateFound, err := s.assetRepository.FindByNameExcludingID(ctx, normalizedName, cmd.ID)
+	duplicateAsset, duplicateFound, err := s.assetRepository.FindByNameExcludingID(ctx, normalizedName, cmd.ID)
 	if err != nil {
 		return domain.Asset{}, err
 	}
 	if duplicateFound {
-		return domain.Asset{}, domain.ErrDuplicateAssetName
+		return domain.Asset{}, DuplicateAssetNameError{
+			ExistingAssetID: duplicateAsset.ID(),
+		}
 	}
 
 	if err := asset.UpdateDetails(normalizedName); err != nil {

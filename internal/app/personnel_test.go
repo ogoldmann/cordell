@@ -57,6 +57,31 @@ func TestCreatePersonnelServiceRejectsInvalidPersonnel(t *testing.T) {
 	}
 }
 
+func TestCreatePersonnelServiceReturnsDuplicateRegistrationIDWithExistingID(t *testing.T) {
+	first := mustBuildPersonnelWithRegistrationID(t, "personnel-1", "52998224725")
+
+	repository := &fakePersonnelRepository{
+		byID: map[domain.PersonnelID]domain.Personnel{
+			first.ID(): first,
+		},
+	}
+	service := NewCreatePersonnelService(repository, fixedIDGenerator{id: "personnel-2"})
+
+	_, err := service.Execute(context.Background(), validCreatePersonnelCommand("Jane Doe", "Jane", "52998224725"))
+	if !errors.Is(err, domain.ErrDuplicateRegistrationID) {
+		t.Fatalf("expected ErrDuplicateRegistrationID, got %v", err)
+	}
+
+	existingID, ok := ExistingPersonnelIDFromDuplicateError(err)
+	if !ok {
+		t.Fatal("expected existing personnel ID")
+	}
+
+	if existingID != first.ID() {
+		t.Fatalf("expected existing personnel ID %s, got %s", first.ID(), existingID)
+	}
+}
+
 func TestGetPersonnelServiceExecute(t *testing.T) {
 	personnel := mustBuildPersonnel(t, "personnel-1")
 
@@ -168,6 +193,15 @@ func TestUpdatePersonnelServiceRejectsDuplicateRegistrationID(t *testing.T) {
 	})
 	if !errors.Is(err, domain.ErrDuplicateRegistrationID) {
 		t.Fatalf("expected duplicate registration id, got %v", err)
+	}
+
+	existingID, ok := ExistingPersonnelIDFromDuplicateError(err)
+	if !ok {
+		t.Fatal("expected existing personnel ID")
+	}
+
+	if existingID != first.ID() {
+		t.Fatalf("expected existing personnel ID %s, got %s", first.ID(), existingID)
 	}
 }
 

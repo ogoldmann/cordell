@@ -62,6 +62,31 @@ func (q *Queries) DeactivateAsset(ctx context.Context, id string) (int32, error)
 	return column_1, err
 }
 
+const findAssetByName = `-- name: FindAssetByName :one
+SELECT
+    id,
+    name,
+    active,
+    created_at,
+    updated_at
+FROM assets
+WHERE lower(name) = lower($1)
+LIMIT 1
+`
+
+func (q *Queries) FindAssetByName(ctx context.Context, name string) (Asset, error) {
+	row := q.db.QueryRow(ctx, findAssetByName, name)
+	var i Asset
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Active,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const findAssetByNameExcludingID = `-- name: FindAssetByNameExcludingID :one
 SELECT
     id,

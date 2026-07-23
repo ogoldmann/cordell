@@ -103,6 +103,15 @@
       {{if .Message}}
         <p class="m-0 {{if .Title}}mt-1{{end}}">{{.Message}}</p>
       {{end}}
+
+      {{if and .ActionLabel .ActionURL}}
+        <a
+          class="mt-3 inline-flex w-fit items-center justify-center rounded-xl border border-current px-4 py-2 text-sm font-extrabold no-underline transition hover:opacity-80"
+          href="{{.ActionURL}}"
+        >
+          {{.ActionLabel}}
+        </a>
+      {{end}}
     </div>
   {{end}}
 {{end}}

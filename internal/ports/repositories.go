@@ -226,6 +226,7 @@ type PersonnelRepository interface {
 	Save(ctx context.Context, personnel domain.Personnel) error
 	Update(ctx context.Context, personnel domain.Personnel) error
 	FindByID(ctx context.Context, id domain.PersonnelID) (domain.Personnel, error)
+	FindByRegistrationID(ctx context.Context, registrationID domain.RegistrationID) (domain.Personnel, bool, error)
 	FindByRegistrationIDExcludingID(ctx context.Context, registrationID domain.RegistrationID, excludedID domain.PersonnelID) (domain.Personnel, bool, error)
 	List(ctx context.Context, limit int, statusFilter RecordStatusFilter) ([]domain.Personnel, error)
 	Search(ctx context.Context, query string, limit int, statusFilter RecordStatusFilter) ([]domain.Personnel, error)
@@ -238,6 +239,7 @@ type AssetRepository interface {
 	Save(ctx context.Context, asset domain.Asset) error
 	Update(ctx context.Context, asset domain.Asset) error
 	FindByID(ctx context.Context, id domain.AssetID) (domain.Asset, error)
+	FindByName(ctx context.Context, name string) (domain.Asset, bool, error)
 	FindByNameExcludingID(ctx context.Context, name string, excludedID domain.AssetID) (domain.Asset, bool, error)
 	List(ctx context.Context, limit int, statusFilter RecordStatusFilter) ([]domain.Asset, error)
 	Search(ctx context.Context, query string, limit int, statusFilter RecordStatusFilter) ([]domain.Asset, error)

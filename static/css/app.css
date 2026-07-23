@@ -590,6 +590,9 @@
       border-color: color-mix(in oklab, var(--color-cordell-primary) 30%, transparent);
     }
   }
+  .border-current {
+    border-color: currentcolor;
+  }
   .border-emerald-100 {
     border-color: var(--color-emerald-100);
   }
@@ -1040,6 +1043,13 @@
     &:hover {
       @media (hover: hover) {
         text-decoration-line: underline;
+      }
+    }
+  }
+  .hover\:opacity-80 {
+    &:hover {
+      @media (hover: hover) {
+        opacity: 80%;
       }
     }
   }

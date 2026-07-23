@@ -83,6 +83,28 @@ func (r *PersonnelRepository) FindByID(ctx context.Context, id domain.PersonnelI
 	return personnelFromRow(row)
 }
 
+// FindByRegistrationID finds personnel by registration ID.
+func (r *PersonnelRepository) FindByRegistrationID(
+	ctx context.Context,
+	registrationID domain.RegistrationID,
+) (domain.Personnel, bool, error) {
+	row, err := r.queries.FindPersonnelByRegistrationID(ctx, registrationID.String())
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.Personnel{}, false, nil
+		}
+
+		return domain.Personnel{}, false, err
+	}
+
+	personnel, err := personnelFromRow(row)
+	if err != nil {
+		return domain.Personnel{}, false, err
+	}
+
+	return personnel, true, nil
+}
+
 // FindByRegistrationIDExcludingID finds personnel by registration ID excluding one personnel ID.
 func (r *PersonnelRepository) FindByRegistrationIDExcludingID(
 	ctx context.Context,

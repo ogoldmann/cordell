@@ -67,6 +67,36 @@ func TestCreateAssetServiceReturnsDuplicateAssetName(t *testing.T) {
 	}
 }
 
+func TestCreateAssetServiceReturnsDuplicateAssetNameWithExistingID(t *testing.T) {
+	first, err := domain.NewAsset("asset-1", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid first asset, got %v", err)
+	}
+
+	repository := &fakeAssetRepository{
+		byID: map[domain.AssetID]domain.Asset{
+			first.ID(): first,
+		},
+	}
+	service := NewCreateAssetService(repository, fixedIDGenerator{id: "asset-2"})
+
+	_, err = service.Execute(context.Background(), CreateAssetCommand{
+		Name: "Radio",
+	})
+	if !errors.Is(err, domain.ErrDuplicateAssetName) {
+		t.Fatalf("expected ErrDuplicateAssetName, got %v", err)
+	}
+
+	existingID, ok := ExistingAssetIDFromDuplicateError(err)
+	if !ok {
+		t.Fatal("expected existing asset ID")
+	}
+
+	if existingID != first.ID() {
+		t.Fatalf("expected existing asset ID %s, got %s", first.ID(), existingID)
+	}
+}
+
 func TestGetAssetServiceExecute(t *testing.T) {
 	asset := mustBuildAsset(t, "asset-1")
 
@@ -171,6 +201,15 @@ func TestUpdateAssetServiceRejectsDuplicateName(t *testing.T) {
 	})
 	if !errors.Is(err, domain.ErrDuplicateAssetName) {
 		t.Fatalf("expected duplicate asset name, got %v", err)
+	}
+
+	existingID, ok := ExistingAssetIDFromDuplicateError(err)
+	if !ok {
+		t.Fatal("expected existing asset ID")
+	}
+
+	if existingID != first.ID() {
+		t.Fatalf("expected existing asset ID %s, got %s", first.ID(), existingID)
 	}
 }
 

@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"cordell/internal/app"
@@ -218,8 +219,17 @@ func TestPostgresPersonnelRepositoryRejectsDuplicateRegistrationID(t *testing.T)
 		context.Background(),
 		validCreatePersonnelCommand("Jane Doe", "Jane", "52998224725"),
 	)
-	if err != domain.ErrDuplicateRegistrationID {
+	if !errors.Is(err, domain.ErrDuplicateRegistrationID) {
 		t.Fatalf("expected ErrDuplicateRegistrationID, got %v", err)
+	}
+
+	existingID, ok := app.ExistingPersonnelIDFromDuplicateError(err)
+	if !ok {
+		t.Fatal("expected existing personnel ID")
+	}
+
+	if existingID != "personnel-1" {
+		t.Fatalf("expected existing personnel ID personnel-1, got %s", existingID)
 	}
 }
 

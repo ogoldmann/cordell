@@ -47,6 +47,16 @@ func (s *CreatePersonnelService) Execute(ctx context.Context, cmd CreatePersonne
 		return domain.Personnel{}, err
 	}
 
+	existingPersonnel, found, err := s.personnelRepository.FindByRegistrationID(ctx, registrationID)
+	if err != nil {
+		return domain.Personnel{}, err
+	}
+	if found {
+		return domain.Personnel{}, DuplicatePersonnelRegistrationIDError{
+			ExistingPersonnelID: existingPersonnel.ID(),
+		}
+	}
+
 	personnel, err := domain.NewPersonnel(
 		domain.PersonnelID(id),
 		cmd.FullName,
@@ -103,7 +113,7 @@ func (s *UpdatePersonnelService) Execute(ctx context.Context, cmd UpdatePersonne
 
 	normalizedRegistrationID := domain.RegistrationID(domain.NormalizeRegistrationID(string(cmd.RegistrationID)))
 
-	_, duplicateFound, err := s.personnelRepository.FindByRegistrationIDExcludingID(
+	duplicatePersonnel, duplicateFound, err := s.personnelRepository.FindByRegistrationIDExcludingID(
 		ctx,
 		normalizedRegistrationID,
 		cmd.ID,
@@ -112,7 +122,9 @@ func (s *UpdatePersonnelService) Execute(ctx context.Context, cmd UpdatePersonne
 		return domain.Personnel{}, err
 	}
 	if duplicateFound {
-		return domain.Personnel{}, domain.ErrDuplicateRegistrationID
+		return domain.Personnel{}, DuplicatePersonnelRegistrationIDError{
+			ExistingPersonnelID: duplicatePersonnel.ID(),
+		}
 	}
 
 	if err := personnel.UpdateDetails(

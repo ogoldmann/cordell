@@ -77,6 +77,41 @@ func (q *Queries) DeactivatePersonnel(ctx context.Context, id string) (int32, er
 	return column_1, err
 }
 
+const findPersonnelByRegistrationID = `-- name: FindPersonnelByRegistrationID :one
+SELECT
+    id,
+    full_name,
+    alias,
+    rank,
+    registration_id,
+    section,
+    organization_unit,
+    active,
+    created_at,
+    updated_at
+FROM personnel
+WHERE registration_id = $1
+LIMIT 1
+`
+
+func (q *Queries) FindPersonnelByRegistrationID(ctx context.Context, registrationID string) (Personnel, error) {
+	row := q.db.QueryRow(ctx, findPersonnelByRegistrationID, registrationID)
+	var i Personnel
+	err := row.Scan(
+		&i.ID,
+		&i.FullName,
+		&i.Alias,
+		&i.Rank,
+		&i.RegistrationID,
+		&i.Section,
+		&i.OrganizationUnit,
+		&i.Active,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const findPersonnelByRegistrationIDExcludingID = `-- name: FindPersonnelByRegistrationIDExcludingID :one
 SELECT
     id,

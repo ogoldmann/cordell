@@ -27,9 +27,11 @@ type formActionsView struct {
 }
 
 type feedbackMessageView struct {
-	Kind    string
-	Title   string
-	Message string
+	Kind        string
+	Title       string
+	Message     string
+	ActionLabel string
+	ActionURL   string
 }
 
 type sectionHeaderView struct {
@@ -103,6 +105,20 @@ func newErrorFeedback(message string) *feedbackMessageView {
 		Kind:    "error",
 		Title:   "Verifique as informações",
 		Message: message,
+	}
+}
+
+func newErrorFeedbackWithAction(message string, actionLabel string, actionURL string) *feedbackMessageView {
+	if message == "" {
+		return nil
+	}
+
+	return &feedbackMessageView{
+		Kind:        "error",
+		Title:       "Verifique as informações",
+		Message:     message,
+		ActionLabel: actionLabel,
+		ActionURL:   actionURL,
 	}
 }
 
