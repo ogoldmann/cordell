@@ -7,6 +7,14 @@ import (
 )
 
 func TestMilitaryDisplayNameUsesRankAbbreviation(t *testing.T) {
+	got := militaryDisplayName(domain.RankSoldier, "John")
+
+	if got != "Sd John" {
+		t.Fatalf("expected Sd John, got %q", got)
+	}
+}
+
+func TestMilitaryDisplayNameUsesThirdSergeantAbbreviation(t *testing.T) {
 	got := militaryDisplayName(domain.RankThirdSergeant, "Silva")
 
 	if got != "3º Sgt Silva" {

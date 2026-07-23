@@ -1549,3 +1549,16 @@ The same rank catalog is used by:
 - [ ] Receipts use rank abbreviation in display names.
 - [ ] Ledger uses rank abbreviation in display names.
 - [ ] Existing rank aliases remain valid where needed.
+
+## Planned Rank Search Tokens
+
+Rank abbreviations are currently part of the UI presentation layer.
+
+A future search milestone should support rank abbreviation tokens, such as:
+
+- `sd`
+- `cb`
+- `3º sgt`
+- `2º ten`
+
+This should be implemented in the search layer, not by changing stored rank values.
