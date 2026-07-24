@@ -2,9 +2,20 @@
   const storageKey = "cordell-theme";
   const root = document.documentElement;
   const toggleButtons = document.querySelectorAll("[data-theme-toggle]");
+  const allowedThemes = ["light", "dark", "sepia"];
+  const themeLabels = {
+    light: "Tema: Claro",
+    dark: "Tema: Escuro",
+    sepia: "Tema: Sépia",
+  };
+  const themeNames = {
+    light: "claro",
+    dark: "escuro",
+    sepia: "sépia",
+  };
 
   function normalizeTheme(value) {
-    if (value === "dark" || value === "light") {
+    if (allowedThemes.includes(value)) {
       return value;
     }
 
@@ -15,19 +26,22 @@
     return normalizeTheme(root.dataset.theme);
   }
 
+  function nextTheme(theme) {
+    const currentIndex = allowedThemes.indexOf(normalizeTheme(theme));
+
+    return allowedThemes[(currentIndex + 1) % allowedThemes.length];
+  }
+
   function applyTheme(theme) {
     const normalizedTheme = normalizeTheme(theme);
+    const nextNormalizedTheme = nextTheme(normalizedTheme);
 
     root.dataset.theme = normalizedTheme;
 
     for (const button of toggleButtons) {
-      const isDark = normalizedTheme === "dark";
-      const label = isDark ? "Theme: Dark" : "Theme: Light";
-      const nextTheme = isDark ? "light" : "dark";
-
-      button.textContent = label;
-      button.setAttribute("aria-pressed", isDark ? "true" : "false");
-      button.setAttribute("aria-label", `Switch to ${nextTheme} theme`);
+      button.textContent = themeLabels[normalizedTheme];
+      button.setAttribute("aria-pressed", normalizedTheme === "light" ? "false" : "true");
+      button.setAttribute("aria-label", `Mudar para tema ${themeNames[nextNormalizedTheme]}`);
     }
   }
 
@@ -40,10 +54,10 @@
   }
 
   function toggleTheme() {
-    const nextTheme = currentTheme() === "dark" ? "light" : "dark";
+    const nextNormalizedTheme = nextTheme(currentTheme());
 
-    saveTheme(nextTheme);
-    applyTheme(nextTheme);
+    saveTheme(nextNormalizedTheme);
+    applyTheme(nextNormalizedTheme);
   }
 
   for (const button of toggleButtons) {

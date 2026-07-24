@@ -11,6 +11,21 @@
 - [ ] UI copy avoids the word "sistema".
 - [ ] UI presents Cordell as a platform.
 
+## Design Tokens
+
+- [ ] Semantic CSS variables are defined.
+- [ ] Light theme tokens are defined.
+- [ ] Dark theme tokens are defined.
+- [ ] Sepia theme tokens are defined.
+- [ ] Primary orange token is defined.
+- [ ] Secondary brown token is defined.
+- [ ] Positive lime token is defined.
+- [ ] Negative muted red token is defined.
+- [ ] Focus token is defined.
+- [ ] Radius tokens are defined.
+- [ ] Shadow tokens are defined.
+- [ ] Existing legacy Cordell color utilities remain temporarily compatible.
+
 ## Responsiveness
 
 - [ ] Layout works on small screens.

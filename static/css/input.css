@@ -1,29 +1,361 @@
 @import "tailwindcss";
 
-@source "../../internal/web/views";
+@source "../../internal/web/views/**/*.html";
+@source "../../internal/web/**/*.go";
+@source "../../static/js/**/*.js";
 
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant sepia (&:where([data-theme="sepia"], [data-theme="sepia"] *));
 
 @theme {
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
 
-  --color-cordell-background: #f6f5f1;
-  --color-cordell-surface: #ffffff;
-  --color-cordell-text: #1f2933;
-  --color-cordell-muted: #667085;
-  --color-cordell-border: #d9d6ce;
-  --color-cordell-primary: #1f3a5f;
-  --color-cordell-primary-hover: #172b46;
+  --breakpoint-xs: 30rem;
 
-  --color-cordell-danger-surface: #fff1f1;
-  --color-cordell-danger-border: #f2b8b8;
-  --color-cordell-danger-text: #8a1f1f;
+  --radius-cordell-xs: 0.5rem;
+  --radius-cordell-sm: 0.75rem;
+  --radius-cordell-md: 1rem;
+  --radius-cordell-lg: 1.25rem;
+  --radius-cordell-xl: 1.5rem;
+  --radius-cordell-2xl: 2rem;
 
-  --color-cordell-dark-background: #101418;
-  --color-cordell-dark-surface: #171d23;
-  --color-cordell-dark-text: #e5e7eb;
-  --color-cordell-dark-muted: #9ca3af;
-  --color-cordell-dark-border: #2d3742;
-  --color-cordell-dark-primary: #8fb4e8;
+  --shadow-cordell-soft: 0 18px 60px rgb(15 23 42 / 0.08);
+  --shadow-cordell-lifted: 0 24px 80px rgb(15 23 42 / 0.14);
+  --shadow-cordell-glow: 0 0 0 1px rgb(255 133 51 / 0.16), 0 20px 70px rgb(255 133 51 / 0.12);
+
+  --color-cordell-background: var(--cordell-background);
+  --color-cordell-surface: var(--cordell-surface);
+  --color-cordell-surface-raised: var(--cordell-surface-raised);
+  --color-cordell-surface-muted: var(--cordell-surface-muted);
+  --color-cordell-border: var(--cordell-border);
+  --color-cordell-border-strong: var(--cordell-border-strong);
+  --color-cordell-text: var(--cordell-text);
+  --color-cordell-muted: var(--cordell-muted);
+  --color-cordell-subtle: var(--cordell-subtle);
+
+  --color-cordell-primary: var(--cordell-primary);
+  --color-cordell-primary-hover: var(--cordell-primary-hover);
+  --color-cordell-primary-soft: var(--cordell-primary-soft);
+  --color-cordell-primary-text: var(--cordell-primary-text);
+
+  --color-cordell-secondary: var(--cordell-secondary);
+  --color-cordell-secondary-soft: var(--cordell-secondary-soft);
+
+  --color-cordell-positive: var(--cordell-positive);
+  --color-cordell-positive-soft: var(--cordell-positive-soft);
+  --color-cordell-positive-border: var(--cordell-positive-border);
+  --color-cordell-positive-text: var(--cordell-positive-text);
+
+  --color-cordell-negative: var(--cordell-negative);
+  --color-cordell-negative-soft: var(--cordell-negative-soft);
+  --color-cordell-negative-border: var(--cordell-negative-border);
+  --color-cordell-negative-text: var(--cordell-negative-text);
+
+  --color-cordell-warning: var(--cordell-warning);
+  --color-cordell-warning-soft: var(--cordell-warning-soft);
+  --color-cordell-warning-text: var(--cordell-warning-text);
+
+  --color-cordell-focus: var(--cordell-focus);
+}
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  --cordell-background: #f8f3ea;
+  --cordell-surface: #fffaf2;
+  --cordell-surface-raised: #ffffff;
+  --cordell-surface-muted: #f1e7d8;
+
+  --cordell-border: #e5d7c3;
+  --cordell-border-strong: #cdb99d;
+
+  --cordell-text: #231912;
+  --cordell-muted: #77685a;
+  --cordell-subtle: #9a8978;
+
+  --cordell-primary: #e87522;
+  --cordell-primary-hover: #c95f17;
+  --cordell-primary-soft: #ffe3cc;
+  --cordell-primary-text: #fff7ed;
+
+  --cordell-secondary: #7a4f32;
+  --cordell-secondary-soft: #ead8c8;
+
+  --cordell-positive: #84cc16;
+  --cordell-positive-soft: #ecfccb;
+  --cordell-positive-border: #bef264;
+  --cordell-positive-text: #365314;
+
+  --cordell-negative: #c65a4a;
+  --cordell-negative-soft: #f8ded9;
+  --cordell-negative-border: #e8aaa1;
+  --cordell-negative-text: #7f2d22;
+
+  --cordell-warning: #d99a22;
+  --cordell-warning-soft: #fef3c7;
+  --cordell-warning-text: #7c4a03;
+
+  --cordell-focus: #e87522;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --cordell-background: #17110d;
+  --cordell-surface: #211813;
+  --cordell-surface-raised: #2a1f18;
+  --cordell-surface-muted: #33261e;
+
+  --cordell-border: #46362b;
+  --cordell-border-strong: #6d5441;
+
+  --cordell-text: #fff4e8;
+  --cordell-muted: #c5ad98;
+  --cordell-subtle: #927a66;
+
+  --cordell-primary: #ff8a35;
+  --cordell-primary-hover: #ff9f57;
+  --cordell-primary-soft: #3f2516;
+  --cordell-primary-text: #1b1009;
+
+  --cordell-secondary: #b8875f;
+  --cordell-secondary-soft: #38271d;
+
+  --cordell-positive: #a3e635;
+  --cordell-positive-soft: #1f3511;
+  --cordell-positive-border: #4d7c0f;
+  --cordell-positive-text: #d9f99d;
+
+  --cordell-negative: #e07a6d;
+  --cordell-negative-soft: #3a1e1b;
+  --cordell-negative-border: #8f3b33;
+  --cordell-negative-text: #fecaca;
+
+  --cordell-warning: #f0b84f;
+  --cordell-warning-soft: #3a2a12;
+  --cordell-warning-text: #fde68a;
+
+  --cordell-focus: #ff8a35;
+}
+
+[data-theme="sepia"] {
+  color-scheme: light;
+
+  --cordell-background: #efe1c8;
+  --cordell-surface: #f8ead2;
+  --cordell-surface-raised: #fff2dc;
+  --cordell-surface-muted: #e5cfad;
+
+  --cordell-border: #d0b68e;
+  --cordell-border-strong: #aa8a5f;
+
+  --cordell-text: #2d2015;
+  --cordell-muted: #6f5a43;
+  --cordell-subtle: #927a5e;
+
+  --cordell-primary: #d86f24;
+  --cordell-primary-hover: #b85b19;
+  --cordell-primary-soft: #f7c99f;
+  --cordell-primary-text: #fff7ed;
+
+  --cordell-secondary: #6e4426;
+  --cordell-secondary-soft: #dcc39f;
+
+  --cordell-positive: #7fb414;
+  --cordell-positive-soft: #e2f2b8;
+  --cordell-positive-border: #aac95c;
+  --cordell-positive-text: #33470b;
+
+  --cordell-negative: #b95c4e;
+  --cordell-negative-soft: #edc6bd;
+  --cordell-negative-border: #d18d82;
+  --cordell-negative-text: #69291f;
+
+  --cordell-warning: #b97913;
+  --cordell-warning-soft: #f2d899;
+  --cordell-warning-text: #654006;
+
+  --cordell-focus: #d86f24;
+}
+
+@layer base {
+  html {
+    min-height: 100%;
+    background: var(--cordell-background);
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, color-mix(in srgb, var(--cordell-primary) 12%, transparent), transparent 32rem),
+      radial-gradient(circle at bottom right, color-mix(in srgb, var(--cordell-secondary) 10%, transparent), transparent 28rem),
+      var(--cordell-background);
+    color: var(--cordell-text);
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--cordell-primary) 28%, transparent);
+    color: var(--cordell-text);
+  }
+
+  :focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--cordell-focus) 70%, transparent);
+    outline-offset: 3px;
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .cordell-shell {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 15% 0%, color-mix(in srgb, var(--cordell-primary) 10%, transparent), transparent 34rem),
+      radial-gradient(circle at 90% 20%, color-mix(in srgb, var(--cordell-secondary) 8%, transparent), transparent 30rem),
+      var(--cordell-background);
+    color: var(--cordell-text);
+  }
+
+  .cordell-surface {
+    border: 1px solid var(--cordell-border);
+    background: var(--cordell-surface);
+    color: var(--cordell-text);
+    box-shadow: var(--shadow-cordell-soft);
+  }
+
+  .cordell-surface-raised {
+    border: 1px solid var(--cordell-border);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-text);
+    box-shadow: var(--shadow-cordell-lifted);
+  }
+
+  .cordell-focus-ring {
+    outline: none;
+  }
+
+  .cordell-focus-ring:focus-visible {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--cordell-focus) 26%, transparent),
+      0 0 0 1px var(--cordell-focus);
+  }
+
+  .cordell-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .cordell-badge-positive {
+    border: 1px solid var(--cordell-positive-border);
+    background: var(--cordell-positive-soft);
+    color: var(--cordell-positive-text);
+  }
+
+  .cordell-badge-negative {
+    border: 1px solid var(--cordell-negative-border);
+    background: var(--cordell-negative-soft);
+    color: var(--cordell-negative-text);
+  }
+
+  .cordell-badge-neutral {
+    border: 1px solid var(--cordell-border);
+    background: var(--cordell-surface-muted);
+    color: var(--cordell-muted);
+  }
+
+  .cordell-input {
+    width: 100%;
+    border-radius: var(--radius-cordell-md);
+    border: 1px solid var(--cordell-border);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-text);
+    padding: 0.75rem 1rem;
+    outline: none;
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .cordell-input::placeholder {
+    color: var(--cordell-subtle);
+  }
+
+  .cordell-input:focus {
+    border-color: var(--cordell-focus);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--cordell-focus) 14%, transparent);
+  }
+
+  .cordell-button-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-primary);
+    color: var(--cordell-primary-text);
+    font-weight: 800;
+    text-decoration: none;
+    transition:
+      transform 160ms ease,
+      background-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .cordell-button-primary:hover {
+    background: var(--cordell-primary-hover);
+    box-shadow: var(--shadow-cordell-glow);
+    transform: translateY(-1px);
+  }
+
+  .cordell-button-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-cordell-md);
+    border: 1px solid var(--cordell-border);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-text);
+    font-weight: 800;
+    text-decoration: none;
+    transition:
+      border-color 160ms ease,
+      transform 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .cordell-button-secondary:hover {
+    border-color: var(--cordell-primary);
+    transform: translateY(-1px);
+  }
+}
+
+@theme {
+  --color-cordell-dark-background: var(--cordell-background);
+  --color-cordell-dark-surface: var(--cordell-surface);
+  --color-cordell-dark-border: var(--cordell-border);
+  --color-cordell-dark-text: var(--cordell-text);
+  --color-cordell-dark-muted: var(--cordell-muted);
+  --color-cordell-dark-primary: var(--cordell-primary);
+
+  --color-cordell-danger-surface: var(--cordell-negative-soft);
+  --color-cordell-danger-border: var(--cordell-negative-border);
+  --color-cordell-danger-text: var(--cordell-negative-text);
 }

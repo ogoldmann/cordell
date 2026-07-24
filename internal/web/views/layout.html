@@ -12,8 +12,9 @@
 
       try {
         const storedTheme = localStorage.getItem(storageKey);
+        const allowedThemes = ["light", "dark", "sepia"];
         const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const theme = storedTheme === "dark" || storedTheme === "light"
+        const theme = allowedThemes.includes(storedTheme)
           ? storedTheme
           : prefersDark
             ? "dark"
@@ -83,7 +84,7 @@
           type="button"
           data-theme-toggle
           aria-pressed="false"
-          aria-label="Switch theme"
+          aria-label="Mudar tema"
         >
           Tema: Claro
         </button>
@@ -144,8 +145,9 @@
 
       try {
         const storedTheme = localStorage.getItem(storageKey);
+        const allowedThemes = ["light", "dark", "sepia"];
         const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const theme = storedTheme === "dark" || storedTheme === "light"
+        const theme = allowedThemes.includes(storedTheme)
           ? storedTheme
           : prefersDark
             ? "dark"

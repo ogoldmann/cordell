@@ -203,3 +203,58 @@ Implementation rule:
 - icons should support meaning, not replace important labels
 - critical actions must keep text labels
 - icon usage must be consistent across the platform
+
+## Design tokens
+
+Cordell's visual design is driven by semantic tokens.
+
+Tokens should describe meaning, not raw color names.
+
+Preferred examples:
+
+- background
+- surface
+- surface-raised
+- border
+- text
+- muted
+- primary
+- secondary
+- positive
+- negative
+- warning
+- focus
+
+Avoid using raw color concepts in component names when the color has semantic meaning.
+
+Good:
+
+- positive
+- negative
+- primary
+
+Avoid:
+
+- green
+- red
+- orange
+
+The checkout/cautela color is semantically positive.
+
+The return/descautela color is semantically negative.
+
+## Theme strategy
+
+Cordell has three product themes:
+
+- light
+- dark
+- sepia
+
+The dark theme should use warm brown undertones.
+
+The sepia theme should feel premium and calm, not old or visually dirty.
+
+The primary brand color is comfortable orange.
+
+The secondary brand tone is warm brown.
