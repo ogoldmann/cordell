@@ -14,6 +14,7 @@ type loginPageData struct {
 	Error          string
 	RegistrationID string
 	ReturnTo       string
+	ThemeSelector  themeSelectorView
 }
 
 func (s *Server) handleLoginForm(w http.ResponseWriter, r *http.Request) {
@@ -25,8 +26,9 @@ func (s *Server) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 	returnTo := sanitizeReturnTo(r.URL.Query().Get("return_to"))
 
 	if err := s.renderer.Render(w, http.StatusOK, "login.html", loginPageData{
-		Title:    "Login",
-		ReturnTo: returnTo,
+		Title:         "Login",
+		ReturnTo:      returnTo,
+		ThemeSelector: newThemeSelectorView(),
 	}); err != nil {
 		s.handleRenderError(w, err)
 	}
@@ -123,6 +125,7 @@ func (s *Server) renderLoginError(
 		Error:          message,
 		RegistrationID: registrationID,
 		ReturnTo:       returnTo,
+		ThemeSelector:  newThemeSelectorView(),
 	}); err != nil {
 		s.handleRenderError(w, err)
 	}

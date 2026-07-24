@@ -8,23 +8,14 @@
 
   <script>
     (() => {
-      const storageKey = "cordell-theme";
+      const storageKey = 'cordell-theme'
+      const allowedThemes = ['light', 'dark', 'sepia']
+      const storedTheme = window.localStorage.getItem(storageKey)
+      const theme = allowedThemes.includes(storedTheme) ? storedTheme : 'dark'
 
-      try {
-        const storedTheme = localStorage.getItem(storageKey);
-        const allowedThemes = ["light", "dark", "sepia"];
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const theme = allowedThemes.includes(storedTheme)
-          ? storedTheme
-          : prefersDark
-            ? "dark"
-            : "light";
-
-        document.documentElement.dataset.theme = theme;
-      } catch {
-        document.documentElement.dataset.theme = "light";
-      }
-    })();
+      document.documentElement.dataset.theme = theme
+      document.documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'light'
+    })()
   </script>
 
   <link rel="stylesheet" href="/static/css/app.css">
@@ -79,16 +70,6 @@
           </div>
         {{end}}
 
-        <button
-          class="inline-flex w-fit cursor-pointer items-center justify-center rounded-full border border-cordell-border bg-white px-3 py-1.5 text-xs font-bold text-cordell-text transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
-          type="button"
-          data-theme-toggle
-          aria-pressed="false"
-          aria-label="Mudar tema"
-        >
-          Tema: Claro
-        </button>
-
         {{if .HasOperator}}
           <div class="flex flex-col gap-2 md:flex-row md:items-center">
             <span class="text-xs font-bold text-cordell-muted dark:text-cordell-dark-muted">
@@ -141,23 +122,14 @@
 
   <script>
     (() => {
-      const storageKey = "cordell-theme";
+      const storageKey = 'cordell-theme'
+      const allowedThemes = ['light', 'dark', 'sepia']
+      const storedTheme = window.localStorage.getItem(storageKey)
+      const theme = allowedThemes.includes(storedTheme) ? storedTheme : 'dark'
 
-      try {
-        const storedTheme = localStorage.getItem(storageKey);
-        const allowedThemes = ["light", "dark", "sepia"];
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const theme = allowedThemes.includes(storedTheme)
-          ? storedTheme
-          : prefersDark
-            ? "dark"
-            : "light";
-
-        document.documentElement.dataset.theme = theme;
-      } catch {
-        document.documentElement.dataset.theme = "light";
-      }
-    })();
+      document.documentElement.dataset.theme = theme
+      document.documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'light'
+    })()
   </script>
 
   <link rel="stylesheet" href="/static/css/app.css">

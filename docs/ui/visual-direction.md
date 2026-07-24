@@ -268,3 +268,21 @@ Icons are copied from `lucide-static` into the repository and rendered through G
 Cordell does not load icons from a CDN.
 
 This keeps the platform compatible with intranet/offline usage and strict CSP rules.
+
+## Theme behavior
+
+Cordell supports three selectable themes:
+
+- light
+- dark
+- sepia
+
+Theme preference is stored locally in the browser.
+
+The selected theme is applied through `data-theme` on the root HTML element.
+
+The theme script must run early enough to avoid a visible theme flash.
+
+The default theme is dark.
+
+Theme selection must be available before login and inside the authenticated interface.

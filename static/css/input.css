@@ -219,6 +219,12 @@
 }
 
 @layer components {
+  [data-theme-option][data-selected="true"] {
+    border-color: var(--cordell-primary);
+    background: var(--cordell-primary-soft);
+    color: var(--cordell-text);
+  }
+
   .cordell-shell {
     min-height: 100vh;
     background:

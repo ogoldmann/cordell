@@ -48,6 +48,18 @@
 - [ ] Theme selection is available from operator dropdown.
 - [ ] Theme selection is available on login page.
 
+## Theme System
+
+- [ ] Theme preference is stored locally.
+- [ ] Theme is applied through `data-theme`.
+- [ ] Theme is applied before full page render to avoid flash.
+- [ ] Light theme can be selected.
+- [ ] Dark theme can be selected.
+- [ ] Sepia theme can be selected.
+- [ ] Theme selector component exists.
+- [ ] Theme selector works before login.
+- [ ] Theme selector is ready for operator dropdown.
+
 ## Components
 
 - [ ] Search bar component redesigned.

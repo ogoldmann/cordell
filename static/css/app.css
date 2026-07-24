@@ -49,6 +49,7 @@
     --color-slate-950: oklch(12.9% 0.042 264.695);
     --color-white: #fff;
     --spacing: 0.25rem;
+    --container-xs: 20rem;
     --container-md: 28rem;
     --container-2xl: 42rem;
     --container-3xl: 48rem;
@@ -70,10 +71,12 @@
     --text-5xl: 3rem;
     --text-5xl--line-height: 1;
     --font-weight-medium: 500;
+    --font-weight-semibold: 600;
     --font-weight-bold: 700;
     --font-weight-extrabold: 800;
     --tracking-tight: -0.025em;
     --leading-tight: 1.25;
+    --radius-lg: 0.5rem;
     --radius-xl: 0.75rem;
     --radius-2xl: 1rem;
     --radius-3xl: 1.5rem;
@@ -87,11 +90,14 @@
     --shadow-cordell-glow: 0 0 0 1px rgb(255 133 51 / 0.16), 0 20px 70px rgb(255 133 51 / 0.12);
     --color-cordell-background: var(--cordell-background);
     --color-cordell-surface: var(--cordell-surface);
+    --color-cordell-surface-raised: var(--cordell-surface-raised);
+    --color-cordell-surface-muted: var(--cordell-surface-muted);
     --color-cordell-border: var(--cordell-border);
     --color-cordell-text: var(--cordell-text);
     --color-cordell-muted: var(--cordell-muted);
     --color-cordell-primary: var(--cordell-primary);
     --color-cordell-primary-hover: var(--cordell-primary-hover);
+    --color-cordell-primary-soft: var(--cordell-primary-soft);
     --color-cordell-dark-background: var(--cordell-background);
     --color-cordell-dark-surface: var(--cordell-surface);
     --color-cordell-dark-border: var(--cordell-border);
@@ -281,17 +287,11 @@
   .inset-0 {
     inset: 0;
   }
-  .top-4 {
-    top: calc(var(--spacing) * 4);
-  }
   .top-full {
     top: 100%;
   }
   .right-0 {
     right: 0;
-  }
-  .right-4 {
-    right: calc(var(--spacing) * 4);
   }
   .left-0 {
     left: 0;
@@ -472,6 +472,9 @@
   .max-w-md {
     max-width: var(--container-md);
   }
+  .max-w-xs {
+    max-width: var(--container-xs);
+  }
   .min-w-0 {
     min-width: 0;
   }
@@ -589,6 +592,9 @@
   }
   .rounded-full {
     border-radius: calc(infinity * 1px);
+  }
+  .rounded-lg {
+    border-radius: var(--radius-lg);
   }
   .rounded-xl {
     border-radius: var(--radius-xl);
@@ -711,6 +717,12 @@
   }
   .bg-cordell-surface {
     background-color: var(--color-cordell-surface);
+  }
+  .bg-cordell-surface-muted {
+    background-color: var(--color-cordell-surface-muted);
+  }
+  .bg-cordell-surface-raised {
+    background-color: var(--color-cordell-surface-raised);
   }
   .bg-emerald-50 {
     background-color: var(--color-emerald-50);
@@ -899,6 +911,10 @@
   .font-medium {
     --tw-font-weight: var(--font-weight-medium);
     font-weight: var(--font-weight-medium);
+  }
+  .font-semibold {
+    --tw-font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-semibold);
   }
   .tracking-\[-0\.03em\] {
     --tw-tracking: -0.03em;
@@ -1118,6 +1134,13 @@
       }
     }
   }
+  .hover\:bg-cordell-primary-soft {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-cordell-primary-soft);
+      }
+    }
+  }
   .hover\:bg-cordell-primary\/10 {
     &:hover {
       @media (hover: hover) {
@@ -1197,6 +1220,16 @@
   .disabled\:opacity-60 {
     &:disabled {
       opacity: 60%;
+    }
+  }
+  .data-\[selected\=true\]\:border-cordell-primary {
+    &[data-selected="true"] {
+      border-color: var(--color-cordell-primary);
+    }
+  }
+  .data-\[selected\=true\]\:bg-cordell-primary-soft {
+    &[data-selected="true"] {
+      background-color: var(--color-cordell-primary-soft);
     }
   }
   .sm\:w-auto {
@@ -1393,6 +1426,11 @@
       @supports (color: color-mix(in lab, red, red)) {
         border-color: color-mix(in oklab, var(--color-amber-900) 60%, transparent);
       }
+    }
+  }
+  .dark\:border-cordell-border {
+    &:where([data-theme="dark"], [data-theme="dark"] *) {
+      border-color: var(--color-cordell-border);
     }
   }
   .dark\:border-cordell-dark-border {
@@ -1906,6 +1944,11 @@
   }
 }
 @layer components {
+  [data-theme-option][data-selected="true"] {
+    border-color: var(--cordell-primary);
+    background: var(--cordell-primary-soft);
+    color: var(--cordell-text);
+  }
   .cordell-shell {
     min-height: 100vh;
     background: radial-gradient(circle at 15% 0%, var(--cordell-primary), transparent 34rem), radial-gradient(circle at 90% 20%, var(--cordell-secondary), transparent 30rem), var(--cordell-background);

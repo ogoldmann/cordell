@@ -1,68 +1,75 @@
 (() => {
-  const storageKey = "cordell-theme";
-  const root = document.documentElement;
-  const toggleButtons = document.querySelectorAll("[data-theme-toggle]");
-  const allowedThemes = ["light", "dark", "sepia"];
-  const themeLabels = {
-    light: "Tema: Claro",
-    dark: "Tema: Escuro",
-    sepia: "Tema: Sépia",
-  };
-  const themeNames = {
-    light: "claro",
-    dark: "escuro",
-    sepia: "sépia",
-  };
+  const storageKey = 'cordell-theme'
+  const allowedThemes = ['light', 'dark', 'sepia']
 
-  function normalizeTheme(value) {
-    if (allowedThemes.includes(value)) {
-      return value;
+  const isAllowedTheme = (theme) => {
+    return allowedThemes.includes(theme)
+  }
+
+  const getStoredTheme = () => {
+    const storedTheme = window.localStorage.getItem(storageKey)
+
+    if (isAllowedTheme(storedTheme)) {
+      return storedTheme
     }
 
-    return "light";
+    return null
   }
 
-  function currentTheme() {
-    return normalizeTheme(root.dataset.theme);
+  const getInitialTheme = () => {
+    return getStoredTheme() || 'dark'
   }
 
-  function nextTheme(theme) {
-    const currentIndex = allowedThemes.indexOf(normalizeTheme(theme));
+  const applyTheme = (theme) => {
+    const nextTheme = isAllowedTheme(theme) ? theme : 'dark'
 
-    return allowedThemes[(currentIndex + 1) % allowedThemes.length];
+    document.documentElement.dataset.theme = nextTheme
+    document.documentElement.style.colorScheme = nextTheme === 'dark' ? 'dark' : 'light'
+
+    window.localStorage.setItem(storageKey, nextTheme)
+
+    document.dispatchEvent(
+      new CustomEvent('cordell:theme-changed', {
+        detail: {
+          theme: nextTheme,
+        },
+      }),
+    )
   }
 
-  function applyTheme(theme) {
-    const normalizedTheme = normalizeTheme(theme);
-    const nextNormalizedTheme = nextTheme(normalizedTheme);
+  const updateThemeControls = (theme) => {
+    document.querySelectorAll('[data-theme-option]').forEach((control) => {
+      const isSelected = control.dataset.themeOption === theme
 
-    root.dataset.theme = normalizedTheme;
-
-    for (const button of toggleButtons) {
-      button.textContent = themeLabels[normalizedTheme];
-      button.setAttribute("aria-pressed", normalizedTheme === "light" ? "false" : "true");
-      button.setAttribute("aria-label", `Mudar para tema ${themeNames[nextNormalizedTheme]}`);
-    }
+      control.dataset.selected = String(isSelected)
+      control.setAttribute('aria-pressed', String(isSelected))
+    })
   }
 
-  function saveTheme(theme) {
-    try {
-      localStorage.setItem(storageKey, theme);
-    } catch {
-      // Ignore storage errors. Theme switching should still work in memory.
-    }
+  const setupThemeControls = () => {
+    document.querySelectorAll('[data-theme-option]').forEach((control) => {
+      control.addEventListener('click', () => {
+        applyTheme(control.dataset.themeOption)
+        updateThemeControls(document.documentElement.dataset.theme)
+      })
+    })
   }
 
-  function toggleTheme() {
-    const nextNormalizedTheme = nextTheme(currentTheme());
+  const initialTheme = getInitialTheme()
 
-    saveTheme(nextNormalizedTheme);
-    applyTheme(nextNormalizedTheme);
+  applyTheme(initialTheme)
+
+  document.addEventListener('DOMContentLoaded', () => {
+    updateThemeControls(document.documentElement.dataset.theme)
+    setupThemeControls()
+  })
+
+  document.addEventListener('cordell:theme-changed', (event) => {
+    updateThemeControls(event.detail.theme)
+  })
+
+  window.CordellTheme = {
+    apply: applyTheme,
+    current: () => document.documentElement.dataset.theme,
   }
-
-  for (const button of toggleButtons) {
-    button.addEventListener("click", toggleTheme);
-  }
-
-  applyTheme(currentTheme());
-})();
+})()

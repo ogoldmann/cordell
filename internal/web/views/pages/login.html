@@ -4,16 +4,8 @@
 
 
 <section class="mx-auto max-w-md">
-  <div class="fixed right-4 top-4">
-    <button
-      class="inline-flex w-fit cursor-pointer items-center justify-center rounded-full border border-cordell-border bg-white px-3 py-1.5 text-xs font-bold text-cordell-text shadow-sm transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
-      type="button"
-      data-theme-toggle
-      aria-pressed="false"
-      aria-label="Mudar tema"
-    >
-      Tema: Claro
-    </button>
+  <div class="mx-auto mb-6 max-w-xs">
+    {{template "theme_selector" .ThemeSelector}}
   </div>
 
   <div class="mb-6">
