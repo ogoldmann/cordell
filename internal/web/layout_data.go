@@ -3,15 +3,17 @@ package web
 import "net/http"
 
 type privateLayoutData struct {
-	CSRFToken       string
-	CurrentOperator currentOperatorView
-	HasOperator     bool
-	Breadcrumbs     []breadcrumbItemView
+	CSRFToken        string
+	CurrentOperator  currentOperatorView
+	HasOperator      bool
+	ShowNavbarSearch bool
+	Breadcrumbs      []breadcrumbItemView
 }
 
 func newPrivateLayoutData(r *http.Request) privateLayoutData {
 	data := privateLayoutData{
-		CSRFToken: csrfTokenFromContext(r),
+		CSRFToken:        csrfTokenFromContext(r),
+		ShowNavbarSearch: true,
 	}
 
 	operator, ok := currentOperatorFromContext(r.Context())

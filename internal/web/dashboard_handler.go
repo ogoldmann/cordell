@@ -41,6 +41,7 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 		RecentPersonnel:   make([]personnelView, 0, len(personnel)),
 		RecentAssets:      make([]assetView, 0, len(assets)),
 	}
+	data.privateLayoutData.ShowNavbarSearch = false
 
 	for _, item := range personnel {
 		data.RecentPersonnel = append(data.RecentPersonnel, newPersonnelView(item))
