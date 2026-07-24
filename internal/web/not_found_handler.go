@@ -27,13 +27,14 @@ func (s *Server) renderNotFound(w http.ResponseWriter, r *http.Request) {
 		Heading:     "Página não encontrada",
 		Description: "A página solicitada não existe, foi movida ou você não possui um caminho válido para acessá-la.",
 		HomeURL:     "/",
-		HomeLabel:   "Ir para o painel",
+		HomeLabel:   dashboardLabel(),
 		SearchURL:   "/search",
 		SearchLabel: "Pesquisar no Cordell",
 	}
 
 	if _, ok := currentOperatorFromContext(r.Context()); ok {
 		data.privateLayoutData = newPrivateLayoutData(r)
+		data.Breadcrumbs = privateErrorBreadcrumbs(data.Title)
 		data.UsePrivateLayout = true
 	}
 
@@ -49,13 +50,14 @@ func (s *Server) handleMethodNotAllowed(w http.ResponseWriter, r *http.Request) 
 		Heading:     "Ação não permitida",
 		Description: "O caminho existe, mas não aceita este tipo de requisição.",
 		HomeURL:     "/",
-		HomeLabel:   "Ir para o painel",
+		HomeLabel:   dashboardLabel(),
 		SearchURL:   "/search",
 		SearchLabel: "Pesquisar no Cordell",
 	}
 
 	if _, ok := currentOperatorFromContext(r.Context()); ok {
 		data.privateLayoutData = newPrivateLayoutData(r)
+		data.Breadcrumbs = privateErrorBreadcrumbs(data.Title)
 		data.UsePrivateLayout = true
 	}
 

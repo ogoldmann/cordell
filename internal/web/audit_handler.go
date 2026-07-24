@@ -27,6 +27,7 @@ func (s *Server) handleAdminAuditEventsIndex(w http.ResponseWriter, r *http.Requ
 		Title:             "Audit events",
 		Events:            make([]auditEventView, 0, len(entries)),
 	}
+	data.Breadcrumbs = adminAuditEventsBreadcrumbs()
 
 	for _, entry := range entries {
 		data.Events = append(data.Events, newAuditEventView(entry))

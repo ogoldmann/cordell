@@ -415,6 +415,7 @@ func newAdminOperatorNewPageData(
 	data adminOperatorNewPageData,
 ) adminOperatorNewPageData {
 	data.privateLayoutData = newPrivateLayoutData(r)
+	data.Breadcrumbs = adminOperatorNewBreadcrumbs()
 
 	if data.SelectedRole == "" {
 		data.SelectedRole = domain.OperatorRoleOperator.String()

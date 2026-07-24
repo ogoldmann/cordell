@@ -46,6 +46,7 @@ func (s *Server) handleGlobalSearch(w http.ResponseWriter, r *http.Request) {
 		Personnel:         make([]personnelView, 0, len(result.Personnel)),
 		Assets:            make([]assetView, 0, len(result.Assets)),
 	}
+	data.Breadcrumbs = searchBreadcrumbs()
 
 	for _, item := range result.Personnel {
 		data.Personnel = append(data.Personnel, newPersonnelView(item))

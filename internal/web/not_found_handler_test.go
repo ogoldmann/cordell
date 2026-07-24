@@ -36,7 +36,7 @@ func TestRoutesRendersCustomNotFoundPage(t *testing.T) {
 		t.Fatalf("expected custom not found page, got body %q", body)
 	}
 
-	if !strings.Contains(body, "Ir para o painel") {
+	if !strings.Contains(body, "Home") {
 		t.Fatalf("expected home button, got body %q", body)
 	}
 }
