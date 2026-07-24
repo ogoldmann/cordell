@@ -14,7 +14,9 @@ const maxListOperatorsLimit = 200
 
 // ListOperatorsCommand contains list operators options.
 type ListOperatorsCommand struct {
-	Limit int
+	Query  string
+	Status ports.RecordStatusFilter
+	Limit  int
 }
 
 // ListOperatorsService lists operators for administration.
@@ -32,8 +34,21 @@ func NewListOperatorsService(operatorRepository ports.OperatorRepository) *ListO
 // Execute lists operator summaries.
 func (s *ListOperatorsService) Execute(ctx context.Context, cmd ListOperatorsCommand) ([]ports.OperatorSummary, error) {
 	limit := normalizeListOperatorsLimit(cmd.Limit)
+	status := normalizeListOperatorsStatus(cmd.Status)
 
-	return s.operatorRepository.List(ctx, limit)
+	return s.operatorRepository.List(ctx, ports.OperatorFilters{
+		Query:  cmd.Query,
+		Status: status,
+		Limit:  limit,
+	})
+}
+
+func normalizeListOperatorsStatus(status ports.RecordStatusFilter) ports.RecordStatusFilter {
+	if status == "" {
+		return ports.RecordStatusFilterAll
+	}
+
+	return ports.NormalizeRecordStatusFilter(string(status))
 }
 
 func normalizeListOperatorsLimit(limit int) int {

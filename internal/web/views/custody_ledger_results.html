@@ -1,0 +1,9 @@
+{{define "custody_ledger_results"}}
+  {{template "custody_timeline" .Timeline}}
+
+  {{if .Pagination}}
+    <div class="mt-6">
+      {{template "pagination" .Pagination}}
+    </div>
+  {{end}}
+{{end}}

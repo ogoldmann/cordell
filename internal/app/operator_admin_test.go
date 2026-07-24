@@ -38,18 +38,36 @@ func TestListOperatorsServiceExecute(t *testing.T) {
 	service := NewListOperatorsService(repository)
 
 	operators, err := service.Execute(context.Background(), ListOperatorsCommand{
+		Query:  "silva",
+		Status: ports.RecordStatusFilterAll,
+		Limit:  10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(operators) != 1 {
+		t.Fatalf("expected 1 operator, got %d", len(operators))
+	}
+
+	if operators[0].RegistrationID.String() != "52998224725" {
+		t.Fatalf("expected registration id 52998224725, got %s", operators[0].RegistrationID)
+	}
+}
+
+func TestListOperatorsServiceDefaultsStatusToAll(t *testing.T) {
+	repository := &fakeOperatorRepository{}
+	service := NewListOperatorsService(repository)
+
+	_, err := service.Execute(context.Background(), ListOperatorsCommand{
 		Limit: 10,
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if len(operators) != 2 {
-		t.Fatalf("expected 2 operators, got %d", len(operators))
-	}
-
-	if operators[0].RegistrationID.String() != "52998224725" {
-		t.Fatalf("expected registration id 52998224725, got %s", operators[0].RegistrationID)
+	if repository.lastFilters.Status != ports.RecordStatusFilterAll {
+		t.Fatalf("expected all status filter, got %s", repository.lastFilters.Status)
 	}
 }
 
@@ -62,6 +80,10 @@ func TestListOperatorsServiceLimitsMaximum(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if repository.lastFilters.Limit != maxListOperatorsLimit {
+		t.Fatalf("expected limit %d, got %d", maxListOperatorsLimit, repository.lastFilters.Limit)
 	}
 }
 

@@ -53,6 +53,9 @@ Rules:
 - JavaScript may only debounce, request partial HTML, update targets, and update the URL
 - no business filtering rules should be implemented only in JavaScript
 - partial templates should render the same cards/components as the full page
+- live search can apply to complex pages when the result area is isolated into a partial
+- good candidates include entity lists, admin lists, and ledgers
+- pagination and filters must remain server-rendered and work without JavaScript
 
 Internal code remains in English.
 

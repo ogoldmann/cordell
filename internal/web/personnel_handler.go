@@ -115,8 +115,9 @@ type custodyHistoryLineView struct {
 }
 
 type selectOption struct {
-	Value string
-	Label string
+	Value    string
+	Label    string
+	Selected bool
 }
 
 func newPersonnelFormPageData(data personnelFormPageData) personnelFormPageData {

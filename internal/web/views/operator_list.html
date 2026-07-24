@@ -1,0 +1,36 @@
+{{define "operator_list"}}
+  {{if .Operators}}
+    <div class="grid gap-4">
+      {{range .Operators}}
+        {{template "operator_card" .}}
+      {{end}}
+    </div>
+  {{else}}
+    {{template "empty_state" .EmptyState}}
+  {{end}}
+{{end}}
+
+{{define "operator_card"}}
+  <article class="flex flex-col gap-4 rounded-2xl border border-cordell-border bg-cordell-surface p-4 shadow-lg shadow-slate-900/5 transition hover:border-cordell-primary/50 sm:flex-row sm:items-center sm:justify-between dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:hover:border-cordell-dark-primary/60">
+    <div>
+      <a class="block text-lg font-extrabold text-cordell-text no-underline transition hover:text-cordell-primary dark:text-cordell-dark-text dark:hover:text-cordell-dark-primary" href="/admin/operators/{{.ID}}">
+        {{.DisplayName}}
+      </a>
+
+      <span class="mt-1 block text-sm text-cordell-muted dark:text-cordell-dark-muted">
+        {{.RegistrationID}} · {{.RoleLabel}} · {{.StatusLabel}}
+      </span>
+
+      <span class="mt-1 block font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">
+        {{.ID}}
+      </span>
+    </div>
+
+    <a
+      class="inline-flex w-fit items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2.5 text-sm font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+      href="/admin/operators/{{.ID}}"
+    >
+      Abrir
+    </a>
+  </article>
+{{end}}

@@ -17,6 +17,7 @@ type operatorSummaryView struct {
 	Role           string
 	RoleLabel      string
 	Active         bool
+	StatusLabel    string
 	CreatedAt      string
 }
 
@@ -55,6 +56,7 @@ func newOperatorSummaryView(operator ports.OperatorSummary) operatorSummaryView 
 		Role:           operator.Role.String(),
 		RoleLabel:      operatorRoleLabel(operator.Role),
 		Active:         operator.Active,
+		StatusLabel:    activeStatusLabel(operator.Active),
 		CreatedAt:      formatTimestamp(operator.CreatedAt),
 	}
 }

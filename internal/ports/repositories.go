@@ -294,12 +294,19 @@ type OperatorRepository interface {
 	FindByID(ctx context.Context, id domain.OperatorID) (domain.Operator, error)
 	FindByRegistrationID(ctx context.Context, registrationID domain.RegistrationID) (domain.Operator, error)
 	FindSummaryByID(ctx context.Context, id domain.OperatorID) (OperatorSummary, error)
-	List(ctx context.Context, limit int) ([]OperatorSummary, error)
+	List(ctx context.Context, filters OperatorFilters) ([]OperatorSummary, error)
 	Deactivate(ctx context.Context, id domain.OperatorID) (bool, error)
 	Reactivate(ctx context.Context, id domain.OperatorID) (bool, error)
 	ChangeRole(ctx context.Context, id domain.OperatorID, role domain.OperatorRole) (bool, error)
 	UpdatePasswordHash(ctx context.Context, id domain.OperatorID, passwordHash string) (bool, error)
 	CountActiveAdmins(ctx context.Context) (int, error)
+}
+
+// OperatorFilters contains administration list filters for operator summaries.
+type OperatorFilters struct {
+	Query  string
+	Status RecordStatusFilter
+	Limit  int
 }
 
 // OperatorSessionRepository persists operator sessions.

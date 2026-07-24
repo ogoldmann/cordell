@@ -254,9 +254,27 @@ SELECT
     active,
     created_at
 FROM operators
+WHERE (
+    $1::text = 'all'
+    OR ($1::text = 'active' AND active = true)
+    OR ($1::text = 'inactive' AND active = false)
+)
+AND (
+    $2::text = ''
+    OR alias ILIKE $2::text ESCAPE '\'
+    OR registration_id ILIKE $2::text ESCAPE '\'
+    OR rank ILIKE $2::text ESCAPE '\'
+    OR role ILIKE $2::text ESCAPE '\'
+)
 ORDER BY created_at DESC, id DESC
-LIMIT $1
+LIMIT $3
 `
+
+type ListOperatorsParams struct {
+	StatusFilter  string `json:"status_filter"`
+	SearchPattern string `json:"search_pattern"`
+	LimitCount    int32  `json:"limit_count"`
+}
 
 type ListOperatorsRow struct {
 	ID             string             `json:"id"`
@@ -268,8 +286,8 @@ type ListOperatorsRow struct {
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 }
 
-func (q *Queries) ListOperators(ctx context.Context, limitCount int32) ([]ListOperatorsRow, error) {
-	rows, err := q.db.Query(ctx, listOperators, limitCount)
+func (q *Queries) ListOperators(ctx context.Context, arg ListOperatorsParams) ([]ListOperatorsRow, error) {
+	rows, err := q.db.Query(ctx, listOperators, arg.StatusFilter, arg.SearchPattern, arg.LimitCount)
 	if err != nil {
 		return nil, err
 	}

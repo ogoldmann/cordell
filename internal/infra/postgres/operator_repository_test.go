@@ -6,6 +6,7 @@ import (
 
 	"cordell/internal/domain"
 	"cordell/internal/infra/postgres"
+	"cordell/internal/ports"
 )
 
 func buildTestOperator(
@@ -112,7 +113,10 @@ func TestPostgresOperatorRepositoryList(t *testing.T) {
 		t.Fatalf("expected no error saving regular operator, got %v", err)
 	}
 
-	operators, err := operatorRepository.List(context.Background(), 10)
+	operators, err := operatorRepository.List(context.Background(), ports.OperatorFilters{
+		Status: ports.RecordStatusFilterAll,
+		Limit:  10,
+	})
 	if err != nil {
 		t.Fatalf("expected no error listing operators, got %v", err)
 	}
@@ -141,6 +145,74 @@ func TestPostgresOperatorRepositoryList(t *testing.T) {
 		if operator.CreatedAt.IsZero() {
 			t.Fatal("expected created_at not to be zero")
 		}
+	}
+}
+
+func TestPostgresOperatorRepositoryListFiltersByQueryAndStatus(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	operatorRepository := postgres.NewOperatorRepository(queries)
+
+	adminOperator, err := buildTestOperator("operator-1", "52998224725", "silva", domain.RankSergeant, domain.OperatorRoleAdmin, "$argon2id$hash")
+	if err != nil {
+		t.Fatalf("expected valid admin operator, got %v", err)
+	}
+
+	regularOperator, err := buildTestOperator("operator-2", "93541134780", "costa", domain.RankCorporal, domain.OperatorRoleOperator, "$argon2id$hash")
+	if err != nil {
+		t.Fatalf("expected valid regular operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), adminOperator); err != nil {
+		t.Fatalf("expected no error saving admin operator, got %v", err)
+	}
+
+	if err := operatorRepository.Save(context.Background(), regularOperator); err != nil {
+		t.Fatalf("expected no error saving regular operator, got %v", err)
+	}
+
+	deactivated, err := operatorRepository.Deactivate(context.Background(), regularOperator.ID())
+	if err != nil {
+		t.Fatalf("expected no error deactivating regular operator, got %v", err)
+	}
+
+	if !deactivated {
+		t.Fatal("expected regular operator to be deactivated")
+	}
+
+	activeOperators, err := operatorRepository.List(context.Background(), ports.OperatorFilters{
+		Query:  "silva",
+		Status: ports.RecordStatusFilterActive,
+		Limit:  10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error listing active operators, got %v", err)
+	}
+
+	if len(activeOperators) != 1 {
+		t.Fatalf("expected 1 active operator, got %d", len(activeOperators))
+	}
+
+	if activeOperators[0].ID != adminOperator.ID() {
+		t.Fatalf("expected %s, got %s", adminOperator.ID(), activeOperators[0].ID)
+	}
+
+	inactiveOperators, err := operatorRepository.List(context.Background(), ports.OperatorFilters{
+		Query:  "operator",
+		Status: ports.RecordStatusFilterInactive,
+		Limit:  10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error listing inactive operators, got %v", err)
+	}
+
+	if len(inactiveOperators) != 1 {
+		t.Fatalf("expected 1 inactive operator, got %d", len(inactiveOperators))
+	}
+
+	if inactiveOperators[0].ID != regularOperator.ID() {
+		t.Fatalf("expected %s, got %s", regularOperator.ID(), inactiveOperators[0].ID)
 	}
 }
 

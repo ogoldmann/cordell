@@ -346,6 +346,7 @@ It is used by:
 
 - global custody transaction ledger
 - personnel custody history
+- asset custody history
 
 The ledger and personnel history may keep separate read models and queries.
 
@@ -384,6 +385,19 @@ List pages support two modes:
 Live search uses a small vanilla JavaScript controller.
 
 If JavaScript is disabled, the search form still works through normal GET submission.
+
+## Live Search Expansion
+
+Live search currently covers:
+
+- personnel list
+- asset list
+- custody transaction ledger
+- admin operators list
+
+The backend owns search and filtering rules.
+
+The frontend only debounces form changes, requests server-rendered partial HTML, swaps the isolated result area, and keeps the URL in sync.
 
 ## Edit Personnel
 

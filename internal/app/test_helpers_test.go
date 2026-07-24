@@ -793,6 +793,7 @@ type fakeOperatorRepository struct {
 	byID             map[domain.OperatorID]domain.Operator
 	byRegistrationID map[domain.RegistrationID]domain.Operator
 	summaries        []ports.OperatorSummary
+	lastFilters      ports.OperatorFilters
 	saveErr          error
 }
 
@@ -891,12 +892,60 @@ func (r *fakeOperatorSessionRepository) DeleteExpired(_ context.Context, now tim
 	return nil
 }
 
-func (r *fakeOperatorRepository) List(_ context.Context, limit int) ([]ports.OperatorSummary, error) {
-	if limit > len(r.summaries) {
-		limit = len(r.summaries)
+func (r *fakeOperatorRepository) List(_ context.Context, filters ports.OperatorFilters) ([]ports.OperatorSummary, error) {
+	r.lastFilters = filters
+
+	summaries := r.summaries
+	if summaries == nil {
+		summaries = make([]ports.OperatorSummary, 0, len(r.byID))
+
+		for _, operator := range r.byID {
+			summaries = append(summaries, ports.OperatorSummary{
+				ID:             operator.ID(),
+				RegistrationID: operator.RegistrationID(),
+				Alias:          operator.Alias(),
+				Rank:           operator.Rank(),
+				Role:           operator.Role(),
+				Active:         operator.Active(),
+			})
+		}
+
+		sort.Slice(summaries, func(i, j int) bool {
+			return summaries[i].ID < summaries[j].ID
+		})
 	}
 
-	return r.summaries[:limit], nil
+	query := strings.ToLower(strings.TrimSpace(filters.Query))
+	filtered := make([]ports.OperatorSummary, 0, len(summaries))
+
+	for _, summary := range summaries {
+		if !recordMatchesStatusFilter(summary.Active, filters.Status) {
+			continue
+		}
+
+		if query != "" && !operatorSummaryMatchesQuery(summary, query) {
+			continue
+		}
+
+		filtered = append(filtered, summary)
+	}
+
+	if filters.Limit > 0 && filters.Limit < len(filtered) {
+		return filtered[:filters.Limit], nil
+	}
+
+	return filtered, nil
+}
+
+func operatorSummaryMatchesQuery(summary ports.OperatorSummary, query string) bool {
+	values := []string{
+		summary.Alias,
+		summary.RegistrationID.String(),
+		summary.Rank.String(),
+		summary.Role.String(),
+	}
+
+	return anyValueContainsToken(values, query)
 }
 
 func (r *fakeOperatorRepository) Deactivate(_ context.Context, id domain.OperatorID) (bool, error) {

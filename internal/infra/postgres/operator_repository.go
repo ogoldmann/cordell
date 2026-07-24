@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"cordell/internal/domain"
 	"cordell/internal/infra/postgres/db"
@@ -121,8 +122,24 @@ func (r *OperatorRepository) FindSummaryByID(ctx context.Context, id domain.Oper
 var _ ports.OperatorRepository = (*OperatorRepository)(nil)
 
 // List retrieves operator summaries for administration.
-func (r *OperatorRepository) List(ctx context.Context, limit int) ([]ports.OperatorSummary, error) {
-	rows, err := r.queries.ListOperators(ctx, int32(limit))
+func (r *OperatorRepository) List(ctx context.Context, filters ports.OperatorFilters) ([]ports.OperatorSummary, error) {
+	searchPattern := ""
+	if query := strings.TrimSpace(filters.Query); query != "" {
+		searchPattern = "%" + escapeLikePattern(query) + "%"
+	}
+
+	statusFilter := filters.Status
+	if statusFilter == "" {
+		statusFilter = ports.RecordStatusFilterAll
+	} else {
+		statusFilter = ports.NormalizeRecordStatusFilter(string(statusFilter))
+	}
+
+	rows, err := r.queries.ListOperators(ctx, db.ListOperatorsParams{
+		StatusFilter:  string(statusFilter),
+		SearchPattern: searchPattern,
+		LimitCount:    int32(filters.Limit),
+	})
 	if err != nil {
 		return nil, err
 	}

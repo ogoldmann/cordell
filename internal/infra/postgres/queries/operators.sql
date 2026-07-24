@@ -65,6 +65,18 @@ SELECT
     active,
     created_at
 FROM operators
+WHERE (
+    sqlc.arg(status_filter)::text = 'all'
+    OR (sqlc.arg(status_filter)::text = 'active' AND active = true)
+    OR (sqlc.arg(status_filter)::text = 'inactive' AND active = false)
+)
+AND (
+    sqlc.arg(search_pattern)::text = ''
+    OR alias ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+    OR registration_id ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+    OR rank ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+    OR role ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+)
 ORDER BY created_at DESC, id DESC
 LIMIT @limit_count;
 

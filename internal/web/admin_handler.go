@@ -3,6 +3,7 @@ package web
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"cordell/internal/app"
 	"cordell/internal/domain"
@@ -18,9 +19,13 @@ type adminIndexPageData struct {
 
 type adminOperatorsIndexPageData struct {
 	privateLayoutData
-	Title     string
-	Error     string
-	Operators []operatorSummaryView
+	Title         string
+	Error         string
+	Query         string
+	StatusFilter  string
+	StatusOptions []selectOption
+	EmptyState    emptyStateView
+	Operators     []operatorSummaryView
 }
 
 type adminOperatorShowPageData struct {
@@ -70,11 +75,16 @@ func (s *Server) handleAdminOperatorsIndex(w http.ResponseWriter, r *http.Reques
 func (s *Server) renderAdminOperatorsIndex(
 	w http.ResponseWriter,
 	r *http.Request,
-	status int,
+	responseStatus int,
 	message string,
 ) {
+	query := strings.TrimSpace(r.URL.Query().Get("q"))
+	statusFilter := readAdminOperatorStatusFilter(r)
+
 	operators, err := s.services.ListOperators.Execute(r.Context(), app.ListOperatorsCommand{
-		Limit: 100,
+		Query:  query,
+		Status: statusFilter,
+		Limit:  100,
 	})
 	if err != nil {
 		s.logger.Error("failed to list operators", "error", err)
@@ -86,7 +96,15 @@ func (s *Server) renderAdminOperatorsIndex(
 		privateLayoutData: newPrivateLayoutData(r),
 		Title:             "Operators",
 		Error:             message,
-		Operators:         make([]operatorSummaryView, 0, len(operators)),
+		Query:             query,
+		StatusFilter:      string(statusFilter),
+		StatusOptions:     newAdminOperatorStatusOptions(statusFilter),
+		EmptyState: newEmptyState(
+			"Nenhum operador encontrado",
+			"Ajuste a pesquisa ou os filtros para revisar os operadores cadastrados.",
+			newPageAction("Cadastrar operador", "/admin/operators/new"),
+		),
+		Operators: make([]operatorSummaryView, 0, len(operators)),
 	}
 	data.Breadcrumbs = []breadcrumbItemView{
 		homeBreadcrumb(),
@@ -98,8 +116,46 @@ func (s *Server) renderAdminOperatorsIndex(
 		data.Operators = append(data.Operators, newOperatorSummaryView(operator))
 	}
 
-	if err := s.renderer.Render(w, status, "admin_operators_index.html", data); err != nil {
+	if wantsPartialResponse(r) {
+		if err := s.renderer.Render(w, http.StatusOK, "operator_list", data); err != nil {
+			s.logger.Error("failed to render operator list partial", "error", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	if err := s.renderer.Render(w, responseStatus, "admin_operators_index.html", data); err != nil {
 		s.handleRenderError(w, err)
+	}
+}
+
+func readAdminOperatorStatusFilter(r *http.Request) ports.RecordStatusFilter {
+	status := strings.TrimSpace(r.URL.Query().Get("status"))
+	if status == "" {
+		return ports.RecordStatusFilterAll
+	}
+
+	return ports.NormalizeRecordStatusFilter(status)
+}
+
+func newAdminOperatorStatusOptions(selected ports.RecordStatusFilter) []selectOption {
+	return []selectOption{
+		{
+			Value:    string(ports.RecordStatusFilterAll),
+			Label:    allStatusLabel(),
+			Selected: selected == ports.RecordStatusFilterAll,
+		},
+		{
+			Value:    string(ports.RecordStatusFilterActive),
+			Label:    activeStatusLabel(true),
+			Selected: selected == ports.RecordStatusFilterActive,
+		},
+		{
+			Value:    string(ports.RecordStatusFilterInactive),
+			Label:    activeStatusLabel(false),
+			Selected: selected == ports.RecordStatusFilterInactive,
+		},
 	}
 }
 

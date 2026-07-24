@@ -36,6 +36,7 @@ type custodyTransactionLedgerPageData struct {
 	NextPageURL         string
 	Transactions        []custodyTransactionSummaryView
 	Timeline            custodyTimelineView
+	Pagination          *ledgerPaginationView
 }
 
 type custodyLedgerPeriodView struct {
@@ -58,6 +59,15 @@ type custodyLedgerMonthOptionView struct {
 	Label    string
 	Year     int
 	Selected bool
+}
+
+type ledgerPaginationView struct {
+	Page            int
+	PageSize        int
+	HasPreviousPage bool
+	HasNextPage     bool
+	PreviousPageURL string
+	NextPageURL     string
 }
 
 type custodyTransactionSummaryView struct {
@@ -144,6 +154,13 @@ func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.R
 		transactionPage.Page > 1
 
 	transactions := newCustodyTransactionSummaryViews(transactionPage.Items)
+	pagination := newLedgerPaginationView(
+		transactionPage.Page,
+		transactionPage.PageSize,
+		transactionPage.HasNextPage,
+		previousPageURL,
+		nextPageURL,
+	)
 
 	data := custodyTransactionLedgerPageData{
 		privateLayoutData:   newPrivateLayoutData(r),
@@ -182,6 +199,7 @@ func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.R
 		PreviousPageURL: previousPageURL,
 		NextPageURL:     nextPageURL,
 		Transactions:    transactions,
+		Pagination:      pagination,
 		Timeline: custodyTimelineView{
 			Items: newCustodyTimelineItemsFromLedgerItems(transactions),
 			EmptyState: newEmptyState(
@@ -196,8 +214,36 @@ func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.R
 		currentBreadcrumb(custodyLedgerLabel()),
 	}
 
+	if wantsPartialResponse(r) {
+		if err := s.renderer.Render(w, http.StatusOK, "custody_ledger_results", data); err != nil {
+			s.handleRenderError(w, err)
+		}
+		return
+	}
+
 	if err := s.renderer.Render(w, http.StatusOK, "custody_transactions_index.html", data); err != nil {
 		s.handleRenderError(w, err)
+	}
+}
+
+func newLedgerPaginationView(
+	page int,
+	pageSize int,
+	hasNextPage bool,
+	previousPageURL string,
+	nextPageURL string,
+) *ledgerPaginationView {
+	if page <= 1 && !hasNextPage {
+		return nil
+	}
+
+	return &ledgerPaginationView{
+		Page:            page,
+		PageSize:        pageSize,
+		HasPreviousPage: page > 1,
+		HasNextPage:     hasNextPage,
+		PreviousPageURL: previousPageURL,
+		NextPageURL:     nextPageURL,
 	}
 }
 
