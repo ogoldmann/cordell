@@ -11,6 +11,7 @@ import (
 	"cordell/internal/infra/ids"
 	"cordell/internal/infra/postgres"
 	postgresdb "cordell/internal/infra/postgres/db"
+	"cordell/internal/ports"
 	"cordell/internal/security"
 	"cordell/internal/web"
 )
@@ -53,7 +54,53 @@ func main() {
 
 	idGenerator := ids.NewULIDGenerator()
 
-	services := app.Services{
+	services := newAppServices(
+		personnelRepository,
+		assetRepository,
+		custodyRepository,
+		operatorRepository,
+		passwordHasher,
+		auditLogRepository,
+		sessionRepository,
+		sessionTokenGenerator,
+		sessionTokenHasher,
+		csrfTokenGenerator,
+		idGenerator,
+	)
+
+	server, err := web.NewServer(
+		logger,
+		services,
+		web.NewSessionCookieConfig(cfg.SessionCookieSecure),
+		web.NewSecurityHeadersConfig(cfg.EnableHSTS),
+	)
+	if err != nil {
+		logger.Error("failed to create web server", "error", err)
+		os.Exit(1)
+	}
+
+	logger.Info("starting Cordell HTTP server", "address", cfg.HTTPAddress)
+
+	if err := http.ListenAndServe(cfg.HTTPAddress, server.Routes()); err != nil {
+		logger.Error("Cordell HTTP server stopped with error", "error", err)
+		os.Exit(1)
+	}
+}
+
+func newAppServices(
+	personnelRepository ports.PersonnelRepository,
+	assetRepository ports.AssetRepository,
+	custodyRepository ports.CustodyRepository,
+	operatorRepository ports.OperatorRepository,
+	passwordHasher ports.PasswordHasher,
+	auditLogRepository ports.AuditLogRepository,
+	sessionRepository ports.OperatorSessionRepository,
+	sessionTokenGenerator ports.SessionTokenGenerator,
+	sessionTokenHasher ports.SessionTokenHasher,
+	csrfTokenGenerator ports.SessionTokenGenerator,
+	idGenerator ports.IDGenerator,
+) app.Services {
+	return app.Services{
 		CreateOperator: app.NewCreateOperatorService(
 			operatorRepository,
 			idGenerator,
@@ -130,6 +177,9 @@ func main() {
 		GetAsset: app.NewGetAssetService(
 			assetRepository,
 		),
+		UpdateAsset: app.NewUpdateAssetService(
+			assetRepository,
+		),
 		ListAssets: app.NewListAssetsService(
 			assetRepository,
 		),
@@ -193,23 +243,5 @@ func main() {
 			idGenerator,
 		),
 		ListAuditEvents: app.NewListAuditEventsService(auditLogRepository),
-	}
-
-	server, err := web.NewServer(
-		logger,
-		services,
-		web.NewSessionCookieConfig(cfg.SessionCookieSecure),
-		web.NewSecurityHeadersConfig(cfg.EnableHSTS),
-	)
-	if err != nil {
-		logger.Error("failed to create web server", "error", err)
-		os.Exit(1)
-	}
-
-	logger.Info("starting Cordell HTTP server", "address", cfg.HTTPAddress)
-
-	if err := http.ListenAndServe(cfg.HTTPAddress, server.Routes()); err != nil {
-		logger.Error("Cordell HTTP server stopped with error", "error", err)
-		os.Exit(1)
 	}
 }
