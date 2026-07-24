@@ -124,7 +124,12 @@ func newPersonnelFormPageData(data personnelFormPageData) personnelFormPageData 
 }
 
 func (s *Server) handleNewPersonnelForm(w http.ResponseWriter, r *http.Request) {
-	data := newPersonnelCreatePageData(r, personnelFormPageData{}, nil)
+	var feedback *feedbackMessageView
+	if r.URL.Query().Get("created") == "1" {
+		feedback = newSuccessFeedback("Militar cadastrado. Cadastre o próximo militar.")
+	}
+
+	data := newPersonnelCreatePageData(r, personnelFormPageData{}, feedback)
 
 	if err := s.renderer.Render(w, http.StatusOK, "personnel_form.html", data); err != nil {
 		s.handleRenderError(w, err)
@@ -162,6 +167,11 @@ func (s *Server) handleCreatePersonnel(w http.ResponseWriter, r *http.Request) {
 			err,
 			r,
 		)
+		return
+	}
+
+	if wantsSaveAndCreateAnother(r) {
+		http.Redirect(w, r, "/personnel/new?created=1", http.StatusSeeOther)
 		return
 	}
 
@@ -437,7 +447,7 @@ func (s *Server) renderNewPersonnelFormWithError(
 		SelectedRank:             r.FormValue("rank"),
 		SelectedSection:          r.FormValue("section"),
 		SelectedOrganizationUnit: r.FormValue("organization_unit"),
-	}, err)
+	}, personnelFeedbackFromError(err))
 
 	if err := s.renderer.Render(w, status, "personnel_form.html", data); err != nil {
 		s.handleRenderError(w, err)
@@ -452,9 +462,8 @@ func newPersonnelCreatePageDataFromMessage(r *http.Request, message string) pers
 		SelectedRank:             r.FormValue("rank"),
 		SelectedSection:          r.FormValue("section"),
 		SelectedOrganizationUnit: r.FormValue("organization_unit"),
-	}, nil)
+	}, newErrorFeedback(message))
 	data.Error = message
-	data.Feedback = newErrorFeedback(message)
 
 	return data
 }
@@ -462,11 +471,11 @@ func newPersonnelCreatePageDataFromMessage(r *http.Request, message string) pers
 func newPersonnelCreatePageData(
 	r *http.Request,
 	form personnelFormPageData,
-	err error,
+	feedback *feedbackMessageView,
 ) personnelFormPageData {
 	errorMessage := ""
-	if err != nil {
-		errorMessage = duplicatePersonnelErrorMessage(err)
+	if feedback != nil && feedback.Kind == "error" {
+		errorMessage = feedback.Message
 	}
 
 	form.privateLayoutData = newPrivateLayoutData(r)
@@ -477,12 +486,13 @@ func newPersonnelCreatePageData(
 		"Cadastre um militar que poderá receber materiais sob custódia.",
 		nil,
 	)
-	form.FormActions = newFormActions(
+	form.FormActions = newFormActionsWithSaveAndCreateAnother(
 		"Cadastrar militar",
 		"Cancelar",
 		"/personnel",
+		"Salvar e cadastrar outro",
 	)
-	form.Feedback = personnelFeedbackFromError(err)
+	form.Feedback = feedback
 	form.IdentitySection = newSectionHeader(
 		"Identificação",
 		"Identificação do militar",

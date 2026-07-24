@@ -422,6 +422,33 @@ This keeps `errors.Is` compatibility while preserving the existing record ID for
 - [ ] Duplicate application errors wrap domain errors.
 - [ ] Existing `errors.Is` checks still work.
 
+## Save and Create Another
+
+Create forms can support a fast-entry flow.
+
+Personnel and asset creation forms include:
+
+- standard create action
+- save and create another action
+
+The standard action redirects to the created record.
+
+The save-and-create-another action redirects back to a clean create form with a success message.
+
+Edit forms do not show this action.
+
+## Save and Create Another Checklist
+
+- [ ] Personnel create form has save and create another action.
+- [ ] Asset create form has save and create another action.
+- [ ] Personnel save and create another redirects to a clean create form.
+- [ ] Asset save and create another redirects to a clean create form.
+- [ ] Success feedback is shown after redirect.
+- [ ] Standard create action still redirects to detail.
+- [ ] Edit personnel form does not show save and create another.
+- [ ] Edit asset form does not show save and create another.
+- [ ] Duplicate error links still work.
+
 ## Operational Form Eligibility Checklist
 
 - [ ] Checkout personnel selector lists active personnel only.

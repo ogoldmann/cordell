@@ -114,7 +114,12 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleNewAssetForm(w http.ResponseWriter, r *http.Request) {
-	data := newAssetCreatePageData(r, assetFormView{}, nil)
+	var feedback *feedbackMessageView
+	if r.URL.Query().Get("created") == "1" {
+		feedback = newSuccessFeedback("Material cadastrado. Cadastre o próximo material.")
+	}
+
+	data := newAssetCreatePageData(r, assetFormView{}, feedback)
 
 	if err := s.renderer.Render(w, http.StatusOK, "asset_form.html", data); err != nil {
 		s.handleRenderError(w, err)
@@ -143,6 +148,11 @@ func (s *Server) handleCreateAsset(w http.ResponseWriter, r *http.Request) {
 			err,
 			name,
 		)
+		return
+	}
+
+	if wantsSaveAndCreateAnother(r) {
+		http.Redirect(w, r, "/assets/new?created=1", http.StatusSeeOther)
 		return
 	}
 
@@ -362,7 +372,7 @@ func (s *Server) renderNewAssetFormWithError(
 ) {
 	data := newAssetCreatePageData(r, assetFormView{
 		Name: name,
-	}, err)
+	}, assetFeedbackFromError(err))
 
 	if err := s.renderer.Render(w, status, "asset_form.html", data); err != nil {
 		s.handleRenderError(w, err)
@@ -372,9 +382,8 @@ func (s *Server) renderNewAssetFormWithError(
 func newAssetCreatePageDataFromMessage(r *http.Request, message string) assetFormPageData {
 	data := newAssetCreatePageData(r, assetFormView{
 		Name: r.FormValue("name"),
-	}, nil)
+	}, newErrorFeedback(message))
 	data.Error = message
-	data.Feedback = newErrorFeedback(message)
 
 	return data
 }
@@ -382,11 +391,11 @@ func newAssetCreatePageDataFromMessage(r *http.Request, message string) assetFor
 func newAssetCreatePageData(
 	r *http.Request,
 	form assetFormView,
-	err error,
+	feedback *feedbackMessageView,
 ) assetFormPageData {
 	errorMessage := ""
-	if err != nil {
-		errorMessage = duplicateAssetErrorMessage(err)
+	if feedback != nil && feedback.Kind == "error" {
+		errorMessage = feedback.Message
 	}
 
 	data := assetFormPageData{
@@ -398,12 +407,13 @@ func newAssetCreatePageData(
 			"Cadastre um material que poderá ser controlado por custódia.",
 			nil,
 		),
-		FormActions: newFormActions(
+		FormActions: newFormActionsWithSaveAndCreateAnother(
 			"Cadastrar material",
 			"Cancelar",
 			"/assets",
+			"Salvar e cadastrar outro",
 		),
-		Feedback: assetFeedbackFromError(err),
+		Feedback: feedback,
 		DetailsSection: newSectionHeader(
 			"Identificação",
 			"Dados do material",

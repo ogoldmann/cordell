@@ -47,6 +47,35 @@ func TestNewFormActions(t *testing.T) {
 	}
 }
 
+func TestNewFormActionsWithSaveAndCreateAnother(t *testing.T) {
+	actions := newFormActionsWithSaveAndCreateAnother(
+		"Cadastrar militar",
+		"Cancelar",
+		"/personnel",
+		"Salvar e cadastrar outro",
+	)
+
+	if actions.PrimaryLabel != "Cadastrar militar" {
+		t.Fatalf("expected primary label, got %q", actions.PrimaryLabel)
+	}
+
+	if actions.SecondaryLabel != "Cancelar" {
+		t.Fatalf("expected secondary label, got %q", actions.SecondaryLabel)
+	}
+
+	if actions.SecondaryURL != "/personnel" {
+		t.Fatalf("expected secondary URL, got %q", actions.SecondaryURL)
+	}
+
+	if actions.SaveAndCreateAnotherLabel != "Salvar e cadastrar outro" {
+		t.Fatalf("expected save and create another label, got %q", actions.SaveAndCreateAnotherLabel)
+	}
+
+	if !actions.ShowSaveAndCreateAnother {
+		t.Fatal("expected save and create another to be enabled")
+	}
+}
+
 func TestNewErrorFeedback(t *testing.T) {
 	feedback := newErrorFeedback("Erro de validação.")
 	if feedback == nil {
