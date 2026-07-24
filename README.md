@@ -370,6 +370,21 @@ It lists effective custody transactions involving the asset, including:
 
 When a transaction has multiple asset lines, the current asset is highlighted.
 
+## Real-time List Search Foundation
+
+Cordell supports progressive real-time search on list pages.
+
+The backend remains the authority for search results.
+
+List pages support two modes:
+
+- full HTML page for normal GET requests
+- partial HTML response for live search requests
+
+Live search uses a small vanilla JavaScript controller.
+
+If JavaScript is disabled, the search form still works through normal GET submission.
+
 ## Edit Personnel
 
 Personnel records can be edited after creation.

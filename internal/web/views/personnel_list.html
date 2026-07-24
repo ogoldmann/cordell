@@ -1,0 +1,11 @@
+{{define "personnel_list"}}
+  {{if .Personnel}}
+    <div class="grid gap-4">
+      {{range .Personnel}}
+        {{template "personnel_card" .}}
+      {{end}}
+    </div>
+  {{else}}
+    {{template "empty_state" .EmptyState}}
+  {{end}}
+{{end}}

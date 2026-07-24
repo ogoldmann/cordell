@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"cordell/internal/app"
 	"cordell/internal/domain"
@@ -18,6 +19,7 @@ type assetIndexPageData struct {
 	EmptyState   emptyStateView
 	Title        string
 	Assets       []assetView
+	SearchQuery  string
 	StatusFilter string
 	StatusTabs   []statusFilterTabView
 }
@@ -72,11 +74,23 @@ type assetFormView struct {
 
 func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 	statusFilter := ports.NormalizeRecordStatusFilter(r.URL.Query().Get("status"))
+	searchQuery := strings.TrimSpace(r.URL.Query().Get("q"))
 
-	assets, err := s.services.ListAssets.Execute(r.Context(), app.ListAssetsCommand{
-		Limit:        100,
-		StatusFilter: string(statusFilter),
-	})
+	var assets []domain.Asset
+	var err error
+
+	if searchQuery == "" {
+		assets, err = s.services.ListAssets.Execute(r.Context(), app.ListAssetsCommand{
+			Limit:        100,
+			StatusFilter: string(statusFilter),
+		})
+	} else {
+		assets, err = s.services.SearchAssets.Execute(r.Context(), app.SearchAssetsCommand{
+			Query:        searchQuery,
+			Limit:        100,
+			StatusFilter: string(statusFilter),
+		})
+	}
 	if err != nil {
 		s.logger.Error("failed to list assets", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -98,8 +112,9 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 		),
 		Title:        assetPluralLabel(),
 		Assets:       make([]assetView, 0, len(assets)),
+		SearchQuery:  searchQuery,
 		StatusFilter: string(statusFilter),
-		StatusTabs:   newStatusFilterTabs("/assets", statusFilter),
+		StatusTabs:   newStatusFilterTabs("/assets", statusFilter, searchQuery),
 	}
 	data.Breadcrumbs = []breadcrumbItemView{
 		homeBreadcrumb(),
@@ -108,6 +123,15 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 
 	for _, item := range assets {
 		data.Assets = append(data.Assets, newAssetView(item))
+	}
+
+	if wantsPartialResponse(r) {
+		if err := s.renderer.Render(w, http.StatusOK, "asset_list", data); err != nil {
+			s.logger.Error("failed to render asset list partial", "error", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
+
+		return
 	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "assets_index.html", data); err != nil {

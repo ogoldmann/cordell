@@ -42,6 +42,18 @@ The custody timeline is currently used by:
 
 Avoid placing query/filter/pagination logic inside the component.
 
+## Live Search
+
+Live search should be progressive.
+
+Rules:
+
+- forms must work without JavaScript
+- backend search remains authoritative
+- JavaScript may only debounce, request partial HTML, update targets, and update the URL
+- no business filtering rules should be implemented only in JavaScript
+- partial templates should render the same cards/components as the full page
+
 Internal code remains in English.
 
 User-facing labels are presented in Portuguese through the web presentation layer.

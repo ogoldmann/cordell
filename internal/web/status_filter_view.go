@@ -14,26 +14,33 @@ type statusFilterTabView struct {
 	Active bool
 }
 
-func newStatusFilterTabs(basePath string, selected ports.RecordStatusFilter) []statusFilterTabView {
+func newStatusFilterTabs(basePath string, selected ports.RecordStatusFilter, query string) []statusFilterTabView {
 	return []statusFilterTabView{
-		{
-			Label:  activeStatusLabel(true),
-			Value:  string(ports.RecordStatusFilterActive),
-			URL:    basePath + "?status=active",
-			Active: selected == ports.RecordStatusFilterActive,
-		},
-		{
-			Label:  activeStatusLabel(false),
-			Value:  string(ports.RecordStatusFilterInactive),
-			URL:    basePath + "?status=inactive",
-			Active: selected == ports.RecordStatusFilterInactive,
-		},
-		{
-			Label:  allStatusLabel(),
-			Value:  string(ports.RecordStatusFilterAll),
-			URL:    basePath + "?status=all",
-			Active: selected == ports.RecordStatusFilterAll,
-		},
+		newStatusFilterTab(basePath, activeStatusLabel(true), ports.RecordStatusFilterActive, selected, query),
+		newStatusFilterTab(basePath, activeStatusLabel(false), ports.RecordStatusFilterInactive, selected, query),
+		newStatusFilterTab(basePath, allStatusLabel(), ports.RecordStatusFilterAll, selected, query),
+	}
+}
+
+func newStatusFilterTab(
+	basePath string,
+	label string,
+	value ports.RecordStatusFilter,
+	selected ports.RecordStatusFilter,
+	query string,
+) statusFilterTabView {
+	values := url.Values{}
+	values.Set("status", string(value))
+
+	if strings.TrimSpace(query) != "" {
+		values.Set("q", query)
+	}
+
+	return statusFilterTabView{
+		Label:  label,
+		Value:  string(value),
+		URL:    basePath + "?" + values.Encode(),
+		Active: selected == value,
 	}
 }
 

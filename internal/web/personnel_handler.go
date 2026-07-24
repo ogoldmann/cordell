@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"cordell/internal/app"
 	"cordell/internal/domain"
@@ -55,6 +56,7 @@ type personnelIndexPageData struct {
 	EmptyState   emptyStateView
 	Title        string
 	Personnel    []personnelView
+	SearchQuery  string
 	StatusFilter string
 	StatusTabs   []statusFilterTabView
 }
@@ -726,11 +728,23 @@ func humanizePersonnelError(err error) string {
 
 func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 	statusFilter := ports.NormalizeRecordStatusFilter(r.URL.Query().Get("status"))
+	searchQuery := strings.TrimSpace(r.URL.Query().Get("q"))
 
-	personnel, err := s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
-		Limit:        100,
-		StatusFilter: string(statusFilter),
-	})
+	var personnel []domain.Personnel
+	var err error
+
+	if searchQuery == "" {
+		personnel, err = s.services.ListPersonnel.Execute(r.Context(), app.ListPersonnelCommand{
+			Limit:        100,
+			StatusFilter: string(statusFilter),
+		})
+	} else {
+		personnel, err = s.services.SearchPersonnel.Execute(r.Context(), app.SearchPersonnelCommand{
+			Query:        searchQuery,
+			Limit:        100,
+			StatusFilter: string(statusFilter),
+		})
+	}
 	if err != nil {
 		s.logger.Error("failed to list personnel", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -752,8 +766,9 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 		),
 		Title:        personnelPluralLabel(),
 		Personnel:    make([]personnelView, 0, len(personnel)),
+		SearchQuery:  searchQuery,
 		StatusFilter: string(statusFilter),
-		StatusTabs:   newStatusFilterTabs("/personnel", statusFilter),
+		StatusTabs:   newStatusFilterTabs("/personnel", statusFilter, searchQuery),
 	}
 	data.Breadcrumbs = []breadcrumbItemView{
 		homeBreadcrumb(),
@@ -762,6 +777,15 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 
 	for _, item := range personnel {
 		data.Personnel = append(data.Personnel, newPersonnelView(item))
+	}
+
+	if wantsPartialResponse(r) {
+		if err := s.renderer.Render(w, http.StatusOK, "personnel_list", data); err != nil {
+			s.logger.Error("failed to render personnel list partial", "error", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
+
+		return
 	}
 
 	if err := s.renderer.Render(w, http.StatusOK, "personnel_index.html", data); err != nil {
