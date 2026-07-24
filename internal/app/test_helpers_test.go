@@ -447,6 +447,7 @@ type fakeCustodyRepository struct {
 	currentByAsset              map[domain.AssetID][]ports.CurrentAssetHolder
 	personnelWithCurrentCustody []ports.PersonnelWithCurrentCustody
 	historyByPerson             map[domain.PersonnelID][]ports.CustodyHistoryEntry
+	assetHistory                map[domain.AssetID][]ports.AssetCustodyHistoryItem
 	transactionLedgerPeriods    []ports.CustodyTransactionLedgerPeriod
 	transactionSummaries        []ports.CustodyTransactionSummary
 	receipts                    map[domain.CustodyTransactionID]ports.CustodyReceipt
@@ -559,6 +560,21 @@ func (r *fakeCustodyRepository) ListHistoryByPersonnel(
 	if limit > 0 && len(copiedItems) > limit {
 		return copiedItems[:limit], nil
 	}
+
+	return copiedItems, nil
+}
+
+func (r *fakeCustodyRepository) ListAssetCustodyHistory(
+	_ context.Context,
+	assetID domain.AssetID,
+) ([]ports.AssetCustodyHistoryItem, error) {
+	if r.assetHistory == nil {
+		return nil, nil
+	}
+
+	items := r.assetHistory[assetID]
+	copiedItems := make([]ports.AssetCustodyHistoryItem, len(items))
+	copy(copiedItems, items)
 
 	return copiedItems, nil
 }

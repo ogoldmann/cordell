@@ -164,6 +164,14 @@
   {{end}}
 </section>
 
+<section class="mt-8">
+  {{template "section_header" .CustodyHistorySection}}
+
+  <div class="mt-5">
+    {{template "custody_timeline" .CustodyTimeline}}
+  </div>
+</section>
+
 <div class="mt-8 flex flex-col gap-3 sm:flex-row">
   <a
     class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"

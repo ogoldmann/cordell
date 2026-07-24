@@ -40,6 +40,8 @@ type assetShowPageData struct {
 	Asset                      assetView
 	DetailsSection             sectionHeaderView
 	DetailsFields              []detailFieldView
+	CustodyHistorySection      sectionHeaderView
+	CustodyTimeline            custodyTimelineView
 	Holders                    []assetHolderView
 	HasHolders                 bool
 	HasInactiveHolders         bool
@@ -259,7 +261,25 @@ func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	historyItems, err := s.services.ListAssetCustodyHistory.Execute(r.Context(), app.ListAssetCustodyHistoryCommand{
+		AssetID: asset.ID(),
+	})
+	if err != nil {
+		if errors.Is(err, ports.ErrNotFound) || errors.Is(err, domain.ErrEmptyAssetID) {
+			s.renderNotFound(w, r)
+			return
+		}
+
+		s.logger.Error("failed to list asset custody history", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
 	view := newAssetView(asset)
+	timelineItems := make([]custodyTimelineItemView, 0, len(historyItems))
+	for _, item := range historyItems {
+		timelineItems = append(timelineItems, newCustodyTimelineItemFromAssetHistoryItem(item, asset.ID()))
+	}
 
 	data := assetShowPageData{
 		privateLayoutData: newPrivateLayoutData(r),
@@ -273,6 +293,19 @@ func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
 		DetailsFields: []detailFieldView{
 			newDetailField("Nome", view.Name),
 			newDetailField("Situação", view.StatusLabel),
+		},
+		CustodyHistorySection: newSectionHeader(
+			"Histórico",
+			"Histórico de custódia",
+			"Movimentações de cautela e descautela envolvendo este material.",
+		),
+		CustodyTimeline: custodyTimelineView{
+			Items: timelineItems,
+			EmptyState: newEmptyState(
+				"Nenhuma movimentação de custódia",
+				"Este material ainda não possui cautelas ou descautelas registradas.",
+				newPageAction("Registrar cautela", "/custody/checkouts/new"),
+			),
 		},
 		Holders: make([]assetHolderView, 0, len(holders)),
 	}
@@ -304,6 +337,46 @@ func (s *Server) handleShowAsset(w http.ResponseWriter, r *http.Request) {
 
 	if err := s.renderer.Render(w, http.StatusOK, "assets_show.html", data); err != nil {
 		s.handleRenderError(w, err)
+	}
+}
+
+func newCustodyTimelineItemFromAssetHistoryItem(
+	item ports.AssetCustodyHistoryItem,
+	currentAssetID domain.AssetID,
+) custodyTimelineItemView {
+	lines := make([]custodyTimelineLineView, 0, len(item.Lines))
+	for _, line := range item.Lines {
+		lines = append(lines, custodyTimelineLineView{
+			AssetID:     string(line.AssetID),
+			AssetName:   line.AssetName,
+			AssetURL:    "/assets/" + string(line.AssetID),
+			Quantity:    formatTimelineQuantity(line.Quantity),
+			Highlighted: line.AssetID == currentAssetID,
+		})
+	}
+
+	typeLabel := custodyTransactionTypeLabel(item.Type)
+	transactionURL := "/custody/transactions/" + string(item.ID)
+
+	return custodyTimelineItemView{
+		ID:                   string(item.ID),
+		URL:                  transactionURL,
+		TypeLabel:            typeLabel,
+		TypeTone:             custodyTimelineTypeTone(typeLabel),
+		DateLabel:            formatTimelineDate(item.CreatedAt),
+		TimeLabel:            formatTimelineTime(item.CreatedAt),
+		PersonnelLabel:       militaryDisplayName(domain.Rank(item.PersonnelRank), item.PersonnelAlias),
+		PersonnelURL:         "/personnel/" + string(item.PersonnelID),
+		OperatorLabel:        militaryDisplayName(item.OperatorRank, item.OperatorAlias),
+		OperatorURL:          "/admin/operators/" + string(item.OperatorID),
+		Edited:               item.EditCount > 0,
+		EditCountLabel:       custodyEditCountLabel(item.EditCount),
+		Notes:                item.Notes,
+		Lines:                lines,
+		PrimaryActionLabel:   "Abrir recibo",
+		PrimaryActionURL:     transactionURL,
+		SecondaryActionLabel: "Editar",
+		SecondaryActionURL:   transactionURL + "/edit",
 	}
 }
 

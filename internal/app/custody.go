@@ -447,6 +447,44 @@ type CustodyHistoryEntry struct {
 	EditCount     int
 }
 
+// ListAssetCustodyHistoryCommand contains the input data required to list asset custody history.
+type ListAssetCustodyHistoryCommand struct {
+	AssetID domain.AssetID
+}
+
+// ListAssetCustodyHistoryService handles custody history listing for assets.
+type ListAssetCustodyHistoryService struct {
+	assetRepository   ports.AssetRepository
+	custodyRepository ports.CustodyRepository
+}
+
+// NewListAssetCustodyHistoryService creates a ListAssetCustodyHistoryService with its dependencies.
+func NewListAssetCustodyHistoryService(
+	assetRepository ports.AssetRepository,
+	custodyRepository ports.CustodyRepository,
+) *ListAssetCustodyHistoryService {
+	return &ListAssetCustodyHistoryService{
+		assetRepository:   assetRepository,
+		custodyRepository: custodyRepository,
+	}
+}
+
+// Execute retrieves effective custody history for an asset record.
+func (s *ListAssetCustodyHistoryService) Execute(
+	ctx context.Context,
+	cmd ListAssetCustodyHistoryCommand,
+) ([]ports.AssetCustodyHistoryItem, error) {
+	if cmd.AssetID == "" {
+		return nil, domain.ErrEmptyAssetID
+	}
+
+	if _, err := s.assetRepository.FindByID(ctx, cmd.AssetID); err != nil {
+		return nil, err
+	}
+
+	return s.custodyRepository.ListAssetCustodyHistory(ctx, cmd.AssetID)
+}
+
 // CustodyTransactionSummaryLine represents an effective line in a custody transaction summary.
 type CustodyTransactionSummaryLine struct {
 	AssetID     domain.AssetID

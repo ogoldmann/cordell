@@ -33,10 +33,11 @@ type custodyTimelineItemView struct {
 }
 
 type custodyTimelineLineView struct {
-	AssetID   string
-	AssetName string
-	AssetURL  string
-	Quantity  string
+	AssetID     string
+	AssetName   string
+	AssetURL    string
+	Quantity    string
+	Highlighted bool
 }
 
 func custodyTimelineTypeTone(typeLabel string) string {

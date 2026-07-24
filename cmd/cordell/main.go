@@ -20,7 +20,7 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
 	cfg, err := config.Load()
-	if err != nil { 	
+	if err != nil {
 		logger.Error("failed to load configuration", "error", err)
 		os.Exit(1)
 	}
@@ -230,6 +230,10 @@ func newAppServices(
 		),
 		ListCustodyHistory: app.NewListCustodyHistoryService(
 			personnelRepository,
+			custodyRepository,
+		),
+		ListAssetCustodyHistory: app.NewListAssetCustodyHistoryService(
+			assetRepository,
 			custodyRepository,
 		),
 		ListCustodyTransactionLedgerPeriods: app.NewListCustodyTransactionLedgerPeriodsService(

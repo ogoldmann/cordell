@@ -580,6 +580,163 @@ func TestPostgresCustodyRepositoryListHistoryByPersonnelUsesEffectiveCorrectedPe
 	}
 }
 
+func TestPostgresCustodyRepositoryListAssetCustodyHistoryUsesEffectiveCorrectedLines(t *testing.T) {
+	pool := openTestPool(t)
+	queries := newTestQueries(pool)
+
+	personnelRepository := postgres.NewPersonnelRepository(queries)
+	assetRepository := postgres.NewAssetRepository(queries)
+	operatorRepository := postgres.NewOperatorRepository(queries)
+	custodyRepository := postgres.NewCustodyRepository(pool, queries)
+
+	personnel := mustNewTestPersonnel(t, "personnel-1", "John Doe", "doe", domain.RankSergeant, "52998224725")
+	if err := personnelRepository.Save(context.Background(), personnel); err != nil {
+		t.Fatalf("expected no error saving personnel, got %v", err)
+	}
+
+	operator := mustNewTestOperator(
+		t,
+		"operator-1",
+		"29109142088",
+		"silva",
+		domain.RankSergeant,
+		domain.OperatorRoleOperator,
+	)
+	if err := operatorRepository.Save(context.Background(), operator); err != nil {
+		t.Fatalf("expected no error saving operator, got %v", err)
+	}
+
+	radio, err := domain.NewAsset("asset-radio", "Radio")
+	if err != nil {
+		t.Fatalf("expected valid radio asset, got %v", err)
+	}
+	if err := assetRepository.Save(context.Background(), radio); err != nil {
+		t.Fatalf("expected no error saving radio, got %v", err)
+	}
+
+	helmet, err := domain.NewAsset("asset-helmet", "Helmet")
+	if err != nil {
+		t.Fatalf("expected valid helmet asset, got %v", err)
+	}
+	if err := assetRepository.Save(context.Background(), helmet); err != nil {
+		t.Fatalf("expected no error saving helmet, got %v", err)
+	}
+
+	radioLine, err := domain.NewCustodyLine(radio.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid radio line, got %v", err)
+	}
+
+	helmetLine, err := domain.NewCustodyLine(helmet.ID(), domain.Quantity(1))
+	if err != nil {
+		t.Fatalf("expected valid helmet line, got %v", err)
+	}
+
+	removedTransaction, err := domain.NewCustodyTransaction(
+		"transaction-removed",
+		domain.CustodyTransactionTypeCheckout,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{radioLine, helmetLine},
+		"Original radio and helmet.",
+	)
+	if err != nil {
+		t.Fatalf("expected valid removed transaction, got %v", err)
+	}
+	if _, err := custodyRepository.SaveTransaction(context.Background(), removedTransaction); err != nil {
+		t.Fatalf("expected no error saving removed transaction, got %v", err)
+	}
+
+	removedCorrection, err := domain.NewCustodyCorrection(
+		"correction-removes-radio",
+		removedTransaction.ID(),
+		operator.ID(),
+		personnel.ID(),
+		[]domain.CustodyLine{helmetLine},
+		"Radio removed from effective state.",
+	)
+	if err != nil {
+		t.Fatalf("expected valid removed correction, got %v", err)
+	}
+	if _, err := custodyRepository.SaveCorrection(
+		context.Background(),
+		removedCorrection,
+		removedTransaction.Type(),
+		removedTransaction.PersonnelID(),
+		removedTransaction.Lines(),
+	); err != nil {
+		t.Fatalf("expected no error saving removed correction, got %v", err)
+	}
+
+	addedTransaction, err := domain.NewCustodyTransaction(
+		"transaction-added",
+		domain.CustodyTransactionTypeCheckout,
+		personnel.ID(),
+		operator.ID(),
+		[]domain.CustodyLine{helmetLine},
+		"Original helmet only.",
+	)
+	if err != nil {
+		t.Fatalf("expected valid added transaction, got %v", err)
+	}
+	if _, err := custodyRepository.SaveTransaction(context.Background(), addedTransaction); err != nil {
+		t.Fatalf("expected no error saving added transaction, got %v", err)
+	}
+
+	addedCorrection, err := domain.NewCustodyCorrection(
+		"correction-adds-radio",
+		addedTransaction.ID(),
+		operator.ID(),
+		personnel.ID(),
+		[]domain.CustodyLine{helmetLine, radioLine},
+		"Radio added to effective state.",
+	)
+	if err != nil {
+		t.Fatalf("expected valid added correction, got %v", err)
+	}
+	if _, err := custodyRepository.SaveCorrection(
+		context.Background(),
+		addedCorrection,
+		addedTransaction.Type(),
+		addedTransaction.PersonnelID(),
+		addedTransaction.Lines(),
+	); err != nil {
+		t.Fatalf("expected no error saving added correction, got %v", err)
+	}
+
+	history, err := custodyRepository.ListAssetCustodyHistory(context.Background(), radio.ID())
+	if err != nil {
+		t.Fatalf("expected no error listing asset history, got %v", err)
+	}
+
+	if len(history) != 1 {
+		t.Fatalf("expected only corrected transaction containing radio, got %d", len(history))
+	}
+
+	if history[0].ID != addedTransaction.ID() {
+		t.Fatalf("expected added transaction, got %s", history[0].ID)
+	}
+
+	if history[0].EditCount != 1 {
+		t.Fatalf("expected edit count 1, got %d", history[0].EditCount)
+	}
+
+	if len(history[0].Lines) != 2 {
+		t.Fatalf("expected effective transaction lines, got %d", len(history[0].Lines))
+	}
+
+	foundRadio := false
+	for _, line := range history[0].Lines {
+		if line.AssetID == radio.ID() {
+			foundRadio = true
+		}
+	}
+
+	if !foundRadio {
+		t.Fatal("expected radio line in effective asset history")
+	}
+}
+
 func TestPostgresCustodyRepositoryListCurrentByAsset(t *testing.T) {
 	pool := openTestPool(t)
 	queries := newTestQueries(pool)

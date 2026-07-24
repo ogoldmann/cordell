@@ -60,6 +60,31 @@ type CustodyHistoryEntry struct {
 	EditCount     int
 }
 
+// AssetCustodyHistoryLine represents one effective line in an asset custody history entry.
+type AssetCustodyHistoryLine struct {
+	AssetID   domain.AssetID
+	AssetName string
+	Quantity  int
+}
+
+// AssetCustodyHistoryItem represents an effective custody transaction involving an asset.
+type AssetCustodyHistoryItem struct {
+	ID                domain.CustodyTransactionID
+	Sequence          int
+	Type              domain.CustodyTransactionType
+	CreatedAt         time.Time
+	PersonnelID       domain.PersonnelID
+	PersonnelRank     domain.PersonnelRank
+	PersonnelAlias    string
+	PersonnelFullName string
+	OperatorID        domain.OperatorID
+	OperatorRank      domain.Rank
+	OperatorAlias     string
+	EditCount         int
+	Notes             string
+	Lines             []AssetCustodyHistoryLine
+}
+
 // CustodyTransactionSummaryLine represents an effective line in a custody transaction summary.
 type CustodyTransactionSummaryLine struct {
 	AssetID     domain.AssetID
@@ -256,6 +281,7 @@ type CustodyRepository interface {
 	ListCurrentByPersonnel(ctx context.Context, personnelID domain.PersonnelID) ([]CurrentCustodyItem, error)
 	ListCurrentByAsset(ctx context.Context, assetID domain.AssetID) ([]CurrentAssetHolder, error)
 	ListHistoryByPersonnel(ctx context.Context, personnelID domain.PersonnelID, limit int) ([]CustodyHistoryEntry, error)
+	ListAssetCustodyHistory(ctx context.Context, assetID domain.AssetID) ([]AssetCustodyHistoryItem, error)
 	ListTransactionLedgerPeriods(ctx context.Context) ([]CustodyTransactionLedgerPeriod, error)
 	ListTransactionSummaries(ctx context.Context, filters CustodyTransactionSummaryFilters) (CustodyTransactionSummaryPage, error)
 	FindReceiptByID(ctx context.Context, id domain.CustodyTransactionID) (CustodyReceipt, error)

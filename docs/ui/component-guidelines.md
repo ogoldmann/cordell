@@ -34,6 +34,12 @@ Good uses:
 - personnel custody history
 - future asset custody history
 
+The custody timeline is currently used by:
+
+- global custody transaction ledger
+- personnel custody history
+- asset custody history
+
 Avoid placing query/filter/pagination logic inside the component.
 
 Internal code remains in English.

@@ -446,6 +446,65 @@ func (r *CustodyRepository) ListHistoryByPersonnel(
 	return entries, nil
 }
 
+// ListAssetCustodyHistory retrieves effective custody transaction history for an asset record.
+func (r *CustodyRepository) ListAssetCustodyHistory(
+	ctx context.Context,
+	assetID domain.AssetID,
+) ([]ports.AssetCustodyHistoryItem, error) {
+	rows, err := r.queries.ListAssetCustodyHistoryRows(ctx, string(assetID))
+	if err != nil {
+		return nil, err
+	}
+
+	itemsByID := make(map[domain.CustodyTransactionID]*ports.AssetCustodyHistoryItem)
+	itemOrder := make([]domain.CustodyTransactionID, 0)
+
+	for _, row := range rows {
+		transactionID := domain.CustodyTransactionID(row.ID)
+
+		item, ok := itemsByID[transactionID]
+		if !ok {
+			createdAt, err := timestamptzToTime(row.CreatedAt)
+			if err != nil {
+				return nil, err
+			}
+
+			item = &ports.AssetCustodyHistoryItem{
+				ID:                transactionID,
+				Sequence:          int(row.SequenceNumber),
+				Type:              domain.CustodyTransactionType(row.TransactionType),
+				CreatedAt:         createdAt,
+				PersonnelID:       domain.PersonnelID(row.PersonnelID),
+				PersonnelRank:     domain.PersonnelRank(row.PersonnelRank),
+				PersonnelAlias:    row.PersonnelAlias,
+				PersonnelFullName: row.PersonnelFullName,
+				OperatorID:        domain.OperatorID(row.OperatorID),
+				OperatorRank:      domain.Rank(row.OperatorRank),
+				OperatorAlias:     row.OperatorAlias,
+				EditCount:         int(row.EditCount),
+				Notes:             row.Notes,
+				Lines:             make([]ports.AssetCustodyHistoryLine, 0),
+			}
+
+			itemsByID[transactionID] = item
+			itemOrder = append(itemOrder, transactionID)
+		}
+
+		item.Lines = append(item.Lines, ports.AssetCustodyHistoryLine{
+			AssetID:   domain.AssetID(row.AssetID),
+			AssetName: row.AssetName,
+			Quantity:  int(row.Quantity),
+		})
+	}
+
+	items := make([]ports.AssetCustodyHistoryItem, 0, len(itemOrder))
+	for _, id := range itemOrder {
+		items = append(items, *itemsByID[id])
+	}
+
+	return items, nil
+}
+
 // ListTransactionLedgerPeriods returns available year/month periods for the custody ledger.
 func (r *CustodyRepository) ListTransactionLedgerPeriods(
 	ctx context.Context,

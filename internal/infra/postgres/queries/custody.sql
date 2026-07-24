@@ -367,6 +367,103 @@ WHERE cb.asset_id = @asset_id
   AND cb.quantity > 0
 ORDER BY p.full_name ASC, cb.personnel_id ASC;
 
+-- name: ListAssetCustodyHistoryRows :many
+WITH input_asset AS (
+    SELECT @history_asset_id::text AS id
+),
+correction_counts AS (
+    SELECT
+        corrected_transaction_id,
+        count(*)::int AS edit_count
+    FROM custody_corrections
+    GROUP BY corrected_transaction_id
+),
+latest_corrections AS (
+    SELECT DISTINCT ON (corrected_transaction_id)
+        id,
+        corrected_transaction_id,
+        corrected_personnel_id,
+        corrected_notes
+    FROM custody_corrections
+    ORDER BY corrected_transaction_id, created_at DESC, id DESC
+),
+effective_transactions AS (
+    SELECT
+        ct.id,
+        row_number() OVER (ORDER BY ct.created_at ASC, ct.id ASC)::int AS sequence_number,
+        ct.transaction_type,
+        COALESCE(lc.corrected_personnel_id, ct.personnel_id) AS effective_personnel_id,
+        ct.operator_id,
+        COALESCE(lc.corrected_notes, ct.notes) AS effective_notes,
+        ct.created_at,
+        lc.id AS latest_correction_id,
+        COALESCE(cc.edit_count, 0)::int AS edit_count
+    FROM custody_transactions ct
+    LEFT JOIN latest_corrections lc
+        ON lc.corrected_transaction_id = ct.id
+    LEFT JOIN correction_counts cc
+        ON cc.corrected_transaction_id = ct.id
+),
+effective_lines AS (
+    SELECT
+        et.id AS transaction_id,
+        cl.id AS line_order,
+        cl.asset_id,
+        a.name AS asset_name,
+        cl.quantity
+    FROM effective_transactions et
+    JOIN custody_lines cl
+        ON cl.custody_transaction_id = et.id
+    JOIN assets a
+        ON a.id = cl.asset_id
+    WHERE et.latest_correction_id IS NULL
+
+    UNION ALL
+
+    SELECT
+        et.id AS transaction_id,
+        ccl.id AS line_order,
+        ccl.asset_id,
+        a.name AS asset_name,
+        ccl.quantity
+    FROM effective_transactions et
+    JOIN custody_correction_lines ccl
+        ON ccl.custody_correction_id = et.latest_correction_id
+    JOIN assets a
+        ON a.id = ccl.asset_id
+    WHERE et.latest_correction_id IS NOT NULL
+)
+SELECT
+    et.id,
+    et.sequence_number,
+    et.transaction_type,
+    et.created_at,
+    et.effective_personnel_id AS personnel_id,
+    p.rank AS personnel_rank,
+    p.alias AS personnel_alias,
+    p.full_name AS personnel_full_name,
+    et.operator_id,
+    o.rank AS operator_rank,
+    o.alias AS operator_alias,
+    et.edit_count,
+    et.effective_notes AS notes,
+    el.asset_id,
+    el.asset_name,
+    el.quantity
+FROM effective_transactions et
+JOIN input_asset ia
+    ON true
+JOIN personnel p
+    ON p.id = et.effective_personnel_id
+JOIN operators o
+    ON o.id = et.operator_id
+JOIN effective_lines matched_line
+    ON matched_line.transaction_id = et.id
+    AND matched_line.asset_id = ia.id
+JOIN effective_lines el
+    ON el.transaction_id = et.id
+ORDER BY et.created_at DESC, et.id DESC, el.asset_name ASC, el.line_order ASC;
+
 -- name: GetCustodyTransactionReceiptByID :many
 SELECT
     ct.id,

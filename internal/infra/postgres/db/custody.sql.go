@@ -344,6 +344,160 @@ func (q *Queries) IncreaseCustodyBalance(ctx context.Context, arg IncreaseCustod
 	return err
 }
 
+const listAssetCustodyHistoryRows = `-- name: ListAssetCustodyHistoryRows :many
+WITH input_asset AS (
+    SELECT $1::text AS id
+),
+correction_counts AS (
+    SELECT
+        corrected_transaction_id,
+        count(*)::int AS edit_count
+    FROM custody_corrections
+    GROUP BY corrected_transaction_id
+),
+latest_corrections AS (
+    SELECT DISTINCT ON (corrected_transaction_id)
+        id,
+        corrected_transaction_id,
+        corrected_personnel_id,
+        corrected_notes
+    FROM custody_corrections
+    ORDER BY corrected_transaction_id, created_at DESC, id DESC
+),
+effective_transactions AS (
+    SELECT
+        ct.id,
+        row_number() OVER (ORDER BY ct.created_at ASC, ct.id ASC)::int AS sequence_number,
+        ct.transaction_type,
+        COALESCE(lc.corrected_personnel_id, ct.personnel_id) AS effective_personnel_id,
+        ct.operator_id,
+        COALESCE(lc.corrected_notes, ct.notes) AS effective_notes,
+        ct.created_at,
+        lc.id AS latest_correction_id,
+        COALESCE(cc.edit_count, 0)::int AS edit_count
+    FROM custody_transactions ct
+    LEFT JOIN latest_corrections lc
+        ON lc.corrected_transaction_id = ct.id
+    LEFT JOIN correction_counts cc
+        ON cc.corrected_transaction_id = ct.id
+),
+effective_lines AS (
+    SELECT
+        et.id AS transaction_id,
+        cl.id AS line_order,
+        cl.asset_id,
+        a.name AS asset_name,
+        cl.quantity
+    FROM effective_transactions et
+    JOIN custody_lines cl
+        ON cl.custody_transaction_id = et.id
+    JOIN assets a
+        ON a.id = cl.asset_id
+    WHERE et.latest_correction_id IS NULL
+
+    UNION ALL
+
+    SELECT
+        et.id AS transaction_id,
+        ccl.id AS line_order,
+        ccl.asset_id,
+        a.name AS asset_name,
+        ccl.quantity
+    FROM effective_transactions et
+    JOIN custody_correction_lines ccl
+        ON ccl.custody_correction_id = et.latest_correction_id
+    JOIN assets a
+        ON a.id = ccl.asset_id
+    WHERE et.latest_correction_id IS NOT NULL
+)
+SELECT
+    et.id,
+    et.sequence_number,
+    et.transaction_type,
+    et.created_at,
+    et.effective_personnel_id AS personnel_id,
+    p.rank AS personnel_rank,
+    p.alias AS personnel_alias,
+    p.full_name AS personnel_full_name,
+    et.operator_id,
+    o.rank AS operator_rank,
+    o.alias AS operator_alias,
+    et.edit_count,
+    et.effective_notes AS notes,
+    el.asset_id,
+    el.asset_name,
+    el.quantity
+FROM effective_transactions et
+JOIN input_asset ia
+    ON true
+JOIN personnel p
+    ON p.id = et.effective_personnel_id
+JOIN operators o
+    ON o.id = et.operator_id
+JOIN effective_lines matched_line
+    ON matched_line.transaction_id = et.id
+    AND matched_line.asset_id = ia.id
+JOIN effective_lines el
+    ON el.transaction_id = et.id
+ORDER BY et.created_at DESC, et.id DESC, el.asset_name ASC, el.line_order ASC
+`
+
+type ListAssetCustodyHistoryRowsRow struct {
+	ID                string             `json:"id"`
+	SequenceNumber    int32              `json:"sequence_number"`
+	TransactionType   string             `json:"transaction_type"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	PersonnelID       string             `json:"personnel_id"`
+	PersonnelRank     string             `json:"personnel_rank"`
+	PersonnelAlias    string             `json:"personnel_alias"`
+	PersonnelFullName string             `json:"personnel_full_name"`
+	OperatorID        string             `json:"operator_id"`
+	OperatorRank      string             `json:"operator_rank"`
+	OperatorAlias     string             `json:"operator_alias"`
+	EditCount         int32              `json:"edit_count"`
+	Notes             string             `json:"notes"`
+	AssetID           string             `json:"asset_id"`
+	AssetName         string             `json:"asset_name"`
+	Quantity          int32              `json:"quantity"`
+}
+
+func (q *Queries) ListAssetCustodyHistoryRows(ctx context.Context, historyAssetID string) ([]ListAssetCustodyHistoryRowsRow, error) {
+	rows, err := q.db.Query(ctx, listAssetCustodyHistoryRows, historyAssetID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAssetCustodyHistoryRowsRow{}
+	for rows.Next() {
+		var i ListAssetCustodyHistoryRowsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SequenceNumber,
+			&i.TransactionType,
+			&i.CreatedAt,
+			&i.PersonnelID,
+			&i.PersonnelRank,
+			&i.PersonnelAlias,
+			&i.PersonnelFullName,
+			&i.OperatorID,
+			&i.OperatorRank,
+			&i.OperatorAlias,
+			&i.EditCount,
+			&i.Notes,
+			&i.AssetID,
+			&i.AssetName,
+			&i.Quantity,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listCurrentCustodyByAsset = `-- name: ListCurrentCustodyByAsset :many
 SELECT
     cb.asset_id,

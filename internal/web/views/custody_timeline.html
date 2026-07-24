@@ -131,14 +131,24 @@
 
           <tbody class="divide-y divide-cordell-border dark:divide-cordell-dark-border">
             {{range .Lines}}
-              <tr>
+              <tr class="{{if .Highlighted}}bg-cordell-primary/5 dark:bg-cordell-dark-primary/10{{end}}">
                 <td class="px-4 py-3 font-bold text-cordell-text dark:text-cordell-dark-text">
                   {{if .AssetURL}}
                     <a class="text-current no-underline hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="{{.AssetURL}}">
                       {{.AssetName}}
+                      {{if .Highlighted}}
+                        <span class="ml-2 rounded-full bg-cordell-primary/10 px-2 py-0.5 text-xs font-extrabold text-cordell-primary dark:bg-cordell-dark-primary/10 dark:text-cordell-dark-primary">
+                          Este material
+                        </span>
+                      {{end}}
                     </a>
                   {{else}}
                     {{.AssetName}}
+                    {{if .Highlighted}}
+                      <span class="ml-2 rounded-full bg-cordell-primary/10 px-2 py-0.5 text-xs font-extrabold text-cordell-primary dark:bg-cordell-dark-primary/10 dark:text-cordell-dark-primary">
+                        Este material
+                      </span>
+                    {{end}}
                   {{end}}
                 </td>
                 <td class="px-4 py-3 text-right font-extrabold text-cordell-text dark:text-cordell-dark-text">

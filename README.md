@@ -353,6 +353,23 @@ Each read model maps into the shared timeline view model before rendering.
 
 This keeps the UI consistent without prematurely coupling repository queries.
 
+## Asset Custody History
+
+Asset detail pages show a custody history timeline.
+
+The asset custody history uses the shared custody timeline component.
+
+It lists effective custody transactions involving the asset, including:
+
+- checkouts
+- returns
+- corrected transactions
+- operators
+- effective personnel
+- effective transaction lines
+
+When a transaction has multiple asset lines, the current asset is highlighted.
+
 ## Edit Personnel
 
 Personnel records can be edited after creation.

@@ -639,6 +639,12 @@
   .bg-cordell-primary {
     background-color: var(--color-cordell-primary);
   }
+  .bg-cordell-primary\/5 {
+    background-color: color-mix(in srgb, #1f3a5f 5%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-cordell-primary) 5%, transparent);
+    }
+  }
   .bg-cordell-primary\/10 {
     background-color: color-mix(in srgb, #1f3a5f 10%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -1401,6 +1407,14 @@
   .dark\:bg-cordell-dark-primary {
     &:where([data-theme=dark], [data-theme=dark] *) {
       background-color: var(--color-cordell-dark-primary);
+    }
+  }
+  .dark\:bg-cordell-dark-primary\/10 {
+    &:where([data-theme=dark], [data-theme=dark] *) {
+      background-color: color-mix(in srgb, #8fb4e8 10%, transparent);
+      @supports (color: color-mix(in lab, red, red)) {
+        background-color: color-mix(in oklab, var(--color-cordell-dark-primary) 10%, transparent);
+      }
     }
   }
   .dark\:bg-cordell-dark-primary\/15 {
