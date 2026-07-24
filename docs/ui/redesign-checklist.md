@@ -61,6 +61,17 @@
 - [ ] Operational dock created for dashboard.
 - [ ] Lucide icons integrated.
 
+## Icon System
+
+- [ ] Lucide is installed locally.
+- [ ] Initial icon set is copied into the repository.
+- [ ] Icon sync script exists.
+- [ ] Icons render through Go templates.
+- [ ] Icons use currentColor.
+- [ ] Icons support decorative and labeled modes.
+- [ ] Critical actions keep visible text labels.
+- [ ] No CDN is used for icons.
+
 ## Pages
 
 - [ ] Login page redesigned.

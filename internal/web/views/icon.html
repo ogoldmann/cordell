@@ -1,0 +1,39 @@
+{{define "icon"}}
+  {{if eq .Name "search"}}
+    {{template "icon_search" .}}
+  {{else if eq .Name "log-out"}}
+    {{template "icon_log_out" .}}
+  {{else if eq .Name "external-link"}}
+    {{template "icon_external_link" .}}
+  {{else if eq .Name "chevron-down"}}
+    {{template "icon_chevron_down" .}}
+  {{else if eq .Name "home"}}
+    {{template "icon_home" .}}
+  {{else if eq .Name "users"}}
+    {{template "icon_users" .}}
+  {{else if eq .Name "package"}}
+    {{template "icon_package" .}}
+  {{else if eq .Name "clipboard-list"}}
+    {{template "icon_clipboard_list" .}}
+  {{else if eq .Name "shield"}}
+    {{template "icon_shield" .}}
+  {{else if eq .Name "plus"}}
+    {{template "icon_plus" .}}
+  {{else if eq .Name "receipt-text"}}
+    {{template "icon_receipt_text" .}}
+  {{else if eq .Name "filter"}}
+    {{template "icon_filter" .}}
+  {{else if eq .Name "calendar"}}
+    {{template "icon_calendar" .}}
+  {{else if eq .Name "sun"}}
+    {{template "icon_sun" .}}
+  {{else if eq .Name "moon"}}
+    {{template "icon_moon" .}}
+  {{else if eq .Name "monitor"}}
+    {{template "icon_monitor" .}}
+  {{else if eq .Name "user"}}
+    {{template "icon_user" .}}
+  {{else if eq .Name "key-round"}}
+    {{template "icon_key_round" .}}
+  {{end}}
+{{end}}

@@ -7,7 +7,9 @@ import (
 
 func templateFuncs() template.FuncMap {
 	return template.FuncMap{
-		"queryEscape": queryEscape,
+		"newIcon":        newIcon,
+		"newLabeledIcon": newLabeledIcon,
+		"queryEscape":    queryEscape,
 	}
 }
 

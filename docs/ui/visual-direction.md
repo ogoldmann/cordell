@@ -258,3 +258,13 @@ The sepia theme should feel premium and calm, not old or visually dirty.
 The primary brand color is comfortable orange.
 
 The secondary brand tone is warm brown.
+
+## Icon implementation
+
+Cordell uses Lucide icons through local inline SVG templates.
+
+Icons are copied from `lucide-static` into the repository and rendered through Go templates.
+
+Cordell does not load icons from a CDN.
+
+This keeps the platform compatible with intranet/offline usage and strict CSP rules.
