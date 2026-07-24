@@ -72,6 +72,7 @@ func (s *Server) Routes() http.Handler {
 
 		private.Get("/", s.handleDashboard)
 		private.Get("/search", s.handleGlobalSearch)
+		private.Get("/search/suggestions", s.handleNavbarSearchSuggestions)
 
 		private.Group(func(admin chi.Router) {
 			admin.Use(s.requireAdmin)

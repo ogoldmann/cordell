@@ -433,6 +433,21 @@ The search is progressive:
 
 The backend remains the authority for search behavior, including rank and section token expansion.
 
+The full `/search` page uses the same live search foundation and global search partial.
+
+## Navbar Global Search Suggestions
+
+The private layout includes a compact global search field in the navbar.
+
+Behavior:
+
+- typing shows quick suggestions
+- Enter opens the full `/search` page
+- suggestions include personnel and assets
+- backend search rules are reused
+- rank and section token expansion works automatically
+- without JavaScript, the form still submits to `/search`
+
 ## Edit Personnel
 
 Personnel records can be edited after creation.

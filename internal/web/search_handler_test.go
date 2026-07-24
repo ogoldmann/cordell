@@ -52,6 +52,69 @@ func TestHandleGlobalSearchRendersPartialResults(t *testing.T) {
 	}
 }
 
+func TestHandleNavbarSearchSuggestionsRendersPartialResults(t *testing.T) {
+	personnel := mustBuildSearchTestPersonnel(t)
+	asset := mustBuildSearchTestAsset(t)
+
+	server, err := NewServer(
+		slog.Default(),
+		app.Services{
+			GlobalSearch: app.NewGlobalSearchService(
+				fakeGlobalSearchPersonnelRepository{personnel: []domain.Personnel{personnel}},
+				fakeGlobalSearchAssetRepository{assets: []domain.Asset{asset}},
+			),
+		},
+		NewSessionCookieConfig(false),
+		NewSecurityHeadersConfig(false),
+	)
+	if err != nil {
+		t.Fatalf("expected server, got %v", err)
+	}
+
+	request := httptest.NewRequest(http.MethodGet, "/search/suggestions?q=radio", nil)
+	response := httptest.NewRecorder()
+
+	server.handleNavbarSearchSuggestions(response, request)
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	body := response.Body.String()
+	if !strings.Contains(body, "Materiais") {
+		t.Fatalf("expected asset suggestions, got body %q", body)
+	}
+
+	if strings.Contains(body, "<html") {
+		t.Fatalf("expected partial response without layout, got body %q", body)
+	}
+}
+
+func TestLimitGlobalSearchResults(t *testing.T) {
+	results := globalSearchResultsView{
+		Personnel: []personnelView{
+			{ID: "personnel-1"},
+			{ID: "personnel-2"},
+			{ID: "personnel-3"},
+		},
+		Assets: []assetView{
+			{ID: "asset-1"},
+			{ID: "asset-2"},
+			{ID: "asset-3"},
+		},
+	}
+
+	limited := limitGlobalSearchResults(results, 2)
+
+	if len(limited.Personnel) != 2 {
+		t.Fatalf("expected 2 personnel, got %d", len(limited.Personnel))
+	}
+
+	if len(limited.Assets) != 2 {
+		t.Fatalf("expected 2 assets, got %d", len(limited.Assets))
+	}
+}
+
 type fakeGlobalSearchPersonnelRepository struct {
 	personnel []domain.Personnel
 }

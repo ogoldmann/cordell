@@ -64,6 +64,29 @@ func (s *Server) handleGlobalSearch(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) handleNavbarSearchSuggestions(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("q")
+
+	results, err := s.newGlobalSearchResultsView(
+		r,
+		query,
+		ports.RecordStatusFilterActive,
+		globalSearchResultLimit,
+	)
+	if err != nil {
+		s.logger.Error("failed to build navbar search suggestions", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	results = limitGlobalSearchResults(results, 4)
+
+	if err := s.renderer.Render(w, http.StatusOK, "navbar_search_suggestions", results); err != nil {
+		s.logger.Error("failed to render navbar search suggestions", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+}
+
 func (s *Server) newGlobalSearchResultsView(
 	r *http.Request,
 	query string,
@@ -106,6 +129,22 @@ func (s *Server) newGlobalSearchResultsView(
 	}
 
 	return view, nil
+}
+
+func limitGlobalSearchResults(results globalSearchResultsView, limit int) globalSearchResultsView {
+	if limit <= 0 {
+		return results
+	}
+
+	if len(results.Personnel) > limit {
+		results.Personnel = results.Personnel[:limit]
+	}
+
+	if len(results.Assets) > limit {
+		results.Assets = results.Assets[:limit]
+	}
+
+	return results
 }
 
 func newAssetView(asset domain.Asset) assetView {

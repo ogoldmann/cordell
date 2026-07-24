@@ -1,0 +1,75 @@
+{{define "navbar_search_suggestions"}}
+  {{if .HasQuery}}
+    <div class="overflow-hidden rounded-2xl border border-cordell-border bg-white shadow-2xl shadow-slate-900/15 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+      {{if or .Personnel .Assets}}
+        <div class="max-h-[28rem] overflow-y-auto p-2">
+          {{if .Personnel}}
+            <div class="px-3 pb-2 pt-3 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
+              Militares
+            </div>
+
+            <div class="grid gap-1">
+              {{range .Personnel}}
+                <a
+                  class="block rounded-xl px-3 py-2 no-underline transition hover:bg-cordell-background dark:hover:bg-cordell-dark-background"
+                  href="/personnel/{{.ID}}"
+                >
+                  <span class="block font-extrabold text-cordell-text dark:text-cordell-dark-text">
+                    {{.DisplayName}}
+                  </span>
+                  <span class="block text-sm text-cordell-muted dark:text-cordell-dark-muted">
+                    {{.FullName}} · {{.SectionShortLabel}}
+                  </span>
+                </a>
+              {{end}}
+            </div>
+          {{end}}
+
+          {{if .Assets}}
+            <div class="px-3 pb-2 pt-4 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-muted dark:text-cordell-dark-muted">
+              Materiais
+            </div>
+
+            <div class="grid gap-1">
+              {{range .Assets}}
+                <a
+                  class="block rounded-xl px-3 py-2 no-underline transition hover:bg-cordell-background dark:hover:bg-cordell-dark-background"
+                  href="/assets/{{.ID}}"
+                >
+                  <span class="block font-extrabold text-cordell-text dark:text-cordell-dark-text">
+                    {{.Name}}
+                  </span>
+                  <span class="block text-sm text-cordell-muted dark:text-cordell-dark-muted">
+                    {{.StatusLabel}}
+                  </span>
+                </a>
+              {{end}}
+            </div>
+          {{end}}
+        </div>
+
+        <div class="border-t border-cordell-border p-2 dark:border-cordell-dark-border">
+          <a
+            class="block rounded-xl px-3 py-2 text-sm font-extrabold text-cordell-primary no-underline transition hover:bg-cordell-background dark:text-cordell-dark-primary dark:hover:bg-cordell-dark-background"
+            href="/search?q={{.EscapedQuery}}"
+          >
+            Ver todos os resultados para "{{.Query}}"
+          </a>
+        </div>
+      {{else}}
+        <div class="p-4 text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">
+          Nenhum resultado encontrado.
+        </div>
+
+        <div class="border-t border-cordell-border p-2 dark:border-cordell-dark-border">
+          <a
+            class="block rounded-xl px-3 py-2 text-sm font-extrabold text-cordell-primary no-underline transition hover:bg-cordell-background dark:text-cordell-dark-primary dark:hover:bg-cordell-dark-background"
+            href="/search?q={{.EscapedQuery}}"
+          >
+            Abrir busca completa
+          </a>
+        </div>
+      {{end}}
+    </div>
+  {{end}}
+{{end}}

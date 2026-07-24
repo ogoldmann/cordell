@@ -98,3 +98,29 @@ Checklist:
 - [ ] Search token expansion works from dashboard search.
 - [ ] Dashboard search does not replace current URL during live search.
 - [ ] Full `/search` page still works normally.
+
+## Navbar Search
+
+Navbar search is a quick navigation tool, not a full search results page.
+
+Rules:
+
+- keep suggestions compact
+- link to full results on `/search`
+- do not implement search semantics in JavaScript
+- close suggestions on outside click and Escape
+- preserve non-JavaScript fallback through form submission
+
+Checklist:
+
+- [ ] Navbar has compact search field.
+- [ ] Typing shows suggestions.
+- [ ] Suggestions include personnel.
+- [ ] Suggestions include assets.
+- [ ] Suggestions link to detail pages.
+- [ ] Suggestions link to full search results.
+- [ ] Enter submits to `/search`.
+- [ ] Escape closes suggestions.
+- [ ] Clicking outside closes suggestions.
+- [ ] Search works without JavaScript.
+- [ ] Token expansion works through backend.
