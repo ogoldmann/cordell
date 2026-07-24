@@ -179,68 +179,7 @@
     </h2>
   </div>
 
-  {{if .History}}
-    <div class="grid gap-4">
-      {{range .History}}
-        <article class="grid grid-cols-[1rem_1fr] gap-4">
-          {{if eq .Type "checkout"}}
-            <div class="mt-6 h-3 w-3 rounded-full bg-cordell-primary dark:bg-cordell-dark-primary"></div>
-          {{else}}
-            <div class="mt-6 h-3 w-3 rounded-full bg-amber-700 dark:bg-amber-400"></div>
-          {{end}}
-
-          <div class="rounded-2xl border border-cordell-border bg-cordell-surface p-4 shadow-lg shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
-            <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <strong class="block text-lg">{{.TypeLabel}}</strong>
-                <span class="mt-1 block text-sm text-cordell-muted dark:text-cordell-dark-muted">{{.CreatedAt}}</span>
-                <span class="mt-1 block text-sm text-cordell-muted dark:text-cordell-dark-muted">
-                  Registrado por {{.OperatorDisplay}}
-                </span>
-                {{if .HasCorrection}}
-                  <span class="mt-2 inline-flex w-fit rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
-                    {{.EditLabel}}
-                  </span>
-                {{end}}
-              </div>
-
-              <div class="flex flex-col items-start gap-2 sm:items-end">
-                <code class="font-mono text-xs text-cordell-muted dark:text-cordell-dark-muted">{{.ID}}</code>
-
-                <a
-                  class="inline-flex w-fit items-center justify-center rounded-xl border border-cordell-border bg-white px-3 py-2 text-xs font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
-                  href="/custody/transactions/{{.ID}}"
-                >
-                  Ver recibo
-                </a>
-              </div>
-            </div>
-
-            <div class="grid gap-2">
-              {{range .Lines}}
-                <a
-                  class="flex items-center justify-between gap-4 rounded-xl bg-cordell-primary/5 px-3 py-2 no-underline transition hover:bg-cordell-primary/10 dark:bg-cordell-dark-background dark:hover:bg-cordell-dark-primary/10"
-                  href="/assets/{{.AssetID}}"
-                >
-                  <span class="font-bold">{{.AssetName}}</span>
-                  <strong class="rounded-full bg-white px-2.5 py-1 text-xs dark:bg-cordell-dark-surface">{{.Quantity}}</strong>
-                </a>
-              {{end}}
-            </div>
-
-            {{if .Notes}}
-              <p class="mt-3 text-sm text-cordell-muted dark:text-cordell-dark-muted">{{.Notes}}</p>
-            {{end}}
-          </div>
-        </article>
-      {{end}}
-    </div>
-  {{else}}
-    <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-8 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
-      <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Nenhum histórico de custódia ainda</h2>
-      <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">Eventos de cautela e descautela aparecerão aqui.</p>
-    </div>
-  {{end}}
+  {{template "custody_timeline" .CustodyTimeline}}
 </section>
 
 <div class="mt-8 flex flex-col gap-3 sm:flex-row">

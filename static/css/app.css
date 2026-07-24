@@ -34,6 +34,10 @@
     --color-sky-700: oklch(50% 0.134 242.749);
     --color-sky-900: oklch(39.1% 0.09 240.876);
     --color-sky-950: oklch(29.3% 0.066 243.157);
+    --color-blue-50: oklch(97% 0.014 254.604);
+    --color-blue-200: oklch(88.2% 0.059 254.128);
+    --color-blue-700: oklch(48.8% 0.243 264.376);
+    --color-blue-950: oklch(28.2% 0.091 267.935);
     --color-slate-100: oklch(96.8% 0.007 247.896);
     --color-slate-200: oklch(92.9% 0.013 255.508);
     --color-slate-300: oklch(86.9% 0.022 252.894);
@@ -260,9 +264,6 @@
   .fixed {
     position: fixed;
   }
-  .relative {
-    position: relative;
-  }
   .static {
     position: static;
   }
@@ -368,9 +369,6 @@
   .table {
     display: table;
   }
-  .h-3 {
-    height: calc(var(--spacing) * 3);
-  }
   .h-12 {
     height: calc(var(--spacing) * 12);
   }
@@ -397,9 +395,6 @@
   }
   .min-h-screen {
     min-height: 100vh;
-  }
-  .w-3 {
-    width: calc(var(--spacing) * 3);
   }
   .w-12 {
     width: calc(var(--spacing) * 12);
@@ -445,9 +440,6 @@
   }
   .resize-y {
     resize: vertical;
-  }
-  .grid-cols-\[1rem_1fr\] {
-    grid-template-columns: 1rem 1fr;
   }
   .flex-col {
     flex-direction: column;
@@ -623,8 +615,8 @@
   .bg-amber-100 {
     background-color: var(--color-amber-100);
   }
-  .bg-amber-700 {
-    background-color: var(--color-amber-700);
+  .bg-blue-50 {
+    background-color: var(--color-blue-50);
   }
   .bg-cordell-background {
     background-color: var(--color-cordell-background);
@@ -646,12 +638,6 @@
   }
   .bg-cordell-primary {
     background-color: var(--color-cordell-primary);
-  }
-  .bg-cordell-primary\/5 {
-    background-color: color-mix(in srgb, #1f3a5f 5%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-cordell-primary) 5%, transparent);
-    }
   }
   .bg-cordell-primary\/10 {
     background-color: color-mix(in srgb, #1f3a5f 10%, transparent);
@@ -740,9 +726,6 @@
   .px-2 {
     padding-inline: calc(var(--spacing) * 2);
   }
-  .px-2\.5 {
-    padding-inline: calc(var(--spacing) * 2.5);
-  }
   .px-3 {
     padding-inline: calc(var(--spacing) * 3);
   }
@@ -787,6 +770,9 @@
   }
   .text-left {
     text-align: left;
+  }
+  .text-right {
+    text-align: right;
   }
   .font-mono {
     font-family: var(--font-mono);
@@ -857,8 +843,14 @@
   .whitespace-pre-wrap {
     white-space: pre-wrap;
   }
+  .text-amber-700 {
+    color: var(--color-amber-700);
+  }
   .text-amber-800 {
     color: var(--color-amber-800);
+  }
+  .text-blue-700 {
+    color: var(--color-blue-700);
   }
   .text-cordell-danger-text {
     color: var(--color-cordell-danger-text);
@@ -878,6 +870,9 @@
   .text-cordell-text {
     color: var(--color-cordell-text);
   }
+  .text-current {
+    color: currentcolor;
+  }
   .text-emerald-700 {
     color: var(--color-emerald-700);
   }
@@ -895,6 +890,9 @@
   }
   .text-slate-600 {
     color: var(--color-slate-600);
+  }
+  .text-slate-700 {
+    color: var(--color-slate-700);
   }
   .text-white {
     color: var(--color-white);
@@ -1100,6 +1098,11 @@
       width: auto;
     }
   }
+  .sm\:grid-cols-2 {
+    @media (width >= 40rem) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
   .sm\:flex-row {
     @media (width >= 40rem) {
       flex-direction: row;
@@ -1201,11 +1204,6 @@
       justify-content: flex-end;
     }
   }
-  .lg\:grid {
-    @media (width >= 64rem) {
-      display: grid;
-    }
-  }
   .lg\:grid-cols-2 {
     @media (width >= 64rem) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1224,11 +1222,6 @@
   .lg\:grid-cols-\[1fr_12rem_12rem_auto\] {
     @media (width >= 64rem) {
       grid-template-columns: 1fr 12rem 12rem auto;
-    }
-  }
-  .lg\:grid-cols-\[8rem_1fr_auto\] {
-    @media (width >= 64rem) {
-      grid-template-columns: 8rem 1fr auto;
     }
   }
   .lg\:flex-row {
@@ -1251,9 +1244,9 @@
       justify-content: space-between;
     }
   }
-  .xl\:grid-cols-2 {
-    @media (width >= 80rem) {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+  .lg\:justify-end {
+    @media (width >= 64rem) {
+      justify-content: flex-end;
     }
   }
   .xl\:grid-cols-3 {
@@ -1344,11 +1337,6 @@
       border-color: var(--color-slate-700);
     }
   }
-  .dark\:bg-amber-400 {
-    &:where([data-theme=dark], [data-theme=dark] *) {
-      background-color: var(--color-amber-400);
-    }
-  }
   .dark\:bg-amber-950\/20 {
     &:where([data-theme=dark], [data-theme=dark] *) {
       background-color: color-mix(in srgb, oklch(27.9% 0.077 45.635) 20%, transparent);
@@ -1370,6 +1358,14 @@
       background-color: color-mix(in srgb, oklch(27.9% 0.077 45.635) 50%, transparent);
       @supports (color: color-mix(in lab, red, red)) {
         background-color: color-mix(in oklab, var(--color-amber-950) 50%, transparent);
+      }
+    }
+  }
+  .dark\:bg-blue-950\/40 {
+    &:where([data-theme=dark], [data-theme=dark] *) {
+      background-color: color-mix(in srgb, oklch(28.2% 0.091 267.935) 40%, transparent);
+      @supports (color: color-mix(in lab, red, red)) {
+        background-color: color-mix(in oklab, var(--color-blue-950) 40%, transparent);
       }
     }
   }
@@ -1501,6 +1497,11 @@
       color: var(--color-amber-200);
     }
   }
+  .dark\:text-blue-200 {
+    &:where([data-theme=dark], [data-theme=dark] *) {
+      color: var(--color-blue-200);
+    }
+  }
   .dark\:text-cordell-dark-background {
     &:where([data-theme=dark], [data-theme=dark] *) {
       color: var(--color-cordell-dark-background);
@@ -1542,6 +1543,11 @@
   .dark\:text-sky-200 {
     &:where([data-theme=dark], [data-theme=dark] *) {
       color: var(--color-sky-200);
+    }
+  }
+  .dark\:text-slate-200 {
+    &:where([data-theme=dark], [data-theme=dark] *) {
+      color: var(--color-slate-200);
     }
   }
   .dark\:text-slate-300 {

@@ -1,0 +1,161 @@
+{{define "custody_timeline"}}
+  {{if .Items}}
+    <div class="grid gap-4">
+      {{range .Items}}
+        {{template "custody_timeline_item" .}}
+      {{end}}
+    </div>
+  {{else}}
+    {{template "empty_state" .EmptyState}}
+  {{end}}
+{{end}}
+
+{{define "custody_timeline_item"}}
+  <article class="rounded-3xl border border-cordell-border bg-cordell-surface p-5 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div class="min-w-0">
+        <div class="mb-3 flex flex-wrap items-center gap-2">
+          {{if .SequenceLabel}}
+            <span class="rounded-full border border-cordell-border px-3 py-1 text-xs font-extrabold text-cordell-muted dark:border-cordell-dark-border dark:text-cordell-dark-muted">
+              {{.SequenceLabel}}
+            </span>
+          {{end}}
+
+          <span
+            class="rounded-full px-3 py-1 text-xs font-extrabold
+            {{if eq .TypeTone "checkout"}}
+              bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-200
+            {{else if eq .TypeTone "return"}}
+              bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200
+            {{else}}
+              bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200
+            {{end}}"
+          >
+            {{.TypeLabel}}
+          </span>
+
+          {{if .Edited}}
+            <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-extrabold text-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
+              Editado{{if .EditCountLabel}} · {{.EditCountLabel}}{{end}}
+            </span>
+          {{end}}
+        </div>
+
+        <h2 class="m-0 text-xl font-extrabold text-cordell-text dark:text-cordell-dark-text">
+          {{if .URL}}
+            <a class="text-current no-underline hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="{{.URL}}">
+              {{.TypeLabel}}{{if .SequenceLabel}} · {{.SequenceLabel}}{{end}}
+            </a>
+          {{else}}
+            {{.TypeLabel}}{{if .SequenceLabel}} · {{.SequenceLabel}}{{end}}
+          {{end}}
+        </h2>
+
+        <dl class="mt-4 grid gap-3 text-sm text-cordell-muted dark:text-cordell-dark-muted sm:grid-cols-2 xl:grid-cols-4">
+          {{if .DateLabel}}
+            <div>
+              <dt class="font-extrabold text-cordell-text dark:text-cordell-dark-text">Data</dt>
+              <dd class="m-0 mt-1">{{.DateLabel}}</dd>
+            </div>
+          {{end}}
+
+          {{if .TimeLabel}}
+            <div>
+              <dt class="font-extrabold text-cordell-text dark:text-cordell-dark-text">Hora</dt>
+              <dd class="m-0 mt-1">{{.TimeLabel}}</dd>
+            </div>
+          {{end}}
+
+          {{if .PersonnelLabel}}
+            <div>
+              <dt class="font-extrabold text-cordell-text dark:text-cordell-dark-text">Militar</dt>
+              <dd class="m-0 mt-1">
+                {{if .PersonnelURL}}
+                  <a class="font-bold text-cordell-primary no-underline hover:underline dark:text-cordell-dark-primary" href="{{.PersonnelURL}}">
+                    {{.PersonnelLabel}}
+                  </a>
+                {{else}}
+                  {{.PersonnelLabel}}
+                {{end}}
+              </dd>
+            </div>
+          {{end}}
+
+          {{if .OperatorLabel}}
+            <div>
+              <dt class="font-extrabold text-cordell-text dark:text-cordell-dark-text">Operador</dt>
+              <dd class="m-0 mt-1">
+                {{if .OperatorURL}}
+                  <a class="font-bold text-cordell-primary no-underline hover:underline dark:text-cordell-dark-primary" href="{{.OperatorURL}}">
+                    {{.OperatorLabel}}
+                  </a>
+                {{else}}
+                  {{.OperatorLabel}}
+                {{end}}
+              </dd>
+            </div>
+          {{end}}
+        </dl>
+      </div>
+
+      <div class="flex flex-wrap gap-2 lg:justify-end">
+        {{if .SecondaryActionURL}}
+          <a
+            class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-2 text-sm font-extrabold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
+            href="{{.SecondaryActionURL}}"
+          >
+            {{.SecondaryActionLabel}}
+          </a>
+        {{end}}
+
+        {{if .PrimaryActionURL}}
+          <a
+            class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-4 py-2 text-sm font-extrabold text-white no-underline transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+            href="{{.PrimaryActionURL}}"
+          >
+            {{.PrimaryActionLabel}}
+          </a>
+        {{end}}
+      </div>
+    </div>
+
+    {{if .Lines}}
+      <div class="mt-5 overflow-hidden rounded-2xl border border-cordell-border dark:border-cordell-dark-border">
+        <table class="w-full border-collapse text-left text-sm">
+          <thead class="bg-cordell-background text-xs uppercase tracking-[0.08em] text-cordell-muted dark:bg-cordell-dark-background dark:text-cordell-dark-muted">
+            <tr>
+              <th class="px-4 py-3 font-extrabold">Material</th>
+              <th class="px-4 py-3 text-right font-extrabold">Qtd</th>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y divide-cordell-border dark:divide-cordell-dark-border">
+            {{range .Lines}}
+              <tr>
+                <td class="px-4 py-3 font-bold text-cordell-text dark:text-cordell-dark-text">
+                  {{if .AssetURL}}
+                    <a class="text-current no-underline hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="{{.AssetURL}}">
+                      {{.AssetName}}
+                    </a>
+                  {{else}}
+                    {{.AssetName}}
+                  {{end}}
+                </td>
+                <td class="px-4 py-3 text-right font-extrabold text-cordell-text dark:text-cordell-dark-text">
+                  {{.Quantity}}
+                </td>
+              </tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
+    {{end}}
+
+    {{if .Notes}}
+      <div class="mt-5 rounded-2xl bg-cordell-background p-4 text-sm text-cordell-muted dark:bg-cordell-dark-background dark:text-cordell-dark-muted">
+        <p class="m-0 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-text dark:text-cordell-dark-text">Observações</p>
+        <p class="m-0 mt-2 whitespace-pre-wrap">{{.Notes}}</p>
+      </div>
+    {{end}}
+  </article>
+{{end}}

@@ -336,6 +336,23 @@ Components should stay small and focused.
 
 Complex workflows should not be abstracted until their behavior stabilizes.
 
+## Shared Custody Timeline Component
+
+Cordell uses a shared custody timeline component to render custody transactions in different contexts.
+
+The component is presentation-only.
+
+It is used by:
+
+- global custody transaction ledger
+- personnel custody history
+
+The ledger and personnel history may keep separate read models and queries.
+
+Each read model maps into the shared timeline view model before rendering.
+
+This keeps the UI consistent without prematurely coupling repository queries.
+
 ## Edit Personnel
 
 Personnel records can be edited after creation.

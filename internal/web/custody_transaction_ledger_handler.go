@@ -35,6 +35,7 @@ type custodyTransactionLedgerPageData struct {
 	PreviousPageURL     string
 	NextPageURL         string
 	Transactions        []custodyTransactionSummaryView
+	Timeline            custodyTimelineView
 }
 
 type custodyLedgerPeriodView struct {
@@ -81,6 +82,7 @@ type custodyTransactionSummaryView struct {
 	CreatedAt                  string
 	HasCorrection              bool
 	EditLabel                  string
+	EditCountLabel             string
 }
 
 type custodyTransactionSummaryLineView struct {
@@ -141,6 +143,8 @@ func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.R
 		periodValue == "all" ||
 		transactionPage.Page > 1
 
+	transactions := newCustodyTransactionSummaryViews(transactionPage.Items)
+
 	data := custodyTransactionLedgerPageData{
 		privateLayoutData:   newPrivateLayoutData(r),
 		Title:               custodyLedgerLabel(),
@@ -177,7 +181,15 @@ func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.R
 		HasNextPage:     transactionPage.HasNextPage,
 		PreviousPageURL: previousPageURL,
 		NextPageURL:     nextPageURL,
-		Transactions:    newCustodyTransactionSummaryViews(transactionPage.Items),
+		Transactions:    transactions,
+		Timeline: custodyTimelineView{
+			Items: newCustodyTimelineItemsFromLedgerItems(transactions),
+			EmptyState: newEmptyState(
+				"Nenhuma transação encontrada",
+				"Ajuste os filtros ou registre uma nova cautela para começar.",
+				newPageAction("Registrar cautela", "/custody/checkouts/new"),
+			),
+		},
 	}
 	data.Breadcrumbs = []breadcrumbItemView{
 		homeBreadcrumb(),
@@ -512,6 +524,52 @@ func newCustodyLedgerPeriodViews(
 	return views
 }
 
+func newCustodyTimelineItemsFromLedgerItems(
+	items []custodyTransactionSummaryView,
+) []custodyTimelineItemView {
+	timelineItems := make([]custodyTimelineItemView, 0, len(items))
+
+	for _, item := range items {
+		timelineItems = append(timelineItems, newCustodyTimelineItemFromLedgerItem(item))
+	}
+
+	return timelineItems
+}
+
+func newCustodyTimelineItemFromLedgerItem(
+	item custodyTransactionSummaryView,
+) custodyTimelineItemView {
+	lines := make([]custodyTimelineLineView, 0, len(item.Lines))
+	for _, line := range item.Lines {
+		lines = append(lines, custodyTimelineLineView{
+			AssetID:   line.AssetID,
+			AssetName: line.AssetName,
+			AssetURL:  line.AssetURL,
+			Quantity:  formatTimelineQuantity(line.Quantity),
+		})
+	}
+
+	return custodyTimelineItemView{
+		ID:                   item.ID,
+		URL:                  item.ReceiptURL,
+		SequenceLabel:        item.SequenceLabel,
+		TypeLabel:            item.TypeLabel,
+		TypeTone:             custodyTimelineTypeTone(item.TypeLabel),
+		DateLabel:            item.DateLabel,
+		TimeLabel:            item.TimeLabel,
+		PersonnelLabel:       item.EffectivePersonnelDisplay,
+		PersonnelURL:         item.EffectivePersonnelURL,
+		OperatorLabel:        item.OperatorDisplay,
+		Edited:               item.HasCorrection,
+		EditCountLabel:       item.EditCountLabel,
+		Lines:                lines,
+		PrimaryActionLabel:   "Abrir recibo",
+		PrimaryActionURL:     item.ReceiptURL,
+		SecondaryActionLabel: "Editar",
+		SecondaryActionURL:   item.ReceiptURL + "/edit",
+	}
+}
+
 func newCustodyTransactionSummaryViews(
 	transactions []app.CustodyTransactionSummary,
 ) []custodyTransactionSummaryView {
@@ -566,6 +624,7 @@ func newCustodyTransactionSummaryViews(
 			CreatedAt:                  formatDateTime(transaction.CreatedAt),
 			HasCorrection:              transaction.HasCorrection,
 			EditLabel:                  editCountLabel(transaction.EditCount),
+			EditCountLabel:             custodyEditCountLabel(transaction.EditCount),
 		})
 	}
 

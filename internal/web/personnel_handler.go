@@ -46,6 +46,7 @@ type personnelShowPageData struct {
 	ShowInactiveCustodyWarning     bool
 	HasInactiveAssetCurrentCustody bool
 	History                        []custodyHistoryView
+	CustodyTimeline                custodyTimelineView
 }
 
 type personnelIndexPageData struct {
@@ -92,12 +93,17 @@ type custodyHistoryView struct {
 	TypeLabel       string
 	OperatorID      string
 	OperatorDisplay string
+	PersonnelLabel  string
+	PersonnelURL    string
 	Notes           string
 	CreatedAt       string
+	DateLabel       string
+	TimeLabel       string
 	Lines           []custodyHistoryLineView
 	HasCorrection   bool
 	EditCount       int
 	EditLabel       string
+	EditCountLabel  string
 }
 
 type custodyHistoryLineView struct {
@@ -354,12 +360,17 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 			TypeLabel:       custodyTransactionTypeLabel(entry.Type),
 			OperatorID:      string(entry.OperatorID),
 			OperatorDisplay: militaryDisplayName(entry.OperatorRank, entry.OperatorAlias),
+			PersonnelLabel:  view.DisplayName,
+			PersonnelURL:    "/personnel/" + view.ID,
 			Notes:           entry.Notes,
 			CreatedAt:       entry.CreatedAt.Local().Format("02/01/2006 15:04"),
+			DateLabel:       formatTimelineDate(entry.CreatedAt),
+			TimeLabel:       formatTimelineTime(entry.CreatedAt),
 			Lines:           make([]custodyHistoryLineView, 0, len(entry.Lines)),
 			HasCorrection:   entry.HasCorrection,
 			EditCount:       entry.EditCount,
 			EditLabel:       editCountLabel(entry.EditCount),
+			EditCountLabel:  custodyEditCountLabel(entry.EditCount),
 		}
 
 		for _, line := range entry.Lines {
@@ -373,8 +384,63 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 		data.History = append(data.History, historyView)
 	}
 
+	data.CustodyTimeline = custodyTimelineView{
+		Items: newCustodyTimelineItemsFromPersonnelHistoryItems(data.History),
+		EmptyState: newEmptyState(
+			"Nenhuma movimentação de custódia",
+			"Este militar ainda não possui cautelas ou descautelas registradas.",
+			newPageAction("Registrar cautela", "/custody/checkouts/new"),
+		),
+	}
+
 	if err := s.renderer.Render(w, http.StatusOK, "personnel_show.html", data); err != nil {
 		s.handleRenderError(w, err)
+	}
+}
+
+func newCustodyTimelineItemsFromPersonnelHistoryItems(
+	items []custodyHistoryView,
+) []custodyTimelineItemView {
+	timelineItems := make([]custodyTimelineItemView, 0, len(items))
+
+	for _, item := range items {
+		timelineItems = append(timelineItems, newCustodyTimelineItemFromPersonnelHistoryItem(item))
+	}
+
+	return timelineItems
+}
+
+func newCustodyTimelineItemFromPersonnelHistoryItem(item custodyHistoryView) custodyTimelineItemView {
+	lines := make([]custodyTimelineLineView, 0, len(item.Lines))
+	for _, line := range item.Lines {
+		lines = append(lines, custodyTimelineLineView{
+			AssetID:   line.AssetID,
+			AssetName: line.AssetName,
+			AssetURL:  "/assets/" + line.AssetID,
+			Quantity:  formatTimelineQuantity(line.Quantity),
+		})
+	}
+
+	receiptURL := "/custody/transactions/" + item.ID
+
+	return custodyTimelineItemView{
+		ID:                   item.ID,
+		URL:                  receiptURL,
+		TypeLabel:            item.TypeLabel,
+		TypeTone:             custodyTimelineTypeTone(item.TypeLabel),
+		DateLabel:            item.DateLabel,
+		TimeLabel:            item.TimeLabel,
+		PersonnelLabel:       item.PersonnelLabel,
+		PersonnelURL:         item.PersonnelURL,
+		OperatorLabel:        item.OperatorDisplay,
+		Edited:               item.HasCorrection,
+		EditCountLabel:       item.EditCountLabel,
+		Notes:                item.Notes,
+		Lines:                lines,
+		PrimaryActionLabel:   "Abrir recibo",
+		PrimaryActionURL:     receiptURL,
+		SecondaryActionLabel: "Editar",
+		SecondaryActionURL:   receiptURL + "/edit",
 	}
 }
 
