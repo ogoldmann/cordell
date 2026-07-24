@@ -138,3 +138,26 @@ func TestGlobalSearchServiceAcceptsAllStatusFilter(t *testing.T) {
 		t.Fatalf("expected all asset status filter, got %s", assetRepository.lastStatusFilter)
 	}
 }
+
+func TestGlobalSearchServiceCanonicalizesPersonnelSearchOnly(t *testing.T) {
+	personnelRepository := &fakePersonnelRepository{}
+	assetRepository := &fakeAssetRepository{}
+	service := NewGlobalSearchService(personnelRepository, assetRepository)
+
+	_, err := service.Execute(context.Background(), GlobalSearchCommand{
+		Query:        "sd silva",
+		LimitPerType: 10,
+		StatusFilter: string(ports.RecordStatusFilterAll),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if personnelRepository.lastSearchQuery != "private silva" {
+		t.Fatalf("expected personnel canonical query private silva, got %q", personnelRepository.lastSearchQuery)
+	}
+
+	if assetRepository.lastSearchQuery != "sd silva" {
+		t.Fatalf("expected asset original query sd silva, got %q", assetRepository.lastSearchQuery)
+	}
+}

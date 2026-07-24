@@ -69,89 +69,9 @@
   A pesquisa prioriza registros ativos para manter a operação diária focada. Use Inativo ou Todos para revisar registros arquivados.
 </p>
 
-{{if .HasQuery}}
-  {{if .HasResults}}
-    <section class="grid gap-8">
-      <div>
-        <div class="mb-4 flex items-end justify-between gap-4">
-          <div>
-            <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-              Resultados
-            </p>
-
-            <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">
-              Militares
-            </h2>
-          </div>
-
-          {{if .Personnel}}
-            <a class="text-sm font-bold text-cordell-primary no-underline dark:text-cordell-dark-primary" href="/personnel?q={{queryEscape .SearchQuery}}">
-              Ver todos os militares encontrados
-            </a>
-          {{end}}
-        </div>
-
-        {{if .Personnel}}
-          <div class="grid gap-3">
-            {{range .Personnel}}
-              {{template "personnel_card" .}}
-            {{end}}
-          </div>
-        {{else}}
-          <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-6 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
-            <p class="m-0 text-cordell-muted dark:text-cordell-dark-muted">Nenhum militar encontrado.</p>
-          </div>
-        {{end}}
-      </div>
-
-      <div>
-        <div class="mb-4 flex items-end justify-between gap-4">
-          <div>
-            <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-              Resultados
-            </p>
-
-            <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">
-              Materiais
-            </h2>
-          </div>
-
-          {{if .Assets}}
-            <a class="text-sm font-bold text-cordell-primary no-underline dark:text-cordell-dark-primary" href="/assets?q={{queryEscape .SearchQuery}}">
-              Ver todos os materiais encontrados
-            </a>
-          {{end}}
-        </div>
-
-        {{if .Assets}}
-          <div class="grid gap-3">
-            {{range .Assets}}
-              {{template "asset_card" .}}
-            {{end}}
-          </div>
-        {{else}}
-          <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-6 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
-            <p class="m-0 text-cordell-muted dark:text-cordell-dark-muted">Nenhum material encontrado.</p>
-          </div>
-        {{end}}
-      </div>
-    </section>
-  {{else}}
-    <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-8 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
-      <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Nenhum resultado encontrado</h2>
-      <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
-        Nenhum militar ou material correspondeu à pesquisa.
-      </p>
-    </div>
-  {{end}}
-{{else}}
-  <div class="rounded-3xl border border-dashed border-cordell-border bg-white/60 p-8 dark:border-cordell-dark-border dark:bg-cordell-dark-surface/60">
-    <h2 class="m-0 text-2xl font-extrabold tracking-[-0.03em]">Comece com um termo de pesquisa</h2>
-    <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
-      Tente pesquisar por nome de guerra, posto/graduação, seção, identidade ou nome do material.
-    </p>
-  </div>
-{{end}}
+<div class="mt-6">
+  {{template "global_search_results" .Results}}
+</div>
 
 {{template "layout_end" .}}
 {{end}}

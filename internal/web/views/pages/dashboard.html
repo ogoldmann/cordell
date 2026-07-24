@@ -17,6 +17,66 @@
   </div>
 </section>
 
+<section class="mb-8 mt-6 rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+  <div class="mb-5">
+    <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
+      Busca global
+    </p>
+
+    <h2 class="m-0 text-2xl font-extrabold text-cordell-text dark:text-cordell-dark-text">
+      Encontre militares e materiais rapidamente
+    </h2>
+
+    <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
+      Pesquise por nome, nome de guerra, identidade, posto/graduação, seção ou material.
+    </p>
+  </div>
+
+  <form
+    method="get"
+    action="/search"
+    data-live-search-form
+    data-live-search-target="#dashboard-global-search-results"
+    data-live-search-status="#dashboard-global-search-status"
+    data-live-search-delay="250"
+    data-live-search-update-url="false"
+  >
+    <div class="grid gap-3 lg:grid-cols-[1fr_auto]">
+      <label class="block">
+        <span class="sr-only">Pesquisar no Cordell</span>
+        <input
+          class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/10 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/10"
+          type="search"
+          name="q"
+          placeholder="Ex.: sd silva, s1 john, rádio, identidade..."
+          autocomplete="off"
+        >
+      </label>
+
+      <button
+        class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
+        type="submit"
+      >
+        Pesquisar
+      </button>
+    </div>
+  </form>
+
+  <p
+    id="dashboard-global-search-status"
+    class="sr-only"
+    aria-live="polite"
+  ></p>
+
+  <div id="dashboard-global-search-results" class="mt-6">
+    <div class="rounded-3xl border border-dashed border-cordell-border bg-cordell-background p-6 text-center text-cordell-muted dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-muted">
+      <p class="m-0 font-bold">
+        Digite para pesquisar no Cordell.
+      </p>
+    </div>
+  </div>
+</section>
+
 <section class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
   <a class="rounded-2xl border border-cordell-border bg-cordell-surface p-5 no-underline shadow-lg shadow-slate-900/5 transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:hover:border-cordell-dark-primary/60" href="/personnel/new">
     <span class="block text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">Militares</span>

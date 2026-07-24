@@ -56,7 +56,7 @@ func (s *GlobalSearchService) Execute(ctx context.Context, cmd GlobalSearchComma
 		return result, nil
 	}
 
-	personnel, err := s.personnelRepository.Search(ctx, query, limit, statusFilter)
+	personnel, err := s.personnelRepository.Search(ctx, CanonicalSearchQuery(query), limit, statusFilter)
 	if err != nil {
 		return GlobalSearchResult{}, err
 	}

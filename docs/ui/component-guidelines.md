@@ -80,3 +80,21 @@ Checklist:
 - [ ] Live search keeps using the same backend rules.
 - [ ] JavaScript does not implement search semantics.
 - [ ] Original query remains visible in the UI.
+
+## Homepage Global Search
+
+The homepage global search should reuse the same backend and partial templates as the full search page.
+
+The dashboard search is a preview and should link to full entity list pages for complete results.
+
+Checklist:
+
+- [ ] Dashboard has global search box.
+- [ ] Dashboard global search works without JavaScript.
+- [ ] Dashboard global search works with live partial results.
+- [ ] `/search` supports partial global search results.
+- [ ] Personnel results appear in global search.
+- [ ] Asset results appear in global search.
+- [ ] Search token expansion works from dashboard search.
+- [ ] Dashboard search does not replace current URL during live search.
+- [ ] Full `/search` page still works normally.

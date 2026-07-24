@@ -417,6 +417,22 @@ The backend uses the canonical query for repository search.
 
 This keeps live search, normal GET search, and future APIs consistent.
 
+## Homepage Global Search
+
+The dashboard includes a global search box.
+
+It can search:
+
+- personnel
+- assets
+
+The search is progressive:
+
+- without JavaScript, the form submits to `/search`
+- with JavaScript, results are loaded inline on the dashboard through partial HTML
+
+The backend remains the authority for search behavior, including rank and section token expansion.
+
 ## Edit Personnel
 
 Personnel records can be edited after creation.

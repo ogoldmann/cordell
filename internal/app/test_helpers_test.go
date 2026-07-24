@@ -237,6 +237,7 @@ type fakeAssetRepository struct {
 	saved            []domain.Asset
 	byID             map[domain.AssetID]domain.Asset
 	lastStatusFilter ports.RecordStatusFilter
+	lastSearchQuery  string
 	saveErr          error
 }
 
@@ -349,6 +350,7 @@ func (r *fakeAssetRepository) Search(
 	statusFilter ports.RecordStatusFilter,
 ) ([]domain.Asset, error) {
 	r.lastStatusFilter = statusFilter
+	r.lastSearchQuery = query
 
 	tokens := strings.Fields(strings.ToLower(strings.TrimSpace(query)))
 

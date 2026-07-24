@@ -85,7 +85,9 @@
         const visibleURL = new URL(url.toString())
         visibleURL.searchParams.delete('partial')
 
-        window.history.replaceState({}, '', visibleURL.toString())
+        if (form.dataset.liveSearchUpdateUrl !== 'false') {
+          window.history.replaceState({}, '', visibleURL.toString())
+        }
 
         setStatus(statusElement, 'Resultados atualizados.')
       } catch (error) {
