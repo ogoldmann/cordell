@@ -243,7 +243,7 @@ func (s *SearchPersonnelService) Execute(ctx context.Context, cmd SearchPersonne
 		return s.personnelRepository.List(ctx, limit, statusFilter)
 	}
 
-	return s.personnelRepository.Search(ctx, query, limit, statusFilter)
+	return s.personnelRepository.Search(ctx, CanonicalSearchQuery(query), limit, statusFilter)
 }
 
 // DeactivatePersonnelCommand contains the input data required to deactivate personnel.

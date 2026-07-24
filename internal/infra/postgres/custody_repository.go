@@ -556,16 +556,10 @@ func (r *CustodyRepository) ListTransactionSummaries(
 		editStatusFilter = ports.CustodyEditStatusFilterAll
 	}
 
-	searchPattern := ""
-	searchQuery := strings.TrimSpace(filters.SearchQuery)
-	if searchQuery != "" {
-		searchPattern = "%" + escapeLikePattern(searchQuery) + "%"
-	}
-
 	rows, err := r.queries.ListCustodyTransactionSummaries(ctx, db.ListCustodyTransactionSummariesParams{
 		PageSizePlusOne:       int32(pageSize + 1),
 		OffsetCount:           int32(offset),
-		SearchPattern:         searchPattern,
+		SearchPatterns:        buildTextSearchPatterns(strings.TrimSpace(filters.SearchQuery)),
 		TransactionTypeFilter: string(transactionTypeFilter),
 		EditStatusFilter:      string(editStatusFilter),
 		HasPeriod:             filters.HasPeriod,

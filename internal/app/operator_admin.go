@@ -35,9 +35,12 @@ func NewListOperatorsService(operatorRepository ports.OperatorRepository) *ListO
 func (s *ListOperatorsService) Execute(ctx context.Context, cmd ListOperatorsCommand) ([]ports.OperatorSummary, error) {
 	limit := normalizeListOperatorsLimit(cmd.Limit)
 	status := normalizeListOperatorsStatus(cmd.Status)
+	canonicalQuery := CanonicalSearchQuery(cmd.Query)
+	expandedSearch := ExpandSearchQuery(cmd.Query)
 
 	return s.operatorRepository.List(ctx, ports.OperatorFilters{
-		Query:  cmd.Query,
+		Query:  canonicalQuery,
+		Search: expandedSearch.ToPortsSearchQuery(),
 		Status: status,
 		Limit:  limit,
 	})

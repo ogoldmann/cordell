@@ -60,3 +60,23 @@ Rules:
 Internal code remains in English.
 
 User-facing labels are presented in Portuguese through the web presentation layer.
+
+## Search Token Expansion
+
+Search token expansion is not a frontend concern.
+
+Live search must send the user's original query.
+
+The backend is responsible for expanding military abbreviations and operational catalog terms.
+
+Checklist:
+
+- [ ] Rank abbreviations are expanded in backend search.
+- [ ] Section abbreviations are expanded in backend search.
+- [ ] Personnel search supports rank abbreviations.
+- [ ] Personnel search supports section abbreviations.
+- [ ] Operator search supports rank abbreviations.
+- [ ] Custody ledger search supports rank abbreviations where applicable.
+- [ ] Live search keeps using the same backend rules.
+- [ ] JavaScript does not implement search semantics.
+- [ ] Original query remains visible in the UI.

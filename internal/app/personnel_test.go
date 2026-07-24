@@ -273,6 +273,24 @@ func TestListPersonnelServiceDefaultsToActiveStatusFilter(t *testing.T) {
 	}
 }
 
+func TestSearchPersonnelServiceCanonicalizesRankSearch(t *testing.T) {
+	repository := &fakePersonnelRepository{}
+	service := NewSearchPersonnelService(repository)
+
+	_, err := service.Execute(context.Background(), SearchPersonnelCommand{
+		Query:        "sd john",
+		Limit:        10,
+		StatusFilter: string(ports.RecordStatusFilterActive),
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if repository.lastSearchQuery != "private john" {
+		t.Fatalf("expected canonical query private john, got %q", repository.lastSearchQuery)
+	}
+}
+
 func TestDeactivatePersonnelServiceExecute(t *testing.T) {
 	personnel := mustBuildPersonnel(t, "personnel-1")
 

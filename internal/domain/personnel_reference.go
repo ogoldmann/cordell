@@ -34,26 +34,27 @@ type RankOption struct {
 	Label        string
 	Abbreviation string
 	Order        int
+	SearchTerms  []string
 }
 
 var rankOptions = []RankOption{
-	{Value: RankBrigadierGeneral, Label: "General de Brigada", Abbreviation: "Gen Bda", Order: 10},
-	{Value: RankColonel, Label: "Coronel", Abbreviation: "Cel", Order: 20},
-	{Value: RankLieutenantColonel, Label: "Tenente-Coronel", Abbreviation: "Ten Cel", Order: 30},
-	{Value: RankMajor, Label: "Major", Abbreviation: "Maj", Order: 40},
-	{Value: RankCaptain, Label: "Capitão", Abbreviation: "Cap", Order: 50},
-	{Value: RankFirstLieutenant, Label: "Primeiro-Tenente", Abbreviation: "1º Ten", Order: 60},
-	{Value: RankSecondLieutenant, Label: "Segundo-Tenente", Abbreviation: "2º Ten", Order: 70},
-	{Value: RankAspirant, Label: "Aspirante", Abbreviation: "Asp", Order: 80},
-	{Value: RankWarrantOfficer, Label: "Subtenente", Abbreviation: "Sub Ten", Order: 90},
-	{Value: RankFirstSergeant, Label: "Primeiro-Sargento", Abbreviation: "1º Sgt", Order: 100},
-	{Value: RankSecondSergeant, Label: "Segundo-Sargento", Abbreviation: "2º Sgt", Order: 110},
-	{Value: RankThirdSergeant, Label: "Terceiro-Sargento", Abbreviation: "3º Sgt", Order: 120},
-	{Value: RankCorporal, Label: "Cabo", Abbreviation: "Cb", Order: 130},
-	{Value: RankSoldier, Label: "Soldado", Abbreviation: "Sd", Order: 140},
-	{Value: RankVariableEffectiveCorporal, Label: "Cabo do Efetivo Variável", Abbreviation: "Cb EV", Order: 150},
-	{Value: RankVariableEffectiveSoldier, Label: "Soldado do Efetivo Variável", Abbreviation: "Sd EV", Order: 160},
-	{Value: RankStudent, Label: "Aluno", Abbreviation: "Al", Order: 170},
+	{Value: RankBrigadierGeneral, Label: "General de Brigada", Abbreviation: "Gen Bda", Order: 10, SearchTerms: []string{"general", "gen"}},
+	{Value: RankColonel, Label: "Coronel", Abbreviation: "Cel", Order: 20, SearchTerms: []string{"cel"}},
+	{Value: RankLieutenantColonel, Label: "Tenente-Coronel", Abbreviation: "Ten Cel", Order: 30, SearchTerms: []string{"ten cel", "tencel", "tenente coronel"}},
+	{Value: RankMajor, Label: "Major", Abbreviation: "Maj", Order: 40, SearchTerms: []string{"maj"}},
+	{Value: RankCaptain, Label: "Capitão", Abbreviation: "Cap", Order: 50, SearchTerms: []string{"cap"}},
+	{Value: RankFirstLieutenant, Label: "Primeiro-Tenente", Abbreviation: "1º Ten", Order: 60, SearchTerms: []string{"1 ten", "1º ten", "primeiro tenente"}},
+	{Value: RankSecondLieutenant, Label: "Segundo-Tenente", Abbreviation: "2º Ten", Order: 70, SearchTerms: []string{"2 ten", "2º ten", "segundo tenente"}},
+	{Value: RankAspirant, Label: "Aspirante", Abbreviation: "Asp", Order: 80, SearchTerms: []string{"asp"}},
+	{Value: RankWarrantOfficer, Label: "Subtenente", Abbreviation: "Sub Ten", Order: 90, SearchTerms: []string{"st", "sub ten", "subten", "subtenente"}},
+	{Value: RankFirstSergeant, Label: "Primeiro-Sargento", Abbreviation: "1º Sgt", Order: 100, SearchTerms: []string{"1 sgt", "1º sgt", "primeiro sargento"}},
+	{Value: RankSecondSergeant, Label: "Segundo-Sargento", Abbreviation: "2º Sgt", Order: 110, SearchTerms: []string{"2 sgt", "2º sgt", "segundo sargento"}},
+	{Value: RankThirdSergeant, Label: "Terceiro-Sargento", Abbreviation: "3º Sgt", Order: 120, SearchTerms: []string{"3 sgt", "3º sgt", "terceiro sargento", "sgt"}},
+	{Value: RankCorporal, Label: "Cabo", Abbreviation: "Cb", Order: 130, SearchTerms: []string{"cb"}},
+	{Value: RankSoldier, Label: "Soldado", Abbreviation: "Sd", Order: 140, SearchTerms: []string{"sd"}},
+	{Value: RankVariableEffectiveCorporal, Label: "Cabo do Efetivo Variável", Abbreviation: "Cb EV", Order: 150, SearchTerms: []string{"cb ev", "cabo ev"}},
+	{Value: RankVariableEffectiveSoldier, Label: "Soldado do Efetivo Variável", Abbreviation: "Sd EV", Order: 160, SearchTerms: []string{"sd ev", "soldado ev"}},
+	{Value: RankStudent, Label: "Aluno", Abbreviation: "Al", Order: 170, SearchTerms: []string{"al"}},
 }
 
 // RankOptions returns the available shared rank catalog options.
@@ -177,19 +178,20 @@ type PersonnelSectionOption struct {
 	Label        string
 	Abbreviation string
 	Order        int
+	SearchTerms  []string
 }
 
 var personnelSectionOptions = []PersonnelSectionOption{
-	{Value: PersonnelSectionCommand, Label: "Comando", Abbreviation: "Cmdo", Order: 10},
-	{Value: PersonnelSectionPersonnel, Label: "1ª Seção / Pessoal", Abbreviation: "S1", Order: 20},
-	{Value: PersonnelSectionIntelligence, Label: "2ª Seção / Inteligência", Abbreviation: "S2", Order: 30},
-	{Value: PersonnelSectionOperations, Label: "3ª Seção / Operações", Abbreviation: "S3", Order: 40},
-	{Value: PersonnelSectionLogistics, Label: "4ª Seção / Logística", Abbreviation: "S4", Order: 50},
-	{Value: PersonnelSectionCommunications, Label: "Comunicações", Abbreviation: "Com", Order: 60},
-	{Value: PersonnelSectionSupply, Label: "Almoxarifado", Abbreviation: "Almx", Order: 70},
-	{Value: PersonnelSectionArmory, Label: "Reserva de Armamento", Abbreviation: "Res Armt", Order: 80},
-	{Value: PersonnelSectionMaintenance, Label: "Manutenção", Abbreviation: "Mnt", Order: 90},
-	{Value: PersonnelSectionHealth, Label: "Saúde", Abbreviation: "Sau", Order: 100},
+	{Value: PersonnelSectionCommand, Label: "Comando", Abbreviation: "Cmdo", Order: 10, SearchTerms: []string{"cmdo", "comando"}},
+	{Value: PersonnelSectionPersonnel, Label: "1ª Seção / Pessoal", Abbreviation: "S1", Order: 20, SearchTerms: []string{"s1", "pessoal", "1 secao", "1 seção"}},
+	{Value: PersonnelSectionIntelligence, Label: "2ª Seção / Inteligência", Abbreviation: "S2", Order: 30, SearchTerms: []string{"s2", "inteligencia", "inteligência", "2 secao", "2 seção"}},
+	{Value: PersonnelSectionOperations, Label: "3ª Seção / Operações", Abbreviation: "S3", Order: 40, SearchTerms: []string{"s3", "operacoes", "operações", "3 secao", "3 seção"}},
+	{Value: PersonnelSectionLogistics, Label: "4ª Seção / Logística", Abbreviation: "S4", Order: 50, SearchTerms: []string{"s4", "logistica", "logística", "4 secao", "4 seção"}},
+	{Value: PersonnelSectionCommunications, Label: "Comunicações", Abbreviation: "Com", Order: 60, SearchTerms: []string{"com", "comunicacoes", "comunicações"}},
+	{Value: PersonnelSectionSupply, Label: "Almoxarifado", Abbreviation: "Almx", Order: 70, SearchTerms: []string{"almx", "almox", "almoxarifado"}},
+	{Value: PersonnelSectionArmory, Label: "Reserva de Armamento", Abbreviation: "Res Armt", Order: 80, SearchTerms: []string{"res armt", "armamento", "reserva armamento"}},
+	{Value: PersonnelSectionMaintenance, Label: "Manutenção", Abbreviation: "Mnt", Order: 90, SearchTerms: []string{"mnt", "manutencao", "manutenção"}},
+	{Value: PersonnelSectionHealth, Label: "Saúde", Abbreviation: "Sau", Order: 100, SearchTerms: []string{"sau", "saude", "saúde"}},
 }
 
 // PersonnelSectionOptions returns the available personnel section options.

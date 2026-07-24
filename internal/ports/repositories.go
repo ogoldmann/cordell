@@ -150,6 +150,7 @@ type CustodyTransactionSummaryFilters struct {
 	PageSize              int
 	Offset                int
 	SearchQuery           string
+	Search                SearchQuery
 	TransactionTypeFilter CustodyTransactionTypeFilter
 	EditStatusFilter      CustodyEditStatusFilter
 	PeriodStart           time.Time
@@ -305,8 +306,21 @@ type OperatorRepository interface {
 // OperatorFilters contains administration list filters for operator summaries.
 type OperatorFilters struct {
 	Query  string
+	Search SearchQuery
 	Status RecordStatusFilter
 	Limit  int
+}
+
+// SearchQuery contains an expanded repository-neutral search query.
+type SearchQuery struct {
+	Original string
+	Tokens   []SearchToken
+}
+
+// SearchToken contains one original token and equivalent searchable terms.
+type SearchToken struct {
+	Original string
+	Terms    []string
 }
 
 // OperatorSessionRepository persists operator sessions.

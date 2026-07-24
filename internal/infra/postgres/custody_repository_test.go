@@ -2904,4 +2904,28 @@ func TestPostgresCustodyRepositoryListTransactionSummariesSearchesEffectiveAsset
 	if summaries[0].Lines[0].AssetID != helmet.ID() {
 		t.Fatalf("expected effective asset %s, got %s", helmet.ID(), summaries[0].Lines[0].AssetID)
 	}
+
+	page, err = custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
+		PageSize:    10,
+		SearchQuery: "sergeant Helmet",
+	})
+	if err != nil {
+		t.Fatalf("expected no error searching summaries by rank and asset, got %v", err)
+	}
+
+	if len(page.Items) != 1 {
+		t.Fatalf("expected 1 summary by rank and asset, got %d", len(page.Items))
+	}
+
+	page, err = custodyRepository.ListTransactionSummaries(context.Background(), ports.CustodyTransactionSummaryFilters{
+		PageSize:    10,
+		SearchQuery: "logistics Helmet",
+	})
+	if err != nil {
+		t.Fatalf("expected no error searching summaries by section and asset, got %v", err)
+	}
+
+	if len(page.Items) != 1 {
+		t.Fatalf("expected 1 summary by section and asset, got %d", len(page.Items))
+	}
 }

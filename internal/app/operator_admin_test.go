@@ -87,6 +87,23 @@ func TestListOperatorsServiceLimitsMaximum(t *testing.T) {
 	}
 }
 
+func TestListOperatorsServiceCanonicalizesRankSearch(t *testing.T) {
+	repository := &fakeOperatorRepository{}
+	service := NewListOperatorsService(repository)
+
+	_, err := service.Execute(context.Background(), ListOperatorsCommand{
+		Query: "3º sgt silva",
+		Limit: 10,
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if repository.lastFilters.Query != "sergeant silva" {
+		t.Fatalf("expected canonical query sergeant silva, got %q", repository.lastFilters.Query)
+	}
+}
+
 func TestDeactivateOperatorServiceExecute(t *testing.T) {
 	now := time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)
 

@@ -245,6 +245,9 @@ func (q *Queries) GetOperatorSummaryByID(ctx context.Context, id string) (GetOpe
 }
 
 const listOperators = `-- name: ListOperators :many
+WITH search_terms AS (
+    SELECT unnest($2::text[]) AS search_pattern
+)
 SELECT
     id,
     registration_id,
@@ -260,20 +263,26 @@ WHERE (
     OR ($1::text = 'inactive' AND active = false)
 )
 AND (
-    $2::text = ''
-    OR alias ILIKE $2::text ESCAPE '\'
-    OR registration_id ILIKE $2::text ESCAPE '\'
-    OR rank ILIKE $2::text ESCAPE '\'
-    OR role ILIKE $2::text ESCAPE '\'
+    cardinality($2::text[]) = 0
+    OR NOT EXISTS (
+        SELECT 1
+        FROM search_terms
+        WHERE NOT (
+            alias ILIKE search_terms.search_pattern ESCAPE '\'
+            OR registration_id ILIKE search_terms.search_pattern ESCAPE '\'
+            OR rank ILIKE search_terms.search_pattern ESCAPE '\'
+            OR role ILIKE search_terms.search_pattern ESCAPE '\'
+        )
+    )
 )
 ORDER BY created_at DESC, id DESC
 LIMIT $3
 `
 
 type ListOperatorsParams struct {
-	StatusFilter  string `json:"status_filter"`
-	SearchPattern string `json:"search_pattern"`
-	LimitCount    int32  `json:"limit_count"`
+	StatusFilter   string   `json:"status_filter"`
+	SearchPatterns []string `json:"search_patterns"`
+	LimitCount     int32    `json:"limit_count"`
 }
 
 type ListOperatorsRow struct {
@@ -287,7 +296,7 @@ type ListOperatorsRow struct {
 }
 
 func (q *Queries) ListOperators(ctx context.Context, arg ListOperatorsParams) ([]ListOperatorsRow, error) {
-	rows, err := q.db.Query(ctx, listOperators, arg.StatusFilter, arg.SearchPattern, arg.LimitCount)
+	rows, err := q.db.Query(ctx, listOperators, arg.StatusFilter, arg.SearchPatterns, arg.LimitCount)
 	if err != nil {
 		return nil, err
 	}

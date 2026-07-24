@@ -782,7 +782,10 @@ func (q *Queries) ListCustodyTransactionLedgerPeriods(ctx context.Context) ([]Li
 }
 
 const listCustodyTransactionSummaries = `-- name: ListCustodyTransactionSummaries :many
-WITH correction_counts AS (
+WITH search_terms AS (
+    SELECT unnest($1::text[]) AS search_pattern
+),
+correction_counts AS (
     SELECT
         corrected_transaction_id,
         count(*)::int AS edit_count
@@ -862,42 +865,55 @@ filtered_transactions AS (
     JOIN operators o
         ON o.id = et.operator_id
     WHERE (
-        NOT $1::bool
+        NOT $2::bool
         OR (
-            et.created_at >= $2::timestamptz
-            AND et.created_at < $3::timestamptz
+            et.created_at >= $3::timestamptz
+            AND et.created_at < $4::timestamptz
         )
-    )
-    AND (
-        $4::text = 'all'
-        OR et.transaction_type = $4::text
     )
     AND (
         $5::text = 'all'
+        OR et.transaction_type = $5::text
+    )
+    AND (
+        $6::text = 'all'
         OR (
-            $5::text = 'edited'
+            $6::text = 'edited'
             AND et.edit_count > 0
         )
         OR (
-            $5::text = 'unedited'
+            $6::text = 'unedited'
             AND et.edit_count = 0
         )
     )
     AND (
-        $6::text = ''
-        OR et.id ILIKE $6::text ESCAPE '\'
-        OR ep.full_name ILIKE $6::text ESCAPE '\'
-        OR ep.alias ILIKE $6::text ESCAPE '\'
-        OR ep.registration_id ILIKE $6::text ESCAPE '\'
-        OR op.full_name ILIKE $6::text ESCAPE '\'
-        OR op.alias ILIKE $6::text ESCAPE '\'
-        OR op.registration_id ILIKE $6::text ESCAPE '\'
-        OR o.alias ILIKE $6::text ESCAPE '\'
-        OR EXISTS (
+        cardinality($1::text[]) = 0
+        OR NOT EXISTS (
             SELECT 1
-            FROM effective_lines el
-            WHERE el.transaction_id = et.id
-              AND el.asset_name ILIKE $6::text ESCAPE '\'
+            FROM search_terms
+            WHERE NOT (
+                et.id ILIKE search_terms.search_pattern ESCAPE '\'
+                OR ep.full_name ILIKE search_terms.search_pattern ESCAPE '\'
+                OR ep.alias ILIKE search_terms.search_pattern ESCAPE '\'
+                OR ep.registration_id ILIKE search_terms.search_pattern ESCAPE '\'
+                OR ep.rank ILIKE search_terms.search_pattern ESCAPE '\'
+                OR ep.section ILIKE search_terms.search_pattern ESCAPE '\'
+                OR ep.organization_unit ILIKE search_terms.search_pattern ESCAPE '\'
+                OR op.full_name ILIKE search_terms.search_pattern ESCAPE '\'
+                OR op.alias ILIKE search_terms.search_pattern ESCAPE '\'
+                OR op.registration_id ILIKE search_terms.search_pattern ESCAPE '\'
+                OR op.rank ILIKE search_terms.search_pattern ESCAPE '\'
+                OR op.section ILIKE search_terms.search_pattern ESCAPE '\'
+                OR op.organization_unit ILIKE search_terms.search_pattern ESCAPE '\'
+                OR o.alias ILIKE search_terms.search_pattern ESCAPE '\'
+                OR o.rank ILIKE search_terms.search_pattern ESCAPE '\'
+                OR EXISTS (
+                    SELECT 1
+                    FROM effective_lines el
+                    WHERE el.transaction_id = et.id
+                      AND el.asset_name ILIKE search_terms.search_pattern ESCAPE '\'
+                )
+            )
         )
     )
 ),
@@ -950,12 +966,12 @@ ORDER BY st.created_at DESC, st.id DESC, el.asset_name ASC, el.line_order ASC
 `
 
 type ListCustodyTransactionSummariesParams struct {
+	SearchPatterns        []string           `json:"search_patterns"`
 	HasPeriod             bool               `json:"has_period"`
 	PeriodStart           pgtype.Timestamptz `json:"period_start"`
 	PeriodEnd             pgtype.Timestamptz `json:"period_end"`
 	TransactionTypeFilter string             `json:"transaction_type_filter"`
 	EditStatusFilter      string             `json:"edit_status_filter"`
-	SearchPattern         string             `json:"search_pattern"`
 	OffsetCount           int32              `json:"offset_count"`
 	PageSizePlusOne       int32              `json:"page_size_plus_one"`
 }
@@ -991,12 +1007,12 @@ type ListCustodyTransactionSummariesRow struct {
 
 func (q *Queries) ListCustodyTransactionSummaries(ctx context.Context, arg ListCustodyTransactionSummariesParams) ([]ListCustodyTransactionSummariesRow, error) {
 	rows, err := q.db.Query(ctx, listCustodyTransactionSummaries,
+		arg.SearchPatterns,
 		arg.HasPeriod,
 		arg.PeriodStart,
 		arg.PeriodEnd,
 		arg.TransactionTypeFilter,
 		arg.EditStatusFilter,
-		arg.SearchPattern,
 		arg.OffsetCount,
 		arg.PageSizePlusOne,
 	)

@@ -123,11 +123,6 @@ var _ ports.OperatorRepository = (*OperatorRepository)(nil)
 
 // List retrieves operator summaries for administration.
 func (r *OperatorRepository) List(ctx context.Context, filters ports.OperatorFilters) ([]ports.OperatorSummary, error) {
-	searchPattern := ""
-	if query := strings.TrimSpace(filters.Query); query != "" {
-		searchPattern = "%" + escapeLikePattern(query) + "%"
-	}
-
 	statusFilter := filters.Status
 	if statusFilter == "" {
 		statusFilter = ports.RecordStatusFilterAll
@@ -136,9 +131,9 @@ func (r *OperatorRepository) List(ctx context.Context, filters ports.OperatorFil
 	}
 
 	rows, err := r.queries.ListOperators(ctx, db.ListOperatorsParams{
-		StatusFilter:  string(statusFilter),
-		SearchPattern: searchPattern,
-		LimitCount:    int32(filters.Limit),
+		StatusFilter:   string(statusFilter),
+		SearchPatterns: buildTextSearchPatterns(strings.TrimSpace(filters.Query)),
+		LimitCount:     int32(filters.Limit),
 	})
 	if err != nil {
 		return nil, err

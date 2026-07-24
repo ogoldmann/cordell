@@ -56,6 +56,9 @@ FROM operators
 WHERE id = @id;
 
 -- name: ListOperators :many
+WITH search_terms AS (
+    SELECT unnest(sqlc.arg(search_patterns)::text[]) AS search_pattern
+)
 SELECT
     id,
     registration_id,
@@ -71,11 +74,17 @@ WHERE (
     OR (sqlc.arg(status_filter)::text = 'inactive' AND active = false)
 )
 AND (
-    sqlc.arg(search_pattern)::text = ''
-    OR alias ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
-    OR registration_id ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
-    OR rank ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
-    OR role ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+    cardinality(sqlc.arg(search_patterns)::text[]) = 0
+    OR NOT EXISTS (
+        SELECT 1
+        FROM search_terms
+        WHERE NOT (
+            alias ILIKE search_terms.search_pattern ESCAPE '\'
+            OR registration_id ILIKE search_terms.search_pattern ESCAPE '\'
+            OR rank ILIKE search_terms.search_pattern ESCAPE '\'
+            OR role ILIKE search_terms.search_pattern ESCAPE '\'
+        )
+    )
 )
 ORDER BY created_at DESC, id DESC
 LIMIT @limit_count;

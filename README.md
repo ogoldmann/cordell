@@ -399,6 +399,24 @@ The backend owns search and filtering rules.
 
 The frontend only debounces form changes, requests server-rendered partial HTML, swaps the isolated result area, and keeps the URL in sync.
 
+## Search Token Expansion
+
+Cordell expands operational search tokens before querying repositories.
+
+Examples:
+
+- `sd john` becomes `private john`
+- `cb silva` becomes `corporal silva`
+- `3º sgt oliveira` becomes `sergeant oliveira`
+- `s1 john` becomes `personnel john`
+- `almx radio` becomes `supply radio`
+
+The browser keeps the original user query.
+
+The backend uses the canonical query for repository search.
+
+This keeps live search, normal GET search, and future APIs consistent.
+
 ## Edit Personnel
 
 Personnel records can be edited after creation.

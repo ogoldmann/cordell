@@ -24,6 +24,7 @@ type fakePersonnelRepository struct {
 	saved            []domain.Personnel
 	byID             map[domain.PersonnelID]domain.Personnel
 	lastStatusFilter ports.RecordStatusFilter
+	lastSearchQuery  string
 }
 
 func (r *fakePersonnelRepository) Save(_ context.Context, personnel domain.Personnel) error {
@@ -123,6 +124,7 @@ func (r *fakePersonnelRepository) Search(
 	statusFilter ports.RecordStatusFilter,
 ) ([]domain.Personnel, error) {
 	r.lastStatusFilter = statusFilter
+	r.lastSearchQuery = query
 
 	query = strings.ToLower(strings.TrimSpace(query))
 
@@ -439,20 +441,21 @@ func recordMatchesStatusFilter(active bool, statusFilter ports.RecordStatusFilte
 }
 
 type fakeCustodyRepository struct {
-	saved                       []domain.CustodyTransaction
-	corrections                 []domain.CustodyCorrection
-	saveErr                     error
-	currentQuantity             map[string]int
-	currentByPerson             map[domain.PersonnelID][]ports.CurrentCustodyItem
-	currentByAsset              map[domain.AssetID][]ports.CurrentAssetHolder
-	personnelWithCurrentCustody []ports.PersonnelWithCurrentCustody
-	historyByPerson             map[domain.PersonnelID][]ports.CustodyHistoryEntry
-	assetHistory                map[domain.AssetID][]ports.AssetCustodyHistoryItem
-	transactionLedgerPeriods    []ports.CustodyTransactionLedgerPeriod
-	transactionSummaries        []ports.CustodyTransactionSummary
-	receipts                    map[domain.CustodyTransactionID]ports.CustodyReceipt
-	correctionByTransactionID   map[domain.CustodyTransactionID]ports.CustodyCorrectionContext
-	correctionsByTransactionID  map[domain.CustodyTransactionID][]ports.CustodyCorrectionContext
+	saved                         []domain.CustodyTransaction
+	corrections                   []domain.CustodyCorrection
+	saveErr                       error
+	currentQuantity               map[string]int
+	currentByPerson               map[domain.PersonnelID][]ports.CurrentCustodyItem
+	currentByAsset                map[domain.AssetID][]ports.CurrentAssetHolder
+	personnelWithCurrentCustody   []ports.PersonnelWithCurrentCustody
+	historyByPerson               map[domain.PersonnelID][]ports.CustodyHistoryEntry
+	assetHistory                  map[domain.AssetID][]ports.AssetCustodyHistoryItem
+	transactionLedgerPeriods      []ports.CustodyTransactionLedgerPeriod
+	transactionSummaries          []ports.CustodyTransactionSummary
+	lastTransactionSummaryFilters ports.CustodyTransactionSummaryFilters
+	receipts                      map[domain.CustodyTransactionID]ports.CustodyReceipt
+	correctionByTransactionID     map[domain.CustodyTransactionID]ports.CustodyCorrectionContext
+	correctionsByTransactionID    map[domain.CustodyTransactionID][]ports.CustodyCorrectionContext
 }
 
 func (r *fakeCustodyRepository) SaveTransaction(_ context.Context, transaction domain.CustodyTransaction) (bool, error) {
@@ -581,8 +584,10 @@ func (r *fakeCustodyRepository) ListAssetCustodyHistory(
 
 func (r *fakeCustodyRepository) ListTransactionSummaries(
 	_ context.Context,
-	_ ports.CustodyTransactionSummaryFilters,
+	filters ports.CustodyTransactionSummaryFilters,
 ) (ports.CustodyTransactionSummaryPage, error) {
+	r.lastTransactionSummaryFilters = filters
+
 	return ports.CustodyTransactionSummaryPage{
 		Items:       r.transactionSummaries,
 		HasNextPage: false,

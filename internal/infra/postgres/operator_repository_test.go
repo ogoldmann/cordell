@@ -182,7 +182,7 @@ func TestPostgresOperatorRepositoryListFiltersByQueryAndStatus(t *testing.T) {
 	}
 
 	activeOperators, err := operatorRepository.List(context.Background(), ports.OperatorFilters{
-		Query:  "silva",
+		Query:  "sergeant silva",
 		Status: ports.RecordStatusFilterActive,
 		Limit:  10,
 	})
@@ -199,7 +199,7 @@ func TestPostgresOperatorRepositoryListFiltersByQueryAndStatus(t *testing.T) {
 	}
 
 	inactiveOperators, err := operatorRepository.List(context.Background(), ports.OperatorFilters{
-		Query:  "operator",
+		Query:  "corporal costa",
 		Status: ports.RecordStatusFilterInactive,
 		Limit:  10,
 	})

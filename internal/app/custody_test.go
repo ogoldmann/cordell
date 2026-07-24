@@ -243,6 +243,25 @@ func TestListCustodyTransactionSummariesServiceDefaultsToFirstPage(t *testing.T)
 	}
 }
 
+func TestListCustodyTransactionSummariesServiceCanonicalizesSearch(t *testing.T) {
+	custodyRepository := &fakeCustodyRepository{}
+	service := NewListCustodyTransactionSummariesService(custodyRepository)
+
+	_, err := service.Execute(context.Background(), ListCustodyTransactionSummariesCommand{
+		SearchQuery: "s1 radio",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if custodyRepository.lastTransactionSummaryFilters.SearchQuery != "personnel radio" {
+		t.Fatalf(
+			"expected canonical query personnel radio, got %q",
+			custodyRepository.lastTransactionSummaryFilters.SearchQuery,
+		)
+	}
+}
+
 func TestCustodyLedgerPeriodRange(t *testing.T) {
 	start, end, ok := custodyLedgerPeriodRange(2026, 7)
 	if !ok {

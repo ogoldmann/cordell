@@ -185,7 +185,10 @@ GROUP BY
 ORDER BY year DESC, month DESC;
 
 -- name: ListCustodyTransactionSummaries :many
-WITH correction_counts AS (
+WITH search_terms AS (
+    SELECT unnest(sqlc.arg(search_patterns)::text[]) AS search_pattern
+),
+correction_counts AS (
     SELECT
         corrected_transaction_id,
         count(*)::int AS edit_count
@@ -287,20 +290,33 @@ filtered_transactions AS (
         )
     )
     AND (
-        sqlc.arg(search_pattern)::text = ''
-        OR et.id ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
-        OR ep.full_name ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
-        OR ep.alias ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
-        OR ep.registration_id ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
-        OR op.full_name ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
-        OR op.alias ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
-        OR op.registration_id ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
-        OR o.alias ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
-        OR EXISTS (
+        cardinality(sqlc.arg(search_patterns)::text[]) = 0
+        OR NOT EXISTS (
             SELECT 1
-            FROM effective_lines el
-            WHERE el.transaction_id = et.id
-              AND el.asset_name ILIKE sqlc.arg(search_pattern)::text ESCAPE '\'
+            FROM search_terms
+            WHERE NOT (
+                et.id ILIKE search_terms.search_pattern ESCAPE '\'
+                OR ep.full_name ILIKE search_terms.search_pattern ESCAPE '\'
+                OR ep.alias ILIKE search_terms.search_pattern ESCAPE '\'
+                OR ep.registration_id ILIKE search_terms.search_pattern ESCAPE '\'
+                OR ep.rank ILIKE search_terms.search_pattern ESCAPE '\'
+                OR ep.section ILIKE search_terms.search_pattern ESCAPE '\'
+                OR ep.organization_unit ILIKE search_terms.search_pattern ESCAPE '\'
+                OR op.full_name ILIKE search_terms.search_pattern ESCAPE '\'
+                OR op.alias ILIKE search_terms.search_pattern ESCAPE '\'
+                OR op.registration_id ILIKE search_terms.search_pattern ESCAPE '\'
+                OR op.rank ILIKE search_terms.search_pattern ESCAPE '\'
+                OR op.section ILIKE search_terms.search_pattern ESCAPE '\'
+                OR op.organization_unit ILIKE search_terms.search_pattern ESCAPE '\'
+                OR o.alias ILIKE search_terms.search_pattern ESCAPE '\'
+                OR o.rank ILIKE search_terms.search_pattern ESCAPE '\'
+                OR EXISTS (
+                    SELECT 1
+                    FROM effective_lines el
+                    WHERE el.transaction_id = et.id
+                      AND el.asset_name ILIKE search_terms.search_pattern ESCAPE '\'
+                )
+            )
         )
     )
 ),

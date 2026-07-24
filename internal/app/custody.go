@@ -584,11 +584,14 @@ func (s *ListCustodyTransactionSummariesService) Execute(
 
 	pageSize := DefaultCustodyLedgerPageSize
 	offset := (page - 1) * pageSize
+	canonicalQuery := CanonicalSearchQuery(cmd.SearchQuery)
+	expandedSearch := ExpandSearchQuery(cmd.SearchQuery)
 
 	result, err := s.custodyRepository.ListTransactionSummaries(ctx, ports.CustodyTransactionSummaryFilters{
 		PageSize:              pageSize,
 		Offset:                offset,
-		SearchQuery:           cmd.SearchQuery,
+		SearchQuery:           canonicalQuery,
+		Search:                expandedSearch.ToPortsSearchQuery(),
 		TransactionTypeFilter: normalizeCustodyTransactionTypeFilter(cmd.TransactionTypeFilter),
 		EditStatusFilter:      normalizeCustodyEditStatusFilter(cmd.EditStatusFilter),
 		PeriodStart:           periodStart,
