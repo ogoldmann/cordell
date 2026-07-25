@@ -472,6 +472,9 @@
   .cursor-pointer {
     cursor: pointer;
   }
+  .resize {
+    resize: both;
+  }
   .resize-y {
     resize: vertical;
   }
@@ -2321,10 +2324,22 @@
   }
   .cordell-dashboard {
     position: relative;
-    min-height: calc(100dvh - 4.75rem);
-    padding: clamp(2rem, 7vh, 4.75rem) 1rem 6.5rem;
+    height: calc(100dvh - var(--cordell-navbar-height, 4.75rem));
+    min-height: 0;
+    padding: clamp(2rem, 7vh, 4.75rem) 1rem 5.75rem;
     color: var(--cordell-text);
-    overflow-x: hidden;
+    overflow: clip;
+  }
+  @supports not (overflow: clip) {
+    .cordell-dashboard {
+      overflow: hidden;
+    }
+  }
+  .cordell-dashboard[data-search-active="true"] {
+    height: auto;
+    min-height: calc(100dvh - var(--cordell-navbar-height, 4.75rem));
+    padding-bottom: 6.5rem;
+    overflow: visible;
   }
   .cordell-dashboard-center {
     width: min(100%, 60rem);
@@ -2341,6 +2356,7 @@
     font-size: 1.35rem;
     font-weight: 780;
     letter-spacing: 0;
+    line-height: 1.25;
     text-shadow: 0 0 26px var(--cordell-primary);
     @supports (color: color-mix(in lab, red, red)) {
       text-shadow: 0 0 26px color-mix(in srgb, var(--cordell-primary) 16%, transparent);
@@ -2363,8 +2379,11 @@
   .cordell-dashboard-welcome[data-typing-done="true"]::after {
     opacity: 0.35;
   }
-  .cordell-dashboard-welcome[hidden] {
-    display: none;
+  .cordell-dashboard-welcome[data-welcome-state="hidden"] {
+    visibility: hidden;
+  }
+  .cordell-dashboard-welcome[data-welcome-state="hidden"]::after {
+    visibility: hidden;
   }
   .cordell-dashboard-search-form {
     width: 100%;
@@ -2372,6 +2391,12 @@
   .cordell-dashboard-results {
     width: min(100%, 60rem);
     margin: 1.35rem auto 0;
+  }
+  .cordell-dashboard[data-search-active="false"] .cordell-dashboard-results {
+    margin-top: 1rem;
+  }
+  .cordell-dashboard[data-search-active="false"] .cordell-dashboard-results-empty {
+    display: none;
   }
   .cordell-dashboard-results-empty {
     width: min(100%, 46rem);

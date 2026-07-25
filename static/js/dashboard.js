@@ -1,6 +1,19 @@
 (() => {
   const welcomeSeenKey = 'cordell-dashboard-welcome-seen'
 
+  const updateNavbarHeight = () => {
+    const navbar = document.querySelector('.cordell-navbar')
+
+    if (!navbar) {
+      return
+    }
+
+    document.documentElement.style.setProperty(
+      '--cordell-navbar-height',
+      `${navbar.offsetHeight}px`,
+    )
+  }
+
   const typeText = (element, text) => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -39,11 +52,14 @@
     const alreadySeen = window.sessionStorage.getItem(welcomeSeenKey) === 'true'
 
     if (alreadySeen) {
-      welcome.hidden = true
+      welcome.dataset.welcomeState = 'hidden'
+      welcome.setAttribute('aria-hidden', 'true')
       root.dataset.welcomeVisible = 'false'
       return
     }
 
+    welcome.dataset.welcomeState = 'visible'
+    welcome.removeAttribute('aria-hidden')
     root.dataset.welcomeVisible = 'true'
 
     const text = welcome.dataset.dashboardWelcomeText || welcome.textContent.trim()
@@ -75,8 +91,11 @@
   }
 
   const setupDashboard = (root) => {
+    updateNavbarHeight()
     setupWelcome(root)
     setupSearch(root)
+
+    window.addEventListener('resize', updateNavbarHeight)
   }
 
   document.addEventListener('DOMContentLoaded', () => {
