@@ -102,6 +102,28 @@
 - [ ] Search behavior remains outside the component.
 - [ ] Live search still works.
 
+## Navbar Redesign
+
+- [ ] Brand block shows cordell.
+- [ ] Brand block shows PELOTÃO DE SEGURANÇA.
+- [ ] Developer attribution appears subtly at the top.
+- [ ] GitHub attribution uses external-link icon.
+- [ ] Navbar search is hidden on dashboard.
+- [ ] Navbar search appears on internal pages.
+- [ ] Navbar search uses compact shared search bar.
+- [ ] Home link is hidden on dashboard.
+- [ ] Navigation order is Home, Militares, Materiais, Transações, Admin.
+- [ ] Active navigation link is visually clear.
+- [ ] Admin link is hidden for non-admin operators.
+- [ ] Operator card shows display name.
+- [ ] Operator card shows role.
+- [ ] Operator dropdown opens and closes.
+- [ ] Operator dropdown contains theme selector.
+- [ ] Operator dropdown contains logout.
+- [ ] Logout uses log-out icon.
+- [ ] Navbar remains usable on tablet.
+- [ ] Navbar remains usable on mobile.
+
 ## Pages
 
 - [ ] Login page redesigned.

@@ -21,79 +21,7 @@
   <link rel="stylesheet" href="/static/css/app.css">
 </head>
 <body class="min-h-screen bg-cordell-background font-sans text-cordell-text antialiased dark:bg-cordell-dark-background dark:text-cordell-dark-text">
-  <header class="border-b border-cordell-border/80 bg-white/80 backdrop-blur dark:border-cordell-dark-border dark:bg-cordell-dark-surface/80">
-    <div class="mx-auto flex min-h-16 max-w-5xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between">
-      <a class="text-lg font-extrabold tracking-[-0.03em] text-cordell-text no-underline dark:text-cordell-dark-text" href="/">
-        Cordell
-      </a>
-
-      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
-        <nav class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium text-cordell-muted dark:text-cordell-dark-muted">
-          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/">Home</a>
-          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/personnel">Militares</a>
-          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/assets">Materiais</a>
-          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/transactions">Transações</a>
-          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/checkouts/new">Cautela</a>
-          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/custody/returns/new">Descautela</a>
-          <a class="hover:text-cordell-primary dark:hover:text-cordell-dark-primary" href="/search">Pesquisa</a>
-          {{if .CurrentOperator.CanManageOperators}}
-            <a class="rounded-full px-3 py-1.5 text-sm font-bold text-cordell-muted no-underline transition hover:bg-cordell-primary/10 hover:text-cordell-primary dark:text-cordell-dark-muted dark:hover:bg-cordell-dark-primary/10 dark:hover:text-cordell-dark-primary" href="/admin">
-              Administração
-            </a>
-          {{end}}
-        </nav>
-
-        {{if .ShowNavbarSearch}}
-          <div class="relative hidden min-w-[16rem] max-w-md flex-1 md:block" data-navbar-search>
-            <form method="get" action="/search" data-navbar-search-form>
-              <label class="sr-only" for="navbar-search-input">Pesquisar no Cordell</label>
-
-              <input
-                id="navbar-search-input"
-                class="w-full rounded-xl border border-cordell-border bg-white px-4 py-2 text-sm text-cordell-text outline-none transition placeholder:text-cordell-muted focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/10 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/10"
-                type="search"
-                name="q"
-                placeholder="Pesquisar..."
-                autocomplete="off"
-                aria-label="Pesquisar no Cordell"
-                data-navbar-search-input
-              >
-            </form>
-
-            <div
-              class="absolute left-0 right-0 top-full z-50 mt-2"
-              data-navbar-search-results
-              role="region"
-              aria-label="Sugestões de pesquisa"
-              hidden
-            ></div>
-          </div>
-        {{end}}
-
-        {{if .HasOperator}}
-          <div class="flex flex-col gap-2 md:flex-row md:items-center">
-            <span class="text-xs font-bold text-cordell-muted dark:text-cordell-dark-muted">
-              Logado como
-              <span class="text-cordell-text dark:text-cordell-dark-text">{{.CurrentOperator.DisplayName}}</span>
-              ·
-              <span class="text-cordell-primary dark:text-cordell-dark-primary">{{.CurrentOperator.RoleLabel}}</span>
-            </span>
-
-            <form method="post" action="/logout">
-              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-
-              <button
-                class="inline-flex w-fit cursor-pointer items-center justify-center rounded-full border border-cordell-border bg-white px-3 py-1.5 text-xs font-bold text-cordell-text transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
-                type="submit"
-              >
-                Sair
-              </button>
-            </form>
-          </div>
-        {{end}}
-      </div>
-    </div>
-  </header>
+  {{template "navbar" .Navbar}}
 
   <main class="mx-auto max-w-5xl px-4 py-10">
     {{template "breadcrumbs" .}}
@@ -108,6 +36,7 @@
   <script src="/static/js/ledger-period-selector.js" defer></script>
   <script src="/static/js/live-search.js" defer></script>
   <script src="/static/js/navbar-search.js" defer></script>
+  <script src="/static/js/operator-menu.js" defer></script>
 </body>
 </html>
 {{end}}

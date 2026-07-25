@@ -275,32 +275,14 @@
     white-space: nowrap;
     border-width: 0;
   }
-  .absolute {
-    position: absolute;
-  }
   .fixed {
     position: fixed;
-  }
-  .relative {
-    position: relative;
   }
   .static {
     position: static;
   }
   .inset-0 {
     inset: 0;
-  }
-  .top-full {
-    top: 100%;
-  }
-  .right-0 {
-    right: 0;
-  }
-  .left-0 {
-    left: 0;
-  }
-  .z-50 {
-    z-index: 50;
   }
   .container {
     width: 100%;
@@ -430,9 +412,6 @@
   .max-h-\[calc\(100vh-2rem\)\] {
     max-height: calc(100vh - 2rem);
   }
-  .min-h-16 {
-    min-height: calc(var(--spacing) * 16);
-  }
   .min-h-24 {
     min-height: calc(var(--spacing) * 24);
   }
@@ -481,14 +460,8 @@
   .min-w-0 {
     min-width: 0;
   }
-  .min-w-\[16rem\] {
-    min-width: 16rem;
-  }
   .min-w-full {
     min-width: 100%;
-  }
-  .flex-1 {
-    flex: 1;
   }
   .grow {
     flex-grow: 1;
@@ -549,12 +522,6 @@
   }
   .gap-6 {
     gap: calc(var(--spacing) * 6);
-  }
-  .gap-x-4 {
-    column-gap: calc(var(--spacing) * 4);
-  }
-  .gap-y-2 {
-    row-gap: calc(var(--spacing) * 2);
   }
   .divide-y {
     :where(& > :not(:last-child)) {
@@ -630,12 +597,6 @@
   }
   .border-cordell-border {
     border-color: var(--color-cordell-border);
-  }
-  .border-cordell-border\/80 {
-    border-color: var(--color-cordell-border);
-    @supports (color: color-mix(in lab, red, red)) {
-      border-color: color-mix(in oklab, var(--color-cordell-border) 80%, transparent);
-    }
   }
   .border-cordell-danger-border {
     border-color: var(--color-cordell-danger-border);
@@ -760,12 +721,6 @@
       background-color: color-mix(in oklab, var(--color-white) 70%, transparent);
     }
   }
-  .bg-white\/80 {
-    background-color: color-mix(in srgb, #fff 80%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-white) 80%, transparent);
-    }
-  }
   .bg-linear-to-br {
     --tw-gradient-position: to bottom right;
     @supports (background-image: linear-gradient(in lab, red, red)) {
@@ -823,9 +778,6 @@
   .py-1 {
     padding-block: var(--spacing);
   }
-  .py-1\.5 {
-    padding-block: calc(var(--spacing) * 1.5);
-  }
   .py-2 {
     padding-block: calc(var(--spacing) * 2);
   }
@@ -834,9 +786,6 @@
   }
   .py-3 {
     padding-block: calc(var(--spacing) * 3);
-  }
-  .py-4 {
-    padding-block: calc(var(--spacing) * 4);
   }
   .py-6 {
     padding-block: calc(var(--spacing) * 6);
@@ -1012,6 +961,10 @@
     --tw-shadow: 0 25px 50px -12px var(--tw-shadow-color, rgb(0 0 0 / 0.25));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
+  .shadow-cordell-lifted {
+    --tw-shadow: 0 24px 80px var(--tw-shadow-color, rgb(15 23 42 / 0.14));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
   .shadow-lg {
     --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
@@ -1036,23 +989,12 @@
       --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-slate-900) 5%, transparent) var(--tw-shadow-alpha), transparent);
     }
   }
-  .shadow-slate-900\/15 {
-    --tw-shadow-color: color-mix(in srgb, oklch(20.8% 0.042 265.755) 15%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-slate-900) 15%, transparent) var(--tw-shadow-alpha), transparent);
-    }
-  }
   .sepia {
     --tw-sepia: sepia(100%);
     filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
   }
   .filter {
     filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
-  }
-  .backdrop-blur {
-    --tw-backdrop-blur: blur(8px);
-    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);
-    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);
   }
   .transition {
     transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events;
@@ -1062,11 +1004,6 @@
   .outline-none {
     --tw-outline-style: none;
     outline-style: none;
-  }
-  .placeholder\:text-cordell-muted {
-    &::placeholder {
-      color: var(--color-cordell-muted);
-    }
   }
   .placeholder\:text-cordell-muted\/70 {
     &::placeholder {
@@ -1144,16 +1081,6 @@
       }
     }
   }
-  .hover\:bg-cordell-primary\/10 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-cordell-primary);
-        @supports (color: color-mix(in lab, red, red)) {
-          background-color: color-mix(in oklab, var(--color-cordell-primary) 10%, transparent);
-        }
-      }
-    }
-  }
   .hover\:text-cordell-primary {
     &:hover {
       @media (hover: hover) {
@@ -1192,14 +1119,6 @@
     &:focus {
       --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
       box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
-    }
-  }
-  .focus\:ring-cordell-primary\/10 {
-    &:focus {
-      --tw-ring-color: var(--color-cordell-primary);
-      @supports (color: color-mix(in lab, red, red)) {
-        --tw-ring-color: color-mix(in oklab, var(--color-cordell-primary) 10%, transparent);
-      }
     }
   }
   .focus\:ring-cordell-primary\/15 {
@@ -1296,11 +1215,6 @@
       grid-column: span 3 / span 3;
     }
   }
-  .md\:block {
-    @media (width >= 48rem) {
-      display: block;
-    }
-  }
   .md\:grid-cols-2 {
     @media (width >= 48rem) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1331,11 +1245,6 @@
       flex-direction: row;
     }
   }
-  .md\:items-center {
-    @media (width >= 48rem) {
-      align-items: center;
-    }
-  }
   .md\:items-end {
     @media (width >= 48rem) {
       align-items: flex-end;
@@ -1349,11 +1258,6 @@
   .md\:justify-between {
     @media (width >= 48rem) {
       justify-content: space-between;
-    }
-  }
-  .md\:justify-end {
-    @media (width >= 48rem) {
-      justify-content: flex-end;
     }
   }
   .lg\:grid-cols-2 {
@@ -1728,13 +1632,6 @@
       }
     }
   }
-  .dark\:placeholder\:text-cordell-dark-muted {
-    &:where([data-theme="dark"], [data-theme="dark"] *) {
-      &::placeholder {
-        color: var(--color-cordell-dark-muted);
-      }
-    }
-  }
   .dark\:placeholder\:text-cordell-dark-muted\/70 {
     &:where([data-theme="dark"], [data-theme="dark"] *) {
       &::placeholder {
@@ -1766,18 +1663,6 @@
       }
     }
   }
-  .dark\:hover\:bg-cordell-dark-primary\/10 {
-    &:where([data-theme="dark"], [data-theme="dark"] *) {
-      &:hover {
-        @media (hover: hover) {
-          background-color: var(--color-cordell-dark-primary);
-          @supports (color: color-mix(in lab, red, red)) {
-            background-color: color-mix(in oklab, var(--color-cordell-dark-primary) 10%, transparent);
-          }
-        }
-      }
-    }
-  }
   .dark\:hover\:text-cordell-dark-primary {
     &:where([data-theme="dark"], [data-theme="dark"] *) {
       &:hover {
@@ -1791,16 +1676,6 @@
     &:where([data-theme="dark"], [data-theme="dark"] *) {
       &:focus {
         border-color: var(--color-cordell-dark-primary);
-      }
-    }
-  }
-  .dark\:focus\:ring-cordell-dark-primary\/10 {
-    &:where([data-theme="dark"], [data-theme="dark"] *) {
-      &:focus {
-        --tw-ring-color: var(--color-cordell-dark-primary);
-        @supports (color: color-mix(in lab, red, red)) {
-          --tw-ring-color: color-mix(in oklab, var(--color-cordell-dark-primary) 10%, transparent);
-        }
       }
     }
   }
@@ -2062,6 +1937,313 @@
     }
     .cordell-search-default .cordell-search-frame {
       min-height: 2.85rem;
+    }
+  }
+  .cordell-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    border-bottom: 1px solid var(--cordell-border);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-bottom: 1px solid color-mix(in srgb, var(--cordell-border) 88%, transparent);
+    }
+    background: linear-gradient( 180deg, var(--cordell-surface), var(--cordell-surface) );
+    @supports (color: color-mix(in lab, red, red)) {
+      background: linear-gradient( 180deg, color-mix(in srgb, var(--cordell-surface) 92%, transparent), color-mix(in srgb, var(--cordell-surface) 80%, transparent) );
+    }
+    backdrop-filter: blur(18px);
+  }
+  .cordell-navbar-devline {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 1.15rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--cordell-subtle);
+    letter-spacing: 0;
+  }
+  .cordell-navbar-devline a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    color: var(--cordell-muted);
+    text-decoration: none;
+  }
+  .cordell-navbar-devline a:hover {
+    color: var(--cordell-primary);
+  }
+  .cordell-navbar-inner {
+    display: grid;
+    grid-template-columns: auto minmax(16rem, 28rem) auto auto;
+    align-items: center;
+    gap: 1rem;
+    width: min(100% - 2rem, 92rem);
+    margin: 0 auto;
+    padding: 0.75rem 0 0.9rem;
+  }
+  .cordell-navbar-brand {
+    display: inline-flex;
+    flex-direction: column;
+    min-width: max-content;
+    text-decoration: none;
+  }
+  .cordell-navbar-brand-name {
+    font-size: 1.3rem;
+    font-weight: 950;
+    line-height: 1;
+    letter-spacing: 0;
+    color: var(--cordell-text);
+  }
+  .cordell-navbar-section {
+    margin-top: 0.2rem;
+    font-size: 0.66rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 0;
+    color: var(--cordell-muted);
+  }
+  .cordell-navbar-search {
+    position: relative;
+    animation: cordell-navbar-search-enter 180ms ease both;
+  }
+  .cordell-navbar-search-results {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 0.55rem);
+    z-index: 50;
+  }
+  .cordell-navbar-links {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    min-width: max-content;
+  }
+  .cordell-navbar-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border-radius: var(--radius-cordell-md);
+    padding: 0.6rem 0.75rem;
+    color: var(--cordell-muted);
+    font-size: 0.875rem;
+    font-weight: 850;
+    text-decoration: none;
+    transition: color 160ms ease, background-color 160ms ease, transform 160ms ease;
+  }
+  .cordell-navbar-link:hover {
+    background: var(--cordell-surface-muted);
+    color: var(--cordell-text);
+    transform: translateY(-1px);
+  }
+  .cordell-navbar-link-active {
+    background: var(--cordell-primary-soft);
+    color: var(--cordell-primary);
+  }
+  .cordell-operator-menu {
+    position: relative;
+    min-width: 14rem;
+  }
+  .cordell-operator-button {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-lg);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-text);
+    padding: 0.35rem 0.4rem;
+    cursor: pointer;
+    box-shadow: 0 14px 38px rgb(15 23 42 / 0.06);
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  }
+  .cordell-operator-button:hover, .cordell-operator-menu[data-open="true"] .cordell-operator-button {
+    border-color: var(--cordell-primary);
+    box-shadow: var(--shadow-cordell-soft);
+    transform: translateY(-1px);
+  }
+  .cordell-operator-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.45rem;
+    height: 2.45rem;
+    border-radius: var(--radius-cordell-md);
+    background: linear-gradient( 135deg, var(--cordell-primary), var(--cordell-secondary) );
+    @supports (color: color-mix(in lab, red, red)) {
+      background: linear-gradient( 135deg, var(--cordell-primary), color-mix(in srgb, var(--cordell-secondary) 70%, var(--cordell-primary) 30%) );
+    }
+    color: var(--cordell-primary-text);
+    font-size: 0.78rem;
+    font-weight: 950;
+  }
+  .cordell-operator-text {
+    min-width: 0;
+    text-align: left;
+  }
+  .cordell-operator-name {
+    display: block;
+    overflow: hidden;
+    color: var(--cordell-text);
+    font-size: 0.86rem;
+    font-weight: 950;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .cordell-operator-role {
+    display: block;
+    margin-top: 0.15rem;
+    overflow: hidden;
+    color: var(--cordell-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .cordell-operator-chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: var(--radius-cordell-sm);
+    background: var(--cordell-surface-muted);
+    color: var(--cordell-muted);
+    transition: transform 160ms ease;
+  }
+  .cordell-operator-menu[data-open="true"] .cordell-operator-chevron {
+    transform: rotate(180deg);
+  }
+  .cordell-operator-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.6rem);
+    z-index: 60;
+    width: min(22rem, calc(100vw - 2rem));
+    overflow: hidden;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-xl);
+    background: var(--cordell-surface-raised);
+    box-shadow: var(--shadow-cordell-lifted);
+  }
+  .cordell-operator-dropdown-section {
+    padding: 0.85rem;
+  }
+  .cordell-operator-dropdown-section + .cordell-operator-dropdown-section {
+    border-top: 1px solid var(--cordell-border);
+  }
+  .cordell-operator-dropdown-heading {
+    margin: 0 0 0.65rem;
+    color: var(--cordell-muted);
+    font-size: 0.7rem;
+    font-weight: 950;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+  .cordell-logout-button {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    border: 0;
+    border-radius: var(--radius-cordell-md);
+    background: transparent;
+    color: var(--cordell-negative-text);
+    padding: 0.75rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+  .cordell-logout-button:hover {
+    background: var(--cordell-negative-soft);
+  }
+  @keyframes cordell-navbar-search-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-0.25rem) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  @media (max-width: 1180px) {
+    .cordell-navbar-inner {
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas: "brand search operator" "links links links";
+      gap: 0.75rem;
+    }
+    .cordell-navbar-brand {
+      grid-area: brand;
+    }
+    .cordell-navbar-search {
+      grid-area: search;
+    }
+    .cordell-navbar-links {
+      grid-area: links;
+      justify-content: flex-start;
+      overflow-x: auto;
+      padding-bottom: 0.15rem;
+      scrollbar-width: none;
+    }
+    .cordell-navbar-links::-webkit-scrollbar {
+      display: none;
+    }
+    .cordell-operator-menu {
+      grid-area: operator;
+    }
+  }
+  @media (max-width: 760px) {
+    .cordell-navbar-devline {
+      display: none;
+    }
+    .cordell-navbar-inner {
+      width: min(100% - 1rem, 92rem);
+      grid-template-columns: 1fr auto;
+      grid-template-areas: "brand operator" "search search" "links links";
+      padding: 0.65rem 0;
+    }
+    .cordell-navbar-search {
+      width: 100%;
+    }
+    .cordell-navbar-link {
+      padding: 0.55rem 0.65rem;
+      font-size: 0.82rem;
+    }
+    .cordell-operator-menu {
+      min-width: 0;
+    }
+    .cordell-operator-button {
+      width: auto;
+      grid-template-columns: auto auto;
+    }
+    .cordell-operator-text {
+      display: none;
+    }
+    .cordell-operator-dropdown {
+      right: 0;
+    }
+  }
+  @media (max-width: 520px) {
+    .cordell-navbar-search {
+      display: none;
+    }
+    .cordell-navbar-links {
+      gap: 0.25rem;
+    }
+    .cordell-navbar-link span {
+      display: none;
+    }
+    .cordell-navbar-link {
+      justify-content: center;
+      min-width: 2.6rem;
     }
   }
   .cordell-shell {
@@ -2353,42 +2535,6 @@
   syntax: "*";
   inherits: false;
 }
-@property --tw-backdrop-blur {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-backdrop-brightness {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-backdrop-contrast {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-backdrop-grayscale {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-backdrop-hue-rotate {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-backdrop-invert {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-backdrop-opacity {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-backdrop-saturate {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-backdrop-sepia {
-  syntax: "*";
-  inherits: false;
-}
 @property --tw-translate-x {
   syntax: "*";
   inherits: false;
@@ -2448,15 +2594,6 @@
       --tw-drop-shadow-color: initial;
       --tw-drop-shadow-alpha: 100%;
       --tw-drop-shadow-size: initial;
-      --tw-backdrop-blur: initial;
-      --tw-backdrop-brightness: initial;
-      --tw-backdrop-contrast: initial;
-      --tw-backdrop-grayscale: initial;
-      --tw-backdrop-hue-rotate: initial;
-      --tw-backdrop-invert: initial;
-      --tw-backdrop-opacity: initial;
-      --tw-backdrop-saturate: initial;
-      --tw-backdrop-sepia: initial;
       --tw-translate-x: 0;
       --tw-translate-y: 0;
       --tw-translate-z: 0;

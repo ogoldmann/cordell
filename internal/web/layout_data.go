@@ -8,6 +8,7 @@ type privateLayoutData struct {
 	HasOperator      bool
 	ShowNavbarSearch bool
 	ThemeSelector    themeSelectorView
+	Navbar           navbarView
 	Breadcrumbs      []breadcrumbItemView
 }
 
@@ -24,5 +25,12 @@ func newPrivateLayoutData(r *http.Request) privateLayoutData {
 		data.HasOperator = true
 	}
 
+	data.Navbar = newNavbarView(r, data)
+
 	return data
+}
+
+func (data *privateLayoutData) HideNavbarSearch() {
+	data.ShowNavbarSearch = false
+	data.Navbar.ShowSearch = false
 }

@@ -373,6 +373,377 @@
     }
   }
 
+  .cordell-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    border-bottom: 1px solid color-mix(in srgb, var(--cordell-border) 88%, transparent);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--cordell-surface) 92%, transparent),
+        color-mix(in srgb, var(--cordell-surface) 80%, transparent)
+      );
+    backdrop-filter: blur(18px);
+  }
+
+  .cordell-navbar-devline {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 1.15rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--cordell-subtle);
+    letter-spacing: 0;
+  }
+
+  .cordell-navbar-devline a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    color: var(--cordell-muted);
+    text-decoration: none;
+  }
+
+  .cordell-navbar-devline a:hover {
+    color: var(--cordell-primary);
+  }
+
+  .cordell-navbar-inner {
+    display: grid;
+    grid-template-columns: auto minmax(16rem, 28rem) auto auto;
+    align-items: center;
+    gap: 1rem;
+    width: min(100% - 2rem, 92rem);
+    margin: 0 auto;
+    padding: 0.75rem 0 0.9rem;
+  }
+
+  .cordell-navbar-brand {
+    display: inline-flex;
+    flex-direction: column;
+    min-width: max-content;
+    text-decoration: none;
+  }
+
+  .cordell-navbar-brand-name {
+    font-size: 1.3rem;
+    font-weight: 950;
+    line-height: 1;
+    letter-spacing: 0;
+    color: var(--cordell-text);
+  }
+
+  .cordell-navbar-section {
+    margin-top: 0.2rem;
+    font-size: 0.66rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 0;
+    color: var(--cordell-muted);
+  }
+
+  .cordell-navbar-search {
+    position: relative;
+    animation: cordell-navbar-search-enter 180ms ease both;
+  }
+
+  .cordell-navbar-search-results {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 0.55rem);
+    z-index: 50;
+  }
+
+  .cordell-navbar-links {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    min-width: max-content;
+  }
+
+  .cordell-navbar-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border-radius: var(--radius-cordell-md);
+    padding: 0.6rem 0.75rem;
+    color: var(--cordell-muted);
+    font-size: 0.875rem;
+    font-weight: 850;
+    text-decoration: none;
+    transition:
+      color 160ms ease,
+      background-color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .cordell-navbar-link:hover {
+    background: var(--cordell-surface-muted);
+    color: var(--cordell-text);
+    transform: translateY(-1px);
+  }
+
+  .cordell-navbar-link-active {
+    background: var(--cordell-primary-soft);
+    color: var(--cordell-primary);
+  }
+
+  .cordell-operator-menu {
+    position: relative;
+    min-width: 14rem;
+  }
+
+  .cordell-operator-button {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-lg);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-text);
+    padding: 0.35rem 0.4rem;
+    cursor: pointer;
+    box-shadow: 0 14px 38px rgb(15 23 42 / 0.06);
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      transform 160ms ease;
+  }
+
+  .cordell-operator-button:hover,
+  .cordell-operator-menu[data-open="true"] .cordell-operator-button {
+    border-color: var(--cordell-primary);
+    box-shadow: var(--shadow-cordell-soft);
+    transform: translateY(-1px);
+  }
+
+  .cordell-operator-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.45rem;
+    height: 2.45rem;
+    border-radius: var(--radius-cordell-md);
+    background:
+      linear-gradient(
+        135deg,
+        var(--cordell-primary),
+        color-mix(in srgb, var(--cordell-secondary) 70%, var(--cordell-primary) 30%)
+      );
+    color: var(--cordell-primary-text);
+    font-size: 0.78rem;
+    font-weight: 950;
+  }
+
+  .cordell-operator-text {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .cordell-operator-name {
+    display: block;
+    overflow: hidden;
+    color: var(--cordell-text);
+    font-size: 0.86rem;
+    font-weight: 950;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cordell-operator-role {
+    display: block;
+    margin-top: 0.15rem;
+    overflow: hidden;
+    color: var(--cordell-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cordell-operator-chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: var(--radius-cordell-sm);
+    background: var(--cordell-surface-muted);
+    color: var(--cordell-muted);
+    transition: transform 160ms ease;
+  }
+
+  .cordell-operator-menu[data-open="true"] .cordell-operator-chevron {
+    transform: rotate(180deg);
+  }
+
+  .cordell-operator-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.6rem);
+    z-index: 60;
+    width: min(22rem, calc(100vw - 2rem));
+    overflow: hidden;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-xl);
+    background: var(--cordell-surface-raised);
+    box-shadow: var(--shadow-cordell-lifted);
+  }
+
+  .cordell-operator-dropdown-section {
+    padding: 0.85rem;
+  }
+
+  .cordell-operator-dropdown-section + .cordell-operator-dropdown-section {
+    border-top: 1px solid var(--cordell-border);
+  }
+
+  .cordell-operator-dropdown-heading {
+    margin: 0 0 0.65rem;
+    color: var(--cordell-muted);
+    font-size: 0.7rem;
+    font-weight: 950;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .cordell-logout-button {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    border: 0;
+    border-radius: var(--radius-cordell-md);
+    background: transparent;
+    color: var(--cordell-negative-text);
+    padding: 0.75rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .cordell-logout-button:hover {
+    background: var(--cordell-negative-soft);
+  }
+
+  @keyframes cordell-navbar-search-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-0.25rem) scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @media (max-width: 1180px) {
+    .cordell-navbar-inner {
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas:
+        "brand search operator"
+        "links links links";
+      gap: 0.75rem;
+    }
+
+    .cordell-navbar-brand {
+      grid-area: brand;
+    }
+
+    .cordell-navbar-search {
+      grid-area: search;
+    }
+
+    .cordell-navbar-links {
+      grid-area: links;
+      justify-content: flex-start;
+      overflow-x: auto;
+      padding-bottom: 0.15rem;
+      scrollbar-width: none;
+    }
+
+    .cordell-navbar-links::-webkit-scrollbar {
+      display: none;
+    }
+
+    .cordell-operator-menu {
+      grid-area: operator;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .cordell-navbar-devline {
+      display: none;
+    }
+
+    .cordell-navbar-inner {
+      width: min(100% - 1rem, 92rem);
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        "brand operator"
+        "search search"
+        "links links";
+      padding: 0.65rem 0;
+    }
+
+    .cordell-navbar-search {
+      width: 100%;
+    }
+
+    .cordell-navbar-link {
+      padding: 0.55rem 0.65rem;
+      font-size: 0.82rem;
+    }
+
+    .cordell-operator-menu {
+      min-width: 0;
+    }
+
+    .cordell-operator-button {
+      width: auto;
+      grid-template-columns: auto auto;
+    }
+
+    .cordell-operator-text {
+      display: none;
+    }
+
+    .cordell-operator-dropdown {
+      right: 0;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .cordell-navbar-search {
+      display: none;
+    }
+
+    .cordell-navbar-links {
+      gap: 0.25rem;
+    }
+
+    .cordell-navbar-link span {
+      display: none;
+    }
+
+    .cordell-navbar-link {
+      justify-content: center;
+      min-width: 2.6rem;
+    }
+  }
+
   .cordell-shell {
     min-height: 100vh;
     background:

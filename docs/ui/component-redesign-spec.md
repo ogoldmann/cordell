@@ -12,7 +12,7 @@ They are used in:
 - asset list
 - custody transaction ledger
 - admin operators list
-- navbar search, after navbar redesign
+- navbar search
 
 ### Visual rules
 
@@ -77,44 +77,41 @@ On small screens, parent layouts may stack it or move it into a future mobile se
 
 ## Navbar
 
-The navbar is global.
+The global authenticated navbar contains:
 
-Layout order:
-
-1. Brand block
-2. Global search, only outside the dashboard
+1. Cordell brand block
+2. Navbar global search, except on dashboard
 3. Navigation links
 4. Connected operator card
 
 ### Brand block
 
-Shows:
+The brand block shows:
 
 - cordell
 - PELOTÃO DE SEGURANÇA
 
-The section name appears below "cordell", smaller, bold, and visually muted.
+The section name is small, bold, and muted.
 
 ### Developer attribution
 
-At the absolute top center of the navbar area:
+The navbar shows a very small top-centered attribution:
 
-- desenvolvido por sd galliac • github [external-link icon]
+- desenvolvido por sd galliac • github
 
-This must be very small and visually subtle.
+The GitHub link uses the Lucide external-link icon.
 
-### Navbar search
+### Search behavior
 
-The navbar search uses the shared search bar pattern.
+Navbar search is visible on internal pages and hidden on the dashboard.
 
-Behavior:
+It uses the shared compact search bar component.
 
-- hidden on dashboard/home
-- visible on internal pages
-- lightly animated when appearing after leaving home
-- Enter opens full search page
-- suggestions appear while typing
-- no business search logic in JavaScript
+It shows suggestions while typing.
+
+Pressing Enter opens `/search?q=...`.
+
+On very small screens, navbar search may be hidden to preserve navigation usability.
 
 ### Navigation links
 
@@ -126,34 +123,28 @@ Order:
 - Transações
 - Admin
 
-Home link behavior:
+Home is hidden on the dashboard.
 
-- visible only outside the dashboard
-- hidden on dashboard
-- hiding/showing should not visually disturb the navbar layout
+Admin is shown only to admin operators.
 
-### Connected operator card
+### Operator card
 
-Shows:
+The connected operator appears as a rectangular card.
 
-- operator rank abbreviation and alias
-- role below
-- chevron/down button area
+It shows:
+
+- operator rank and alias
+- role
+- dropdown chevron
 
 The whole card is clickable.
 
-Dropdown options:
+The dropdown contains:
 
-- Theme
-- Sair
+- theme selector
+- logout action
 
-Logout should use a door/log-out icon.
-
-Theme selection should support:
-
-- light
-- dark
-- sepia
+Logout uses the Lucide log-out icon.
 
 ## Transaction card
 

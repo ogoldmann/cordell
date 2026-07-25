@@ -1,6 +1,6 @@
 {{define "navbar_search_suggestions"}}
   {{if .HasQuery}}
-    <div class="overflow-hidden rounded-2xl border border-cordell-border bg-white shadow-2xl shadow-slate-900/15 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+    <div class="overflow-hidden rounded-2xl border border-cordell-border bg-cordell-surface-raised shadow-cordell-lifted">
       {{if or .Personnel .Assets}}
         <div class="max-h-[28rem] overflow-y-auto p-2">
           {{if .Personnel}}

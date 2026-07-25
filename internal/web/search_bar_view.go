@@ -22,6 +22,7 @@ type searchBarView struct {
 	ButtonClass        string
 	IconClass          string
 	MobilePanelEnabled bool
+	NavbarSearchInput  bool
 }
 
 func newSearchBar(id string, value string, placeholder string) searchBarView {
@@ -57,6 +58,13 @@ func newCompactSearchBar(id string, value string, placeholder string) searchBarV
 	view.Variant = searchBarVariantCompact
 	view.ShellClass = "cordell-search cordell-search-compact"
 	view.IconClass = "size-4"
+
+	return view
+}
+
+func newNavbarSearchBar() searchBarView {
+	view := newCompactSearchBar("navbar-search-input", "", "Pesquisar...")
+	view.NavbarSearchInput = true
 
 	return view
 }
