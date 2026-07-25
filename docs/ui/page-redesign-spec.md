@@ -2,32 +2,36 @@
 
 ## Login page
 
+Status: redesigned.
+
+The login page uses a minimalist operational visual style.
+
 Design:
 
-- top center: cordell
-- right side of brand/header line: theme selector symbol
+- small centered Cordell brand at top
+- section label below brand
+- theme selector on the top right
 - centered vertical login card
-- rounded card
-- blurred/glass-like background
-- card title: login
+- moderate rounded corners
+- subtle blur surface
+- title: login
 - subtitle: faça login na sua conta para continuar
 - fields:
   - Identidade
   - Senha
+- solid theme-aware background
+- subtle rising particles
+- subtle primary glow
 
-Background:
+Rules:
 
-- solid theme-dependent background
-- small rounded particles moving upward
-- subtle glow effect
-- in dark mode, glow should use the primary orange
-- in other themes, use the best fitting warm tone
-
-Behavior:
-
-- theme selector available before login
-- login remains simple and focused
-- no distracting navigation
+- authentication behavior must remain unchanged
+- CSRF must remain enabled
+- return_to must remain preserved if present
+- theme can be selected before login
+- no oversized card
+- no playful particles
+- no excessive rounding
 
 ## Home / Dashboard
 

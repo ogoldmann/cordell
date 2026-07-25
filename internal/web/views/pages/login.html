@@ -1,78 +1,111 @@
 {{define "login.html"}}
-{{template "public_layout_start" .}}
+<!doctype html>
+<html lang="pt-BR" data-theme="light" class="min-h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}} · Cordell</title>
 
+  <script>
+    (() => {
+      const storageKey = 'cordell-theme'
+      const allowedThemes = ['light', 'dark', 'sepia']
+      const storedTheme = window.localStorage.getItem(storageKey)
+      const theme = allowedThemes.includes(storedTheme) ? storedTheme : 'dark'
 
+      document.documentElement.dataset.theme = theme
+      document.documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'light'
+    })()
+  </script>
 
-<section class="mx-auto max-w-md">
-  <div class="mx-auto mb-6 max-w-xs">
-    {{template "theme_selector" .ThemeSelector}}
-  </div>
-
-  <div class="mb-6">
-    <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-      Authentication
-    </p>
-
-    <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
-      Login
-    </h1>
-
-    <p class="mt-3 text-cordell-muted dark:text-cordell-dark-muted">
-      Sign in as a Cordell operator.
-    </p>
-  </div>
-
-  {{if .Error}}
-    <div class="mb-4 rounded-2xl border border-cordell-danger-border bg-cordell-danger-surface px-4 py-3 font-medium text-cordell-danger-text">
-      {{.Error}}
-    </div>
-  {{end}}
-
-  <form
-    class="rounded-3xl border border-cordell-border bg-cordell-surface p-6 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface"
-    method="post"
-    action="/login"
-  >
-    <input type="hidden" name="return_to" value="{{.ReturnTo}}">
-    
-    <div class="grid gap-4">
-      <div class="grid gap-2">
-        <label class="text-sm font-bold" for="registration_id">Registration ID</label>
-        <input
-          class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-          id="registration_id"
-          name="registration_id"
-          type="text"
-          value="{{.RegistrationID}}"
-          inputmode="numeric"
-          autocomplete="username"
-          required
-        >
-      </div>
-
-      <div class="grid gap-2">
-        <label class="text-sm font-bold" for="password">Password</label>
-        <input
-          class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-          id="password"
-          name="password"
-          type="password"
-          autocomplete="current-password"
-          required
-        >
-      </div>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="min-h-screen bg-cordell-background font-sans text-cordell-text antialiased dark:bg-cordell-dark-background dark:text-cordell-dark-text">
+  <main class="cordell-login-page">
+    <div class="cordell-login-particles" aria-hidden="true">
+      <span class="cordell-login-particle" style="left: 8%; animation-duration: 18s; animation-delay: -4s;"></span>
+      <span class="cordell-login-particle" style="left: 18%; animation-duration: 24s; animation-delay: -12s;"></span>
+      <span class="cordell-login-particle" style="left: 29%; animation-duration: 20s; animation-delay: -8s;"></span>
+      <span class="cordell-login-particle" style="left: 41%; animation-duration: 28s; animation-delay: -15s;"></span>
+      <span class="cordell-login-particle" style="left: 52%; animation-duration: 22s; animation-delay: -6s;"></span>
+      <span class="cordell-login-particle" style="left: 63%; animation-duration: 26s; animation-delay: -18s;"></span>
+      <span class="cordell-login-particle" style="left: 74%; animation-duration: 21s; animation-delay: -10s;"></span>
+      <span class="cordell-login-particle" style="left: 86%; animation-duration: 27s; animation-delay: -20s;"></span>
+      <span class="cordell-login-particle" style="left: 94%; animation-duration: 19s; animation-delay: -7s;"></span>
     </div>
 
-    <div class="mt-6">
-      <button
-        class="inline-flex w-full cursor-pointer items-center justify-center rounded-xl border-0 bg-cordell-primary px-4 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
-        type="submit"
-      >
-        Login
-      </button>
-    </div>
-  </form>
-</section>
+    <div class="cordell-login-shell">
+      <header class="cordell-login-topbar">
+        <a class="cordell-login-brand" href="/login" aria-label="Cordell">
+          <span class="cordell-login-brand-name">cordell</span>
+          <span class="cordell-login-brand-section">PELOTÃO DE SEGURANÇA</span>
+        </a>
 
-{{template "public_layout_end" .}}
+        <div class="cordell-login-theme">
+          {{template "theme_selector" .ThemeSelector}}
+        </div>
+      </header>
+
+      <section class="cordell-login-main" aria-labelledby="login-title">
+        <div class="cordell-login-card">
+          <div class="cordell-login-card-inner">
+            <h1 id="login-title" class="cordell-login-heading">login</h1>
+
+            <p class="cordell-login-subtitle">
+              faça login na sua conta para continuar
+            </p>
+
+            <form class="cordell-login-form" method="post" action="/login">
+              {{if .ReturnTo}}
+                <input type="hidden" name="return_to" value="{{.ReturnTo}}">
+              {{end}}
+
+              {{if .Error}}
+                <p class="cordell-login-error">
+                  {{.Error}}
+                </p>
+              {{end}}
+
+              <label class="cordell-login-field">
+                <span class="cordell-login-label">Identidade</span>
+                <input
+                  class="cordell-login-input"
+                  type="text"
+                  name="registration_id"
+                  value="{{.RegistrationID}}"
+                  autocomplete="username"
+                  inputmode="text"
+                  autofocus
+                  required
+                >
+              </label>
+
+              <label class="cordell-login-field">
+                <span class="cordell-login-label">Senha</span>
+                <input
+                  class="cordell-login-input"
+                  type="password"
+                  name="password"
+                  autocomplete="current-password"
+                  required
+                >
+              </label>
+
+              <button class="cordell-login-submit" type="submit">
+                Entrar
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <footer class="cordell-login-footer">
+        desenvolvido por sd galliac
+      </footer>
+    </div>
+  </main>
+
+  <script src="/static/js/theme.js" defer></script>
+</body>
+</html>
 {{end}}

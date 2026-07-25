@@ -49,7 +49,6 @@
     --color-slate-950: oklch(12.9% 0.042 264.695);
     --color-white: #fff;
     --spacing: 0.25rem;
-    --container-xs: 20rem;
     --container-md: 28rem;
     --container-2xl: 42rem;
     --container-3xl: 48rem;
@@ -75,8 +74,6 @@
     --font-weight-extrabold: 800;
     --tracking-tight: -0.025em;
     --leading-tight: 1.25;
-    --radius-sm: 0.25rem;
-    --radius-md: 0.375rem;
     --radius-xl: 0.75rem;
     --radius-2xl: 1rem;
     --radius-3xl: 1.5rem;
@@ -88,6 +85,7 @@
     --radius-cordell-sm: 0.375rem;
     --radius-cordell-md: 0.5rem;
     --radius-cordell-lg: 0.75rem;
+    --radius-cordell-xl: 1rem;
     --shadow-cordell-soft: 0 10px 28px rgb(15 23 42 / 0.06);
     --shadow-cordell-lifted: 0 14px 38px rgb(15 23 42 / 0.10);
     --shadow-cordell-glow: 0 0 0 1px var(--cordell-primary), 0 10px 26px var(--cordell-primary);
@@ -97,13 +95,11 @@
     --color-cordell-background: var(--cordell-background);
     --color-cordell-surface: var(--cordell-surface);
     --color-cordell-surface-raised: var(--cordell-surface-raised);
-    --color-cordell-surface-muted: var(--cordell-surface-muted);
     --color-cordell-border: var(--cordell-border);
     --color-cordell-text: var(--cordell-text);
     --color-cordell-muted: var(--cordell-muted);
     --color-cordell-primary: var(--cordell-primary);
     --color-cordell-primary-hover: var(--cordell-primary-hover);
-    --color-cordell-primary-soft: var(--cordell-primary-soft);
     --color-cordell-dark-background: var(--cordell-background);
     --color-cordell-dark-surface: var(--cordell-surface);
     --color-cordell-dark-border: var(--cordell-border);
@@ -460,9 +456,6 @@
   .max-w-md {
     max-width: var(--container-md);
   }
-  .max-w-xs {
-    max-width: var(--container-xs);
-  }
   .min-w-0 {
     min-width: 0;
   }
@@ -568,12 +561,6 @@
   }
   .rounded-full {
     border-radius: calc(infinity * 1px);
-  }
-  .rounded-md {
-    border-radius: var(--radius-md);
-  }
-  .rounded-sm {
-    border-radius: var(--radius-sm);
   }
   .rounded-xl {
     border-radius: var(--radius-xl);
@@ -691,9 +678,6 @@
   .bg-cordell-surface {
     background-color: var(--color-cordell-surface);
   }
-  .bg-cordell-surface-muted {
-    background-color: var(--color-cordell-surface-muted);
-  }
   .bg-cordell-surface-raised {
     background-color: var(--color-cordell-surface-raised);
   }
@@ -786,9 +770,6 @@
   }
   .py-1 {
     padding-block: var(--spacing);
-  }
-  .py-1\.5 {
-    padding-block: calc(var(--spacing) * 1.5);
   }
   .py-2 {
     padding-block: calc(var(--spacing) * 2);
@@ -997,6 +978,10 @@
       --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-slate-900) 5%, transparent) var(--tw-shadow-alpha), transparent);
     }
   }
+  .blur {
+    --tw-blur: blur(8px);
+    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
+  }
   .sepia {
     --tw-sepia: sepia(100%);
     filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
@@ -1082,13 +1067,6 @@
       }
     }
   }
-  .hover\:bg-cordell-surface-muted {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-cordell-surface-muted);
-      }
-    }
-  }
   .hover\:text-cordell-primary {
     &:hover {
       @media (hover: hover) {
@@ -1150,16 +1128,6 @@
   .disabled\:opacity-60 {
     &:disabled {
       opacity: 60%;
-    }
-  }
-  .data-\[selected\=true\]\:border-cordell-primary {
-    &[data-selected="true"] {
-      border-color: var(--color-cordell-primary);
-    }
-  }
-  .data-\[selected\=true\]\:bg-cordell-primary-soft {
-    &[data-selected="true"] {
-      background-color: var(--color-cordell-primary-soft);
     }
   }
   .sm\:w-auto {
@@ -1825,6 +1793,78 @@
     background: var(--cordell-primary-soft);
     color: var(--cordell-text);
   }
+  .cordell-theme-selector {
+    display: grid;
+    gap: 0.35rem;
+  }
+  .cordell-theme-option {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-text);
+    padding: 0.45rem 0.5rem;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 140ms ease, background-color 140ms ease;
+  }
+  .cordell-theme-option:hover, .cordell-theme-option[data-selected="true"] {
+    border-color: var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in srgb, var(--cordell-primary) 60%, var(--cordell-border));
+    }
+    background: var(--cordell-surface-muted);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-surface-muted) 86%, var(--cordell-primary) 14%);
+    }
+  }
+  .cordell-theme-option-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: var(--radius-cordell-sm);
+    background: var(--cordell-surface-muted);
+    color: var(--cordell-muted);
+    flex: none;
+  }
+  .cordell-theme-option-text {
+    min-width: 0;
+  }
+  .cordell-theme-option-label {
+    display: block;
+    color: var(--cordell-text);
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  .cordell-theme-option-description {
+    display: block;
+    margin-top: 0.12rem;
+    color: var(--cordell-muted);
+    font-size: 0.65rem;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+  .cordell-theme-selector-compact {
+    gap: 0.25rem;
+  }
+  .cordell-theme-selector-compact .cordell-theme-option {
+    border-radius: var(--radius-cordell-sm);
+    padding: 0.36rem 0.4rem;
+  }
+  .cordell-theme-selector-compact .cordell-theme-option-icon {
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: var(--radius-cordell-xs);
+  }
+  .cordell-theme-selector-compact .cordell-theme-option-label {
+    font-size: 0.7rem;
+  }
   .cordell-search {
     width: 100%;
   }
@@ -2342,6 +2382,253 @@
   .cordell-button-secondary:hover {
     border-color: var(--cordell-primary);
     transform: translateY(-1px);
+  }
+  .cordell-login-page {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    background: radial-gradient( circle at 50% 18%, var(--cordell-primary), transparent 22rem ), radial-gradient( circle at 18% 80%, var(--cordell-secondary), transparent 24rem ), var(--cordell-background);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: radial-gradient( circle at 50% 18%, color-mix(in srgb, var(--cordell-primary) 10%, transparent), transparent 22rem ), radial-gradient( circle at 18% 80%, color-mix(in srgb, var(--cordell-secondary) 8%, transparent), transparent 24rem ), var(--cordell-background);
+    }
+    color: var(--cordell-text);
+  }
+  .cordell-login-particles {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    opacity: 0.55;
+  }
+  .cordell-login-particle {
+    position: absolute;
+    bottom: -4rem;
+    width: 0.32rem;
+    height: 0.32rem;
+    border-radius: 999px;
+    background: var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-primary) 55%, var(--cordell-surface-raised));
+    }
+    box-shadow: 0 0 18px var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      box-shadow: 0 0 18px color-mix(in srgb, var(--cordell-primary) 28%, transparent);
+    }
+    animation: cordell-login-particle-rise linear infinite;
+  }
+  .cordell-login-shell {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    min-height: 100vh;
+    grid-template-rows: auto 1fr auto;
+    padding: 1.25rem;
+  }
+  .cordell-login-topbar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: start;
+    width: min(100%, 72rem);
+    margin: 0 auto;
+  }
+  .cordell-login-brand {
+    grid-column: 2;
+    text-align: center;
+    text-decoration: none;
+  }
+  .cordell-login-brand-name {
+    display: block;
+    color: var(--cordell-text);
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: -0.045em;
+    line-height: 1;
+  }
+  .cordell-login-brand-section {
+    display: block;
+    margin-top: 0.22rem;
+    color: var(--cordell-muted);
+    font-size: 0.56rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+  .cordell-login-theme {
+    grid-column: 3;
+    justify-self: end;
+    width: 10rem;
+  }
+  .cordell-login-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 0;
+  }
+  .cordell-login-card {
+    width: min(100%, 23rem);
+    border: 1px solid var(--cordell-border);
+    @supports (color: color-mix(in lab, red, red)) {
+      border: 1px solid color-mix(in srgb, var(--cordell-border) 85%, transparent);
+    }
+    border-radius: var(--radius-cordell-xl);
+    background: var(--cordell-surface-raised);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-surface-raised) 88%, transparent);
+    }
+    box-shadow: var(--shadow-cordell-soft);
+    backdrop-filter: blur(18px);
+  }
+  .cordell-login-card-inner {
+    padding: 1.6rem;
+  }
+  .cordell-login-heading {
+    margin: 0;
+    color: var(--cordell-text);
+    text-align: center;
+    font-size: 1.18rem;
+    font-weight: 850;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    text-transform: lowercase;
+  }
+  .cordell-login-subtitle {
+    margin: 0.55rem 0 0;
+    color: var(--cordell-muted);
+    text-align: center;
+    font-size: 0.86rem;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+  .cordell-login-form {
+    margin-top: 1.35rem;
+    display: grid;
+    gap: 0.9rem;
+  }
+  .cordell-login-field {
+    display: grid;
+    gap: 0.4rem;
+  }
+  .cordell-login-label {
+    color: var(--cordell-muted);
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .cordell-login-input {
+    width: 100%;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-text);
+    padding: 0.68rem 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 650;
+    outline: none;
+    transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+  }
+  .cordell-login-input::placeholder {
+    color: var(--cordell-subtle);
+    font-weight: 550;
+  }
+  .cordell-login-input:focus {
+    border-color: var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in srgb, var(--cordell-primary) 70%, var(--cordell-border));
+    }
+    box-shadow: 0 0 0 3px var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--cordell-primary) 12%, transparent);
+    }
+  }
+  .cordell-login-error {
+    margin: 0 0 1rem;
+    border: 1px solid var(--cordell-negative-border);
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-negative-soft);
+    color: var(--cordell-negative-text);
+    padding: 0.65rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 750;
+    line-height: 1.35;
+  }
+  .cordell-login-submit {
+    margin-top: 0.35rem;
+    display: inline-flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      border: 1px solid color-mix(in srgb, var(--cordell-primary) 72%, var(--cordell-border));
+    }
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-primary);
+    color: var(--cordell-primary-text);
+    padding: 0.72rem 0.9rem;
+    font-size: 0.88rem;
+    font-weight: 850;
+    cursor: pointer;
+    transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+  }
+  .cordell-login-submit:hover {
+    background: var(--cordell-primary-hover);
+    box-shadow: var(--shadow-cordell-glow);
+  }
+  .cordell-login-footer {
+    position: relative;
+    z-index: 1;
+    padding-bottom: 0.5rem;
+    color: var(--cordell-subtle);
+    text-align: center;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+  @keyframes cordell-login-particle-rise {
+    0% {
+      transform: translate3d(0, 0, 0);
+      opacity: 0;
+    }
+    12% {
+      opacity: 0.75;
+    }
+    88% {
+      opacity: 0.45;
+    }
+    100% {
+      transform: translate3d(0, -110vh, 0);
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cordell-login-particle {
+      animation: none;
+      opacity: 0.18;
+    }
+  }
+  @media (max-width: 640px) {
+    .cordell-login-shell {
+      padding: 1rem;
+    }
+    .cordell-login-topbar {
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+    }
+    .cordell-login-brand {
+      grid-column: 1;
+      justify-self: start;
+      text-align: left;
+    }
+    .cordell-login-theme {
+      grid-column: 2;
+      width: 8.5rem;
+    }
+    .cordell-login-main {
+      padding: 2.5rem 0;
+    }
+    .cordell-login-card-inner {
+      padding: 1.25rem;
+    }
   }
 }
 @property --tw-divide-y-reverse {

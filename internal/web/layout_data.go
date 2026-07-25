@@ -16,7 +16,7 @@ func newPrivateLayoutData(r *http.Request) privateLayoutData {
 	data := privateLayoutData{
 		CSRFToken:        csrfTokenFromContext(r),
 		ShowNavbarSearch: true,
-		ThemeSelector:    newThemeSelectorView(),
+		ThemeSelector:    newCompactThemeSelectorView(),
 	}
 
 	operator, ok := currentOperatorFromContext(r.Context())

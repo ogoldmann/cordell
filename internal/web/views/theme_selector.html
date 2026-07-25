@@ -1,19 +1,23 @@
 {{define "theme_selector"}}
-  <div class="grid gap-1">
+  <div class="{{if .Compact}}cordell-theme-selector cordell-theme-selector-compact{{else}}cordell-theme-selector{{end}}">
     {{range .Options}}
       <button
-        class="flex w-full items-center gap-2 rounded-md border border-cordell-border bg-cordell-surface-raised px-2 py-1.5 text-left text-xs font-bold text-cordell-text transition hover:border-cordell-primary hover:bg-cordell-surface-muted data-[selected=true]:border-cordell-primary data-[selected=true]:bg-cordell-primary-soft"
+        class="cordell-theme-option"
         type="button"
         data-theme-option="{{.Value}}"
         data-selected="false"
         aria-pressed="false"
       >
-        <span class="inline-flex size-6 items-center justify-center rounded-sm bg-cordell-surface-muted text-cordell-muted">
+        <span class="cordell-theme-option-icon">
           {{template "icon" .Icon}}
         </span>
 
-        <span class="min-w-0">
-          <span class="block">{{.Label}}</span>
+        <span class="cordell-theme-option-text">
+          <span class="cordell-theme-option-label">{{.Label}}</span>
+
+          {{if not $.Compact}}
+            <span class="cordell-theme-option-description">{{.Description}}</span>
+          {{end}}
         </span>
       </button>
     {{end}}

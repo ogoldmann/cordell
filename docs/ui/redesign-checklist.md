@@ -138,3 +138,19 @@
 - [ ] Correction form redesigned.
 - [ ] Admin pages redesigned.
 - [ ] 404 page aligned with new visual style.
+
+## Login Page
+
+- [ ] Login page uses redesigned visual shell.
+- [ ] Cordell brand appears at top.
+- [ ] Theme selector appears before login.
+- [ ] Login card is centered.
+- [ ] Login card uses subtle blur.
+- [ ] Background has subtle particles.
+- [ ] Identidade field remains functional.
+- [ ] Password field remains functional.
+- [ ] CSRF remains functional.
+- [ ] Error message still appears.
+- [ ] return_to is preserved if present.
+- [ ] Theme persists after reload.
+- [ ] Design remains serious and minimal.

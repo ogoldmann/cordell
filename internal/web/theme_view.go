@@ -9,6 +9,7 @@ type themeOptionView struct {
 
 type themeSelectorView struct {
 	Options []themeOptionView
+	Compact bool
 }
 
 func newThemeSelectorView() themeSelectorView {
@@ -34,4 +35,11 @@ func newThemeSelectorView() themeSelectorView {
 			},
 		},
 	}
+}
+
+func newCompactThemeSelectorView() themeSelectorView {
+	view := newThemeSelectorView()
+	view.Compact = true
+
+	return view
 }
