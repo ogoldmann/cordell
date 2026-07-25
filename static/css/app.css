@@ -1607,6 +1607,8 @@
 }
 :root, [data-theme="light"] {
   color-scheme: light;
+  --cordell-shell-width: 88rem;
+  --cordell-content-width: 62.25rem;
   --cordell-background: #f8f3ea;
   --cordell-surface: #fffaf2;
   --cordell-surface-raised: #ffffff;
@@ -1733,7 +1735,7 @@
 }
 @layer components {
   .cordell-index-page {
-    width: min(100% - 2rem, 88rem);
+    width: min(100% - 2rem, var(--cordell-content-width));
     margin: 0 auto;
     padding: 1.4rem 0 2.5rem;
   }
@@ -1750,15 +1752,15 @@
   .cordell-index-title {
     margin: 0;
     color: var(--cordell-text);
-    font-size: 1.35rem;
-    font-weight: 850;
-    letter-spacing: -0.035em;
-    line-height: 1.1;
+    font-size: clamp(1.65rem, 2.4vw, 2rem);
+    font-weight: 860;
+    letter-spacing: -0.045em;
+    line-height: 1.05;
   }
   .cordell-index-description {
-    margin: 0.42rem 0 0;
+    margin: 0.5rem 0 0;
     color: var(--cordell-muted);
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     font-weight: 620;
     line-height: 1.35;
   }
@@ -2034,11 +2036,11 @@
   }
   @media (max-width: 520px) {
     .cordell-index-page {
-      width: min(100% - 1rem, 88rem);
+      width: min(100% - 1rem, var(--cordell-content-width));
       padding-top: 1rem;
     }
     .cordell-index-title {
-      font-size: 1.18rem;
+      font-size: 1.45rem;
     }
     .cordell-index-filters {
       display: grid;
@@ -2269,7 +2271,7 @@
     grid-template-columns: 12rem minmax(12rem, 1fr) auto;
     align-items: center;
     gap: 0.85rem;
-    width: min(100% - 2rem, 88rem);
+    width: min(100% - 2rem, var(--cordell-shell-width));
     min-height: 3.8rem;
     margin: 0 auto;
     padding: 0.45rem 0 0.6rem;
@@ -2507,7 +2509,7 @@
       display: none;
     }
     .cordell-navbar-inner {
-      width: min(100% - 1rem, 88rem);
+      width: min(100% - 1rem, var(--cordell-shell-width));
       grid-template-columns: 1fr auto;
       grid-template-areas: "brand operator" "links links";
       gap: 0.5rem;
