@@ -923,18 +923,40 @@
     position: absolute;
     inset: 0;
     overflow: hidden;
-    opacity: 0.55;
+    opacity: 0.72;
   }
 
   .cordell-login-particle {
     position: absolute;
     bottom: -4rem;
-    width: 0.32rem;
-    height: 0.32rem;
     border-radius: 999px;
     background: color-mix(in srgb, var(--cordell-primary) 55%, var(--cordell-surface-raised));
     box-shadow: 0 0 18px color-mix(in srgb, var(--cordell-primary) 28%, transparent);
     animation: cordell-login-particle-rise linear infinite;
+  }
+
+  .cordell-login-particle-xs {
+    width: 0.18rem;
+    height: 0.18rem;
+    opacity: 0.46;
+  }
+
+  .cordell-login-particle-sm {
+    width: 0.28rem;
+    height: 0.28rem;
+    opacity: 0.56;
+  }
+
+  .cordell-login-particle-md {
+    width: 0.42rem;
+    height: 0.42rem;
+    opacity: 0.48;
+  }
+
+  .cordell-login-particle-lg {
+    width: 0.62rem;
+    height: 0.62rem;
+    opacity: 0.34;
   }
 
   .cordell-login-shell {
@@ -942,7 +964,7 @@
     z-index: 1;
     display: grid;
     min-height: 100vh;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto 1fr;
     padding: 1.25rem;
   }
 
@@ -956,6 +978,7 @@
 
   .cordell-login-brand {
     grid-column: 2;
+    cursor: default;
     text-align: center;
     text-decoration: none;
   }
@@ -979,17 +1002,55 @@
     line-height: 1;
   }
 
-  .cordell-login-theme {
+  .cordell-login-theme-menu {
+    position: relative;
     grid-column: 3;
     justify-self: end;
+  }
+
+  .cordell-login-theme-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.15rem;
+    height: 2.15rem;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-muted);
+    cursor: pointer;
+    transition:
+      border-color 140ms ease,
+      background-color 140ms ease,
+      color 140ms ease;
+  }
+
+  .cordell-login-theme-button:hover,
+  .cordell-login-theme-menu[data-open="true"] .cordell-login-theme-button {
+    border-color: color-mix(in srgb, var(--cordell-primary) 55%, var(--cordell-border));
+    background: color-mix(in srgb, var(--cordell-surface-raised) 88%, var(--cordell-primary) 12%);
+    color: var(--cordell-text);
+  }
+
+  .cordell-login-theme-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.4rem);
+    z-index: 20;
     width: 10rem;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-surface-raised);
+    box-shadow: var(--shadow-cordell-soft);
+    padding: 0.45rem;
   }
 
   .cordell-login-main {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 3rem 0;
+    min-height: calc(100vh - 5rem);
+    padding: 1rem 0 3rem;
   }
 
   .cordell-login-card {
@@ -1108,9 +1169,11 @@
   }
 
   .cordell-login-footer {
-    position: relative;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.85rem;
     z-index: 1;
-    padding-bottom: 0.5rem;
     color: var(--cordell-subtle);
     text-align: center;
     font-size: 0.68rem;
@@ -1160,9 +1223,8 @@
       text-align: left;
     }
 
-    .cordell-login-theme {
+    .cordell-login-theme-menu {
       grid-column: 2;
-      width: 8.5rem;
     }
 
     .cordell-login-main {
