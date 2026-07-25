@@ -2,10 +2,12 @@
   {{if .Timeline.Items}}
     {{template "custody_timeline" .Timeline}}
 
-    <div class="cordell-index-pagination">
-      {{template "pagination" .Pagination}}
-    </div>
+    {{if .Pagination}}
+      <div class="cordell-index-pagination">
+        {{template "pagination" .Pagination}}
+      </div>
+    {{end}}
   {{else}}
-    {{template "empty_state" .EmptyState}}
+    {{template "empty_state" .Timeline.EmptyState}}
   {{end}}
 {{end}}
