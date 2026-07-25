@@ -1,5 +1,15 @@
 {{define "personnel_table"}}
   {{if .Personnel}}
+    <div class="cordell-index-meta">
+      <span>
+        <strong>{{len .Personnel}}</strong> militares nesta página
+      </span>
+
+      {{if .SearchQuery}}
+        <span>Busca: <strong>{{.SearchQuery}}</strong></span>
+      {{end}}
+    </div>
+
     <div class="cordell-data-table-card">
       <div class="cordell-data-table-scroll">
         <table class="cordell-data-table">

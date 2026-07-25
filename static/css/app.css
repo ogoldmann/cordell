@@ -1732,6 +1732,122 @@
   }
 }
 @layer components {
+  .cordell-index-page {
+    width: min(100% - 2rem, 88rem);
+    margin: 0 auto;
+    padding: 1.4rem 0 2.5rem;
+  }
+  .cordell-index-header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .cordell-index-title-block {
+    min-width: 0;
+  }
+  .cordell-index-title {
+    margin: 0;
+    color: var(--cordell-text);
+    font-size: 1.35rem;
+    font-weight: 850;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+  }
+  .cordell-index-description {
+    margin: 0.42rem 0 0;
+    color: var(--cordell-muted);
+    font-size: 0.88rem;
+    font-weight: 620;
+    line-height: 1.35;
+  }
+  .cordell-index-primary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      border: 1px solid color-mix(in srgb, var(--cordell-primary) 58%, var(--cordell-border));
+    }
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-primary);
+    color: var(--cordell-primary-text);
+    padding: 0.55rem 0.72rem;
+    font-size: 0.82rem;
+    font-weight: 820;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+  }
+  .cordell-index-primary-action:hover {
+    background: var(--cordell-primary-hover);
+    box-shadow: var(--shadow-cordell-glow);
+  }
+  .cordell-index-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+    align-items: end;
+    gap: 1rem;
+    margin: 1.25rem 0 0.85rem;
+  }
+  .cordell-index-filters {
+    display: flex;
+    align-items: end;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .cordell-index-filter {
+    display: grid;
+    gap: 0.3rem;
+    min-width: 8.5rem;
+  }
+  .cordell-index-filter-label {
+    color: var(--cordell-muted);
+    font-size: 0.62rem;
+    font-weight: 850;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+  .cordell-index-filter-control {
+    min-height: 2.35rem;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-text);
+    padding: 0.45rem 0.6rem;
+    font-size: 0.84rem;
+    font-weight: 650;
+    outline: none;
+  }
+  .cordell-index-filter-control:focus {
+    border-color: var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in srgb, var(--cordell-primary) 65%, var(--cordell-border));
+    }
+    box-shadow: 0 0 0 3px var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--cordell-primary) 12%, transparent);
+    }
+  }
+  .cordell-index-search {
+    min-width: 0;
+  }
+  .cordell-index-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0.65rem 0;
+    color: var(--cordell-muted);
+    font-size: 0.76rem;
+    font-weight: 650;
+  }
+  .cordell-index-meta strong {
+    color: var(--cordell-text);
+    font-weight: 780;
+  }
   .cordell-data-table-card {
     overflow: hidden;
     border: 1px solid var(--cordell-border);
@@ -1777,8 +1893,11 @@
   .cordell-data-table-row:hover {
     background: var(--cordell-surface-muted);
     @supports (color: color-mix(in lab, red, red)) {
-      background: color-mix(in srgb, var(--cordell-surface-muted) 72%, transparent);
+      background: color-mix(in srgb, var(--cordell-surface-muted) 58%, transparent);
     }
+  }
+  .cordell-data-table-row:hover .cordell-data-table-title {
+    color: var(--cordell-text);
   }
   .cordell-data-table-row:focus-within {
     background: var(--cordell-primary);
@@ -1882,6 +2001,21 @@
     width: min(100%, 22rem);
     flex: 0 1 22rem;
   }
+  @media (max-width: 860px) {
+    .cordell-index-header {
+      align-items: stretch;
+      flex-direction: column;
+    }
+    .cordell-index-primary-action {
+      width: fit-content;
+    }
+    .cordell-index-toolbar {
+      grid-template-columns: 1fr;
+    }
+    .cordell-index-search {
+      width: 100%;
+    }
+  }
   @media (max-width: 760px) {
     .cordell-list-toolbar {
       align-items: stretch;
@@ -1896,6 +2030,22 @@
     }
     .cordell-data-table th, .cordell-data-table td {
       padding-inline: 0.65rem;
+    }
+  }
+  @media (max-width: 520px) {
+    .cordell-index-page {
+      width: min(100% - 1rem, 88rem);
+      padding-top: 1rem;
+    }
+    .cordell-index-title {
+      font-size: 1.18rem;
+    }
+    .cordell-index-filters {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+    .cordell-index-filter {
+      min-width: 0;
     }
   }
   [data-theme-option][data-selected="true"] {

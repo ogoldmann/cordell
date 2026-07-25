@@ -780,6 +780,8 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 		data.Personnel = append(data.Personnel, newPersonnelView(item))
 	}
 
+	data.UseDefaultShell = false
+
 	if wantsPartialResponse(r) {
 		if err := s.renderer.Render(w, http.StatusOK, "personnel_table", data); err != nil {
 			s.logger.Error("failed to render personnel list partial", "error", err)

@@ -116,48 +116,37 @@ Future possibility:
 
 - use this dock globally as an operational shortcut.
 
-## Personnel list page
+## Personnel list
 
-Route:
+Status: polished.
 
-- `/personnel`
+The personnel list uses the shared data table component.
 
-Layout:
+Structure:
 
 - breadcrumb
-- heading: Militares
-- right of heading: Cadastrar Militar button
-- below: description
-
-Description:
-
-- Militares que podem cautelar e descautelar materiais
-
-Filters/search row:
-
-- left: status filters
-- right: search bar
-
-List presentation:
-
-- data table, not cards
-- each row is fully clickable
-- hover state must clearly indicate clickability
+- title and primary action
+- short description
+- filters on the left
+- search on the right
+- data table
+- pagination
 
 Columns:
 
-1. Nome de Guerra + Nome
-   - display name on top
-   - full name below
-2. Seção
-3. Quantidade total de materiais sob custódia
-4. Status badge:
-   - ATIVO
-   - INATIVO
+- Nome de Guerra + Nome
+- Seção
+- Materiais sob custódia
+- Status
 
-Below:
+Rules:
 
-- pagination
+- navigation links do not use icons
+- rows are clickable
+- the entity name remains a real link
+- filters and search preserve each other
+- live search updates only the table region
+- table scrolls horizontally on small screens
 
 ## Assets list page
 

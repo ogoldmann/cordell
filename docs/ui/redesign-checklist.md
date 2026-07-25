@@ -141,6 +141,21 @@
 - [ ] Tables scroll horizontally on small screens.
 - [ ] Tables remain visually serious and minimal.
 
+## Personnel List Polish
+
+- [ ] Header is aligned with primary action.
+- [ ] Description is short and clear.
+- [ ] Filters appear on the left.
+- [ ] Search appears on the right.
+- [ ] Search preserves filters.
+- [ ] Filters preserve search.
+- [ ] Table uses shared data table styling.
+- [ ] Rows are clickable.
+- [ ] Personnel name remains a real link.
+- [ ] Status uses shared badge.
+- [ ] Pagination still works.
+- [ ] Live search updates only the table region.
+
 ## Pages
 
 - [ ] Login page redesigned.
