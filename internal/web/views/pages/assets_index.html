@@ -1,45 +1,66 @@
 {{define "assets_index.html"}}
 {{template "layout_start" .}}
 
-{{template "page_header" .Header}}
+<main class="cordell-index-page">
+  {{template "breadcrumbs" .}}
 
-<div class="cordell-list-toolbar">
-  <nav class="cordell-list-toolbar-left" aria-label="Filtro de status de materiais">
-    {{range .StatusTabs}}
-      <a
-        class="inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-bold no-underline transition {{if .Active}}border-cordell-primary bg-cordell-primary text-white dark:border-cordell-dark-primary dark:bg-cordell-dark-primary dark:text-cordell-dark-background{{else}}border-cordell-border bg-cordell-surface text-cordell-text hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-surface dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60{{end}}"
-        href="{{.URL}}"
-      >
-        {{.Label}}
-      </a>
-    {{end}}
-  </nav>
+  <header class="cordell-index-header">
+    <div class="cordell-index-title-block">
+      <h1 class="cordell-index-title">Materiais</h1>
+      <p class="cordell-index-description">
+        Materiais que podem ser cautelados e descautelados.
+      </p>
+    </div>
 
-  <div class="cordell-list-toolbar-search">
+    <a class="cordell-index-primary-action" href="/assets/new">
+      Cadastrar Material
+    </a>
+  </header>
+
+  <section class="cordell-index-toolbar" aria-label="Filtros de materiais">
     <form
+      class="cordell-index-filters"
       method="get"
       action="/assets"
-      data-live-search-form
-      data-live-search-target="#asset-list"
-      data-live-search-status="#asset-search-status"
-      data-live-search-delay="250"
     >
-      <input type="hidden" name="status" value="{{.StatusFilter}}">
+      <input type="hidden" name="q" value="{{.SearchQuery}}">
 
-      {{template "search_bar" (newSearchBar "asset-search-input" .SearchQuery "Pesquisar materiais...")}}
+      <label class="cordell-index-filter">
+        <span class="cordell-index-filter-label">Status</span>
+        <select class="cordell-index-filter-control" name="status" onchange="this.form.submit()">
+          <option value="all" {{if eq .StatusFilter "all"}}selected{{end}}>Todos</option>
+          <option value="active" {{if eq .StatusFilter "active"}}selected{{end}}>Ativos</option>
+          <option value="inactive" {{if eq .StatusFilter "inactive"}}selected{{end}}>Inativos</option>
+        </select>
+      </label>
     </form>
+
+    <div class="cordell-index-search">
+      <form
+        method="get"
+        action="/assets"
+        data-live-search-form
+        data-live-search-target="#asset-list"
+        data-live-search-status="#asset-search-status"
+        data-live-search-delay="250"
+      >
+        <input type="hidden" name="status" value="{{.StatusFilter}}">
+
+        {{template "search_bar" (newSearchBar "asset-search-input" .SearchQuery "Pesquisar materiais...")}}
+      </form>
+    </div>
+  </section>
+
+  <p
+    id="asset-search-status"
+    class="sr-only"
+    aria-live="polite"
+  ></p>
+
+  <div id="asset-list">
+    {{template "asset_table" .}}
   </div>
-</div>
-
-<p
-  id="asset-search-status"
-  class="sr-only"
-  aria-live="polite"
-></p>
-
-<div id="asset-list">
-  {{template "asset_table" .}}
-</div>
+</main>
 
 {{template "layout_end" .}}
 {{end}}

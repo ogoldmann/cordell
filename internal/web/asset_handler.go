@@ -106,8 +106,8 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 			newPageAction("Cadastrar Material", "/assets/new"),
 		),
 		EmptyState: newEmptyState(
-			"Nenhum material cadastrado",
-			"Cadastre o primeiro material para começar a usar o Cordell.",
+			"Nenhum material encontrado.",
+			"Cadastre um material ou ajuste os filtros da listagem.",
 			newPageAction("Cadastrar material", "/assets/new"),
 		),
 		Title:        assetPluralLabel(),
@@ -124,6 +124,16 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 	for _, item := range assets {
 		data.Assets = append(data.Assets, newAssetView(item))
 	}
+
+	if searchQuery != "" {
+		data.EmptyState = newEmptyState(
+			"Nenhum material encontrado para esta busca.",
+			"Ajuste a busca ou os filtros da listagem.",
+			nil,
+		)
+	}
+
+	data.UseDefaultShell = false
 
 	if wantsPartialResponse(r) {
 		if err := s.renderer.Render(w, http.StatusOK, "asset_table", data); err != nil {

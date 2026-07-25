@@ -1,5 +1,15 @@
 {{define "asset_table"}}
   {{if .Assets}}
+    <div class="cordell-index-meta">
+      <span>
+        <strong>{{len .Assets}}</strong> materiais nesta página
+      </span>
+
+      {{if .SearchQuery}}
+        <span>Busca: <strong>{{.SearchQuery}}</strong></span>
+      {{end}}
+    </div>
+
     <div class="cordell-data-table-card">
       <div class="cordell-data-table-scroll">
         <table class="cordell-data-table">
@@ -24,7 +34,7 @@
                 </td>
 
                 <td>
-                  <span class="cordell-data-table-number">&mdash;</span>
+                  <span class="cordell-data-table-muted">&mdash;</span>
                 </td>
 
                 <td>
