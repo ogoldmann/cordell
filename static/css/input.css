@@ -972,15 +972,7 @@
 
   .cordell-dashboard-results {
     width: min(100%, 60rem);
-    margin: 1.35rem auto 0;
-  }
-
-  .cordell-dashboard[data-search-active="false"] .cordell-dashboard-results {
-    margin-top: 1rem;
-  }
-
-  .cordell-dashboard[data-search-active="false"] .cordell-dashboard-results-empty {
-    display: none;
+    margin: 1rem auto 0;
   }
 
   .cordell-dashboard-results-empty {
@@ -990,13 +982,13 @@
     border-radius: var(--radius-cordell-lg);
     background: color-mix(in srgb, var(--cordell-surface) 62%, transparent);
     color: var(--cordell-muted);
-    padding: 0.85rem 1rem;
+    padding: 0.75rem 1rem;
     text-align: center;
   }
 
   .cordell-dashboard-results-empty p {
     margin: 0;
-    font-size: 0.88rem;
+    font-size: 0.84rem;
     font-weight: 650;
   }
 
