@@ -125,6 +125,22 @@ Pressing Enter opens `/search?q=...`.
 
 On very small screens, navbar search may be hidden to preserve navigation usability.
 
+### Navbar search placement
+
+The navbar search is not absolutely centered.
+
+It occupies the available space between the Cordell brand block and the navigation/operator area.
+
+Desktop structure:
+
+```txt
+[brand] [search] [navigation + operator]
+```
+
+The search column remains reserved even when search is hidden on the dashboard.
+
+This prevents layout movement when entering or leaving the dashboard.
+
 ### Navigation links
 
 Order:

@@ -1965,21 +1965,20 @@
     color: var(--cordell-primary);
   }
   .cordell-navbar-inner {
-    position: relative;
-    display: flex;
+    display: grid;
+    grid-template-columns: 12rem minmax(12rem, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
+    gap: 0.85rem;
     width: min(100% - 2rem, 88rem);
     min-height: 3.8rem;
     margin: 0 auto;
     padding: 0.45rem 0 0.6rem;
-    gap: 1rem;
   }
   .cordell-navbar-brand {
     display: inline-flex;
-    flex: 0 0 auto;
     flex-direction: column;
     width: 12rem;
+    min-width: 0;
     text-decoration: none;
   }
   .cordell-navbar-brand-name {
@@ -1998,11 +1997,9 @@
     letter-spacing: 0.075em;
   }
   .cordell-navbar-search {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: min(28rem, 34vw);
-    transform: translate(-50%, -50%);
+    position: relative;
+    width: 100%;
+    min-width: 0;
   }
   .cordell-navbar-search[hidden] {
     display: none;
@@ -2020,17 +2017,17 @@
   }
   .cordell-navbar-right {
     display: flex;
-    flex: 0 0 auto;
     align-items: center;
     justify-content: flex-end;
     gap: 0.65rem;
-    min-width: 0;
+    min-width: max-content;
   }
   .cordell-navbar-links {
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
     gap: 0.15rem;
+    white-space: nowrap;
   }
   .cordell-navbar-link {
     display: inline-flex;
@@ -2176,8 +2173,9 @@
     background: var(--cordell-negative-soft);
   }
   @media (max-width: 1180px) {
-    .cordell-navbar-search {
-      width: min(24rem, 30vw);
+    .cordell-navbar-inner {
+      grid-template-columns: 10.5rem minmax(10rem, 1fr) auto;
+      gap: 0.65rem;
     }
     .cordell-navbar-brand {
       width: 10.5rem;
@@ -2189,25 +2187,19 @@
   }
   @media (max-width: 960px) {
     .cordell-navbar-inner {
+      grid-template-columns: 1fr auto;
+      grid-template-areas: "brand right" "search search";
+      row-gap: 0.5rem;
       min-height: auto;
-      flex-wrap: wrap;
-      padding-bottom: 0.5rem;
+    }
+    .cordell-navbar-brand {
+      grid-area: brand;
     }
     .cordell-navbar-search {
-      position: static;
-      order: 3;
-      width: 100%;
-      transform: none;
+      grid-area: search;
     }
     .cordell-navbar-right {
-      flex: 1;
-    }
-    .cordell-navbar-links {
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    .cordell-navbar-links::-webkit-scrollbar {
-      display: none;
+      grid-area: right;
     }
   }
   @media (max-width: 640px) {
@@ -2216,24 +2208,31 @@
     }
     .cordell-navbar-inner {
       width: min(100% - 1rem, 88rem);
+      grid-template-columns: 1fr auto;
+      grid-template-areas: "brand operator" "links links";
       gap: 0.5rem;
     }
     .cordell-navbar-brand {
       width: auto;
       min-width: 8rem;
     }
-    .cordell-navbar-right {
-      width: 100%;
-      order: 2;
-      justify-content: space-between;
-    }
     .cordell-navbar-search {
       display: none;
     }
+    .cordell-navbar-right {
+      display: contents;
+    }
     .cordell-navbar-links {
-      max-width: calc(100vw - 12rem);
+      grid-area: links;
+      overflow-x: auto;
+      max-width: 100%;
+      scrollbar-width: none;
+    }
+    .cordell-navbar-links::-webkit-scrollbar {
+      display: none;
     }
     .cordell-operator-menu {
+      grid-area: operator;
       width: 9.5rem;
       flex-basis: 9.5rem;
     }
