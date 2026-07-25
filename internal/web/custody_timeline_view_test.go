@@ -1,6 +1,11 @@
 package web
 
-import "testing"
+import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+)
 
 func TestCustodyTimelineTypeTone(t *testing.T) {
 	if got := custodyTimelineTypeTone(checkoutLabel()); got != "checkout" {
@@ -33,6 +38,75 @@ func TestCustodyEditCountLabel(t *testing.T) {
 func TestFormatTimelineQuantity(t *testing.T) {
 	if got := formatTimelineQuantity(3); got != "3" {
 		t.Fatalf("expected 3, got %q", got)
+	}
+}
+
+func TestCustodyLedgerResultsRendersTimelineEmptyState(t *testing.T) {
+	renderer, err := NewRenderer()
+	if err != nil {
+		t.Fatalf("expected renderer, got %v", err)
+	}
+
+	response := httptest.NewRecorder()
+	data := custodyTransactionLedgerPageData{
+		Timeline: custodyTimelineView{
+			EmptyState: newEmptyState(
+				"Nenhuma transação encontrada",
+				"Ajuste os filtros ou registre uma nova cautela para começar.",
+				newPageAction("Registrar cautela", "/custody/checkouts/new"),
+			),
+		},
+	}
+
+	err = renderer.Render(response, http.StatusOK, "custody_ledger_results", data)
+	if err != nil {
+		t.Fatalf("expected empty ledger results to render, got %v", err)
+	}
+
+	body := response.Body.String()
+	if !strings.Contains(body, "Nenhuma transação encontrada") {
+		t.Fatalf("expected empty state title, got %q", body)
+	}
+}
+
+func TestCustodyLedgerResultsRendersSinglePageWithoutPagination(t *testing.T) {
+	renderer, err := NewRenderer()
+	if err != nil {
+		t.Fatalf("expected renderer, got %v", err)
+	}
+
+	response := httptest.NewRecorder()
+	data := custodyTransactionLedgerPageData{
+		Timeline: custodyTimelineView{
+			Items: []custodyTimelineItemView{
+				{
+					SequenceLabel:        "#1",
+					TypeLabel:            "CAUTELA",
+					TypeClass:            "checkout",
+					ReceiptURL:           "/custody/transactions/transaction-1",
+					RegisteredBy:         "Sgt Costa",
+					RegisteredAt:         "24/07/2026 10:30",
+					PersonnelDisplayName: "Sd Silva",
+					PersonnelFullName:    "Joao Silva",
+					Lines: []custodyTimelineLineView{
+						{
+							AssetName: "Radio",
+							Quantity:  "1",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	err = renderer.Render(response, http.StatusOK, "custody_ledger_results", data)
+	if err != nil {
+		t.Fatalf("expected single-page ledger results to render, got %v", err)
+	}
+
+	body := response.Body.String()
+	if !strings.Contains(body, "Abrir Recibo") {
+		t.Fatalf("expected receipt link, got %q", body)
 	}
 }
 

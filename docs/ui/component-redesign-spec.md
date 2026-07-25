@@ -250,6 +250,30 @@ Each card contains:
 - personnel block
 - material lines block
 
+### Header
+
+The transaction card header contains:
+
+- sequence badge
+- transaction type badge
+- optional edited badge
+- registration metadata
+- receipt link
+
+The registration metadata appears inside the header, not in a separate horizontal strip.
+
+This keeps the card more compact and reduces unnecessary visual segmentation.
+
+### Empty state
+
+Ledger empty state is owned by the timeline view.
+
+When rendering custody ledger results, empty state must be read from:
+
+```txt
+.Timeline.EmptyState
+```
+
 ### Transaction type
 
 Checkout and return are differentiated by:

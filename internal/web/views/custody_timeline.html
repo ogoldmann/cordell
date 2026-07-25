@@ -18,34 +18,30 @@
 
     <div class="cordell-transaction-card cordell-transaction-card-{{.TypeClass}}">
       <header class="cordell-transaction-card-header">
-        <div class="cordell-transaction-card-meta-main">
-          {{if .SequenceLabel}}
-            <span class="cordell-transaction-sequence">{{.SequenceLabel}}</span>
-          {{end}}
+        <div class="cordell-transaction-card-header-left">
+          <div class="cordell-transaction-card-meta-main">
+            {{if .SequenceLabel}}
+              <span class="cordell-transaction-sequence">{{.SequenceLabel}}</span>
+            {{end}}
 
-          <span class="cordell-transaction-type-badge cordell-transaction-type-badge-{{.TypeClass}}">
-            {{.TypeLabel}}
-          </span>
+            <span class="cordell-transaction-type-badge cordell-transaction-type-badge-{{.TypeClass}}">
+              {{.TypeLabel}}
+            </span>
 
-          {{if .HasCorrections}}
-            <span class="cordell-transaction-edited-badge">Editada</span>
-          {{end}}
+            {{if .HasCorrections}}
+              <span class="cordell-transaction-edited-badge">Editada</span>
+            {{end}}
+          </div>
+
+          <p class="cordell-transaction-registered">
+            registrado por <strong>{{.RegisteredBy}}</strong> em {{.RegisteredAt}}
+          </p>
         </div>
 
-        {{if .ReceiptURL}}
-          <a class="cordell-transaction-receipt-link" href="{{.ReceiptURL}}">
-            Abrir Recibo
-          </a>
-        {{else if .PrimaryActionURL}}
-          <a class="cordell-transaction-receipt-link" href="{{.PrimaryActionURL}}">
-            Abrir Recibo
-          </a>
-        {{end}}
+        <a class="cordell-transaction-receipt-link" href="{{.ReceiptURL}}">
+          Abrir Recibo
+        </a>
       </header>
-
-      <p class="cordell-transaction-registered">
-        registrado por <strong>{{.RegisteredBy}}</strong> em {{.RegisteredAt}}
-      </p>
 
       <div class="cordell-transaction-card-body">
         <section class="cordell-transaction-personnel">
