@@ -23,12 +23,16 @@
 <body class="min-h-screen bg-cordell-background font-sans text-cordell-text antialiased dark:bg-cordell-dark-background dark:text-cordell-dark-text">
   {{template "navbar" .Navbar}}
 
-  <main class="mx-auto max-w-5xl px-4 py-10">
-    {{template "breadcrumbs" .}}
+  {{if .UseDefaultShell}}
+    <main class="mx-auto max-w-5xl px-4 py-10">
+      {{template "breadcrumbs" .}}
+  {{end}}
 {{end}}
 
 {{define "layout_end"}}
-  </main>
+  {{if .UseDefaultShell}}
+    </main>
+  {{end}}
   <script src="/static/js/theme.js" defer></script>
   <script src="/static/js/confirm-modal.js" defer></script>
   <script src="/static/js/submit-confirm-modal.js" defer></script>
@@ -37,6 +41,7 @@
   <script src="/static/js/live-search.js" defer></script>
   <script src="/static/js/navbar-search.js" defer></script>
   <script src="/static/js/operator-menu.js" defer></script>
+  <script src="/static/js/dashboard.js" defer></script>
 </body>
 </html>
 {{end}}

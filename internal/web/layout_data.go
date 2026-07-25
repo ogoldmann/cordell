@@ -7,6 +7,7 @@ type privateLayoutData struct {
 	CurrentOperator  currentOperatorView
 	HasOperator      bool
 	ShowNavbarSearch bool
+	UseDefaultShell  bool
 	ThemeSelector    themeSelectorView
 	Navbar           navbarView
 	Breadcrumbs      []breadcrumbItemView
@@ -16,6 +17,7 @@ func newPrivateLayoutData(r *http.Request) privateLayoutData {
 	data := privateLayoutData{
 		CSRFToken:        csrfTokenFromContext(r),
 		ShowNavbarSearch: true,
+		UseDefaultShell:  true,
 		ThemeSelector:    newCompactThemeSelectorView(),
 	}
 

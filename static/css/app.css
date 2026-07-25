@@ -74,6 +74,7 @@
     --font-weight-extrabold: 800;
     --tracking-tight: -0.025em;
     --leading-tight: 1.25;
+    --radius-lg: 0.5rem;
     --radius-xl: 0.75rem;
     --radius-2xl: 1rem;
     --radius-3xl: 1.5rem;
@@ -352,9 +353,6 @@
   .mb-4 {
     margin-bottom: calc(var(--spacing) * 4);
   }
-  .mb-5 {
-    margin-bottom: calc(var(--spacing) * 5);
-  }
   .mb-6 {
     margin-bottom: calc(var(--spacing) * 6);
   }
@@ -507,9 +505,6 @@
   .gap-2 {
     gap: calc(var(--spacing) * 2);
   }
-  .gap-2\.5 {
-    gap: calc(var(--spacing) * 2.5);
-  }
   .gap-3 {
     gap: calc(var(--spacing) * 3);
   }
@@ -561,6 +556,9 @@
   }
   .rounded-full {
     border-radius: calc(infinity * 1px);
+  }
+  .rounded-lg {
+    border-radius: var(--radius-lg);
   }
   .rounded-xl {
     border-radius: var(--radius-xl);
@@ -696,41 +694,11 @@
   .bg-white {
     background-color: var(--color-white);
   }
-  .bg-white\/55 {
-    background-color: color-mix(in srgb, #fff 55%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-white) 55%, transparent);
-    }
-  }
   .bg-white\/60 {
     background-color: color-mix(in srgb, #fff 60%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-white) 60%, transparent);
     }
-  }
-  .bg-white\/70 {
-    background-color: color-mix(in srgb, #fff 70%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-white) 70%, transparent);
-    }
-  }
-  .bg-linear-to-br {
-    --tw-gradient-position: to bottom right;
-    @supports (background-image: linear-gradient(in lab, red, red)) {
-      --tw-gradient-position: to bottom right in oklab;
-    }
-    background-image: linear-gradient(var(--tw-gradient-stops));
-  }
-  .from-cordell-primary\/10 {
-    --tw-gradient-from: var(--color-cordell-primary);
-    @supports (color: color-mix(in lab, red, red)) {
-      --tw-gradient-from: color-mix(in oklab, var(--color-cordell-primary) 10%, transparent);
-    }
-    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
-  }
-  .to-white {
-    --tw-gradient-to: var(--color-white);
-    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
   }
   .p-0 {
     padding: 0;
@@ -952,6 +920,10 @@
   }
   .shadow-cordell-lifted {
     --tw-shadow: 0 14px 38px var(--tw-shadow-color, rgb(15 23 42 / 0.10));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .shadow-cordell-soft {
+    --tw-shadow: 0 10px 28px var(--tw-shadow-color, rgb(15 23 42 / 0.06));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
   .shadow-lg {
@@ -1246,11 +1218,6 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
-  .lg\:grid-cols-4 {
-    @media (width >= 64rem) {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-  }
   .lg\:grid-cols-\[1fr_12rem_12rem_auto\] {
     @media (width >= 64rem) {
       grid-template-columns: 1fr 12rem 12rem auto;
@@ -1406,14 +1373,6 @@
       background-color: var(--color-cordell-dark-background);
     }
   }
-  .dark\:bg-cordell-dark-background\/60 {
-    &:where([data-theme="dark"], [data-theme="dark"] *) {
-      background-color: var(--color-cordell-dark-background);
-      @supports (color: color-mix(in lab, red, red)) {
-        background-color: color-mix(in oklab, var(--color-cordell-dark-background) 60%, transparent);
-      }
-    }
-  }
   .dark\:bg-cordell-dark-background\/70 {
     &:where([data-theme="dark"], [data-theme="dark"] *) {
       background-color: var(--color-cordell-dark-background);
@@ -1464,14 +1423,6 @@
       }
     }
   }
-  .dark\:bg-cordell-dark-surface\/80 {
-    &:where([data-theme="dark"], [data-theme="dark"] *) {
-      background-color: var(--color-cordell-dark-surface);
-      @supports (color: color-mix(in lab, red, red)) {
-        background-color: color-mix(in oklab, var(--color-cordell-dark-surface) 80%, transparent);
-      }
-    }
-  }
   .dark\:bg-emerald-950\/20 {
     &:where([data-theme="dark"], [data-theme="dark"] *) {
       background-color: color-mix(in srgb, oklch(26.2% 0.051 172.552) 20%, transparent);
@@ -1515,21 +1466,6 @@
   .dark\:bg-slate-800 {
     &:where([data-theme="dark"], [data-theme="dark"] *) {
       background-color: var(--color-slate-800);
-    }
-  }
-  .dark\:from-cordell-primary\/20 {
-    &:where([data-theme="dark"], [data-theme="dark"] *) {
-      --tw-gradient-from: var(--color-cordell-primary);
-      @supports (color: color-mix(in lab, red, red)) {
-        --tw-gradient-from: color-mix(in oklab, var(--color-cordell-primary) 20%, transparent);
-      }
-      --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
-    }
-  }
-  .dark\:to-cordell-dark-surface {
-    &:where([data-theme="dark"], [data-theme="dark"] *) {
-      --tw-gradient-to: var(--color-cordell-dark-surface);
-      --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
     }
   }
   .dark\:text-amber-200 {
@@ -2383,6 +2319,176 @@
     border-color: var(--cordell-primary);
     transform: translateY(-1px);
   }
+  .cordell-dashboard {
+    position: relative;
+    min-height: calc(100dvh - 4.75rem);
+    padding: clamp(2.5rem, 8vh, 5.5rem) 1rem 8rem;
+    color: var(--cordell-text);
+  }
+  .cordell-dashboard-center {
+    width: min(100%, 60rem);
+    margin: 0 auto;
+  }
+  .cordell-dashboard-search-shell {
+    width: min(100%, 46rem);
+    margin: 0 auto;
+  }
+  .cordell-dashboard-welcome {
+    min-height: 1.35rem;
+    margin: 0 0 0.7rem;
+    color: var(--cordell-muted);
+    font-size: 0.9rem;
+    font-weight: 720;
+    letter-spacing: -0.01em;
+  }
+  .cordell-dashboard-welcome::after {
+    content: "";
+    display: inline-block;
+    width: 0.45rem;
+    height: 1em;
+    margin-left: 0.15rem;
+    border-right: 1px solid var(--cordell-muted);
+    vertical-align: -0.12em;
+    opacity: 0.8;
+    animation: cordell-dashboard-caret 900ms steps(2, jump-none) infinite;
+  }
+  .cordell-dashboard-welcome[data-typing-done="true"]::after {
+    opacity: 0.35;
+  }
+  .cordell-dashboard-search-form {
+    width: 100%;
+  }
+  .cordell-dashboard-results {
+    width: min(100%, 60rem);
+    margin: 1.4rem auto 0;
+  }
+  .cordell-dashboard-results-empty {
+    width: min(100%, 46rem);
+    margin: 0 auto;
+    border: 1px dashed var(--cordell-border);
+    border-radius: var(--radius-cordell-lg);
+    background: var(--cordell-surface);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-surface) 70%, transparent);
+    }
+    color: var(--cordell-muted);
+    padding: 1.1rem;
+    text-align: center;
+  }
+  .cordell-dashboard-results-empty p {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 650;
+  }
+  .cordell-dashboard-dock {
+    position: fixed;
+    left: 50%;
+    bottom: 1rem;
+    z-index: 35;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem;
+    width: min(36rem, calc(100% - 2rem));
+    transform: translateX(-50%);
+    border: 1px solid var(--cordell-border);
+    @supports (color: color-mix(in lab, red, red)) {
+      border: 1px solid color-mix(in srgb, var(--cordell-border) 80%, transparent);
+    }
+    border-radius: var(--radius-cordell-lg);
+    background: var(--cordell-background);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-background) 88%, transparent);
+    }
+    padding: 0.55rem;
+    backdrop-filter: blur(14px);
+    transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  }
+  .cordell-dashboard[data-search-active="true"] .cordell-dashboard-dock {
+    border-color: var(--cordell-border);
+    background: var(--cordell-surface);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-surface) 92%, transparent);
+    }
+    box-shadow: var(--shadow-cordell-soft);
+  }
+  .cordell-dashboard-dock-group {
+    min-width: 0;
+    border: 1px solid var(--cordell-border);
+    @supports (color: color-mix(in lab, red, red)) {
+      border: 1px solid color-mix(in srgb, var(--cordell-border) 72%, transparent);
+    }
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-surface-raised);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-surface-raised) 62%, transparent);
+    }
+    padding: 0.55rem;
+  }
+  .cordell-dashboard-dock-title {
+    margin: 0 0 0.45rem;
+    color: var(--cordell-muted);
+    font-size: 0.62rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+  }
+  .cordell-dashboard-dock-actions {
+    display: grid;
+    gap: 0.35rem;
+  }
+  .cordell-dashboard-dock-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-sm);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-text);
+    padding: 0.52rem 0.6rem;
+    font-size: 0.84rem;
+    font-weight: 760;
+    text-decoration: none;
+    transition: border-color 140ms ease, background-color 140ms ease, color 140ms ease;
+  }
+  .cordell-dashboard-dock-action:hover {
+    border-color: var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in srgb, var(--cordell-primary) 58%, var(--cordell-border));
+    }
+    background: var(--cordell-surface-muted);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-surface-muted) 84%, var(--cordell-primary) 16%);
+    }
+  }
+  @keyframes cordell-dashboard-caret {
+    0%, 45% {
+      opacity: 0.8;
+    }
+    46%, 100% {
+      opacity: 0;
+    }
+  }
+  @media (max-width: 760px) {
+    .cordell-dashboard {
+      padding-top: 2.2rem;
+      padding-bottom: 10rem;
+    }
+    .cordell-dashboard-dock {
+      grid-template-columns: 1fr;
+      width: min(28rem, calc(100% - 1rem));
+      bottom: 0.5rem;
+    }
+  }
+  @media (max-width: 480px) {
+    .cordell-dashboard {
+      padding-inline: 0.75rem;
+    }
+    .cordell-dashboard-welcome {
+      font-size: 0.82rem;
+    }
+    .cordell-dashboard-dock-action {
+      padding-block: 0.48rem;
+    }
+  }
   .cordell-login-page {
     position: relative;
     min-height: 100vh;
@@ -2698,48 +2804,6 @@
   inherits: false;
   initial-value: solid;
 }
-@property --tw-gradient-position {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-gradient-from {
-  syntax: "<color>";
-  inherits: false;
-  initial-value: #0000;
-}
-@property --tw-gradient-via {
-  syntax: "<color>";
-  inherits: false;
-  initial-value: #0000;
-}
-@property --tw-gradient-to {
-  syntax: "<color>";
-  inherits: false;
-  initial-value: #0000;
-}
-@property --tw-gradient-stops {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-gradient-via-stops {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-gradient-from-position {
-  syntax: "<length-percentage>";
-  inherits: false;
-  initial-value: 0%;
-}
-@property --tw-gradient-via-position {
-  syntax: "<length-percentage>";
-  inherits: false;
-  initial-value: 50%;
-}
-@property --tw-gradient-to-position {
-  syntax: "<length-percentage>";
-  inherits: false;
-  initial-value: 100%;
-}
 @property --tw-leading {
   syntax: "*";
   inherits: false;
@@ -2890,15 +2954,6 @@
     *, ::before, ::after, ::backdrop {
       --tw-divide-y-reverse: 0;
       --tw-border-style: solid;
-      --tw-gradient-position: initial;
-      --tw-gradient-from: #0000;
-      --tw-gradient-via: #0000;
-      --tw-gradient-to: #0000;
-      --tw-gradient-stops: initial;
-      --tw-gradient-via-stops: initial;
-      --tw-gradient-from-position: 0%;
-      --tw-gradient-via-position: 50%;
-      --tw-gradient-to-position: 100%;
       --tw-leading: initial;
       --tw-font-weight: initial;
       --tw-tracking: initial;

@@ -154,3 +154,20 @@
 - [ ] return_to is preserved if present.
 - [ ] Theme persists after reload.
 - [ ] Design remains serious and minimal.
+
+## Dashboard
+
+- [ ] Navbar search is hidden on dashboard.
+- [ ] Dashboard search is the main interaction.
+- [ ] Dashboard search is focused on load.
+- [ ] Dashboard search works without JavaScript.
+- [ ] Dashboard search works with live results.
+- [ ] Dashboard URL does not change during live search.
+- [ ] Welcome phrase appears above search.
+- [ ] Welcome phrase uses subtle typewriter animation.
+- [ ] Operational dock is fixed near bottom.
+- [ ] Operational dock includes CADASTRAR group.
+- [ ] Operational dock includes REGISTRAR group.
+- [ ] Dock links point to correct routes.
+- [ ] Dock becomes subtly elevated when search is active.
+- [ ] Dashboard remains usable on mobile.

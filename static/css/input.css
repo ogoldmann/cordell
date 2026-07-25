@@ -899,6 +899,184 @@
     transform: translateY(-1px);
   }
 
+  .cordell-dashboard {
+    position: relative;
+    min-height: calc(100dvh - 4.75rem);
+    padding: clamp(2.5rem, 8vh, 5.5rem) 1rem 8rem;
+    color: var(--cordell-text);
+  }
+
+  .cordell-dashboard-center {
+    width: min(100%, 60rem);
+    margin: 0 auto;
+  }
+
+  .cordell-dashboard-search-shell {
+    width: min(100%, 46rem);
+    margin: 0 auto;
+  }
+
+  .cordell-dashboard-welcome {
+    min-height: 1.35rem;
+    margin: 0 0 0.7rem;
+    color: var(--cordell-muted);
+    font-size: 0.9rem;
+    font-weight: 720;
+    letter-spacing: -0.01em;
+  }
+
+  .cordell-dashboard-welcome::after {
+    content: "";
+    display: inline-block;
+    width: 0.45rem;
+    height: 1em;
+    margin-left: 0.15rem;
+    border-right: 1px solid var(--cordell-muted);
+    vertical-align: -0.12em;
+    opacity: 0.8;
+    animation: cordell-dashboard-caret 900ms steps(2, jump-none) infinite;
+  }
+
+  .cordell-dashboard-welcome[data-typing-done="true"]::after {
+    opacity: 0.35;
+  }
+
+  .cordell-dashboard-search-form {
+    width: 100%;
+  }
+
+  .cordell-dashboard-results {
+    width: min(100%, 60rem);
+    margin: 1.4rem auto 0;
+  }
+
+  .cordell-dashboard-results-empty {
+    width: min(100%, 46rem);
+    margin: 0 auto;
+    border: 1px dashed var(--cordell-border);
+    border-radius: var(--radius-cordell-lg);
+    background: color-mix(in srgb, var(--cordell-surface) 70%, transparent);
+    color: var(--cordell-muted);
+    padding: 1.1rem;
+    text-align: center;
+  }
+
+  .cordell-dashboard-results-empty p {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 650;
+  }
+
+  .cordell-dashboard-dock {
+    position: fixed;
+    left: 50%;
+    bottom: 1rem;
+    z-index: 35;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem;
+    width: min(36rem, calc(100% - 2rem));
+    transform: translateX(-50%);
+    border: 1px solid color-mix(in srgb, var(--cordell-border) 80%, transparent);
+    border-radius: var(--radius-cordell-lg);
+    background: color-mix(in srgb, var(--cordell-background) 88%, transparent);
+    padding: 0.55rem;
+    backdrop-filter: blur(14px);
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .cordell-dashboard[data-search-active="true"] .cordell-dashboard-dock {
+    border-color: var(--cordell-border);
+    background: color-mix(in srgb, var(--cordell-surface) 92%, transparent);
+    box-shadow: var(--shadow-cordell-soft);
+  }
+
+  .cordell-dashboard-dock-group {
+    min-width: 0;
+    border: 1px solid color-mix(in srgb, var(--cordell-border) 72%, transparent);
+    border-radius: var(--radius-cordell-md);
+    background: color-mix(in srgb, var(--cordell-surface-raised) 62%, transparent);
+    padding: 0.55rem;
+  }
+
+  .cordell-dashboard-dock-title {
+    margin: 0 0 0.45rem;
+    color: var(--cordell-muted);
+    font-size: 0.62rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+  }
+
+  .cordell-dashboard-dock-actions {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .cordell-dashboard-dock-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-sm);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-text);
+    padding: 0.52rem 0.6rem;
+    font-size: 0.84rem;
+    font-weight: 760;
+    text-decoration: none;
+    transition:
+      border-color 140ms ease,
+      background-color 140ms ease,
+      color 140ms ease;
+  }
+
+  .cordell-dashboard-dock-action:hover {
+    border-color: color-mix(in srgb, var(--cordell-primary) 58%, var(--cordell-border));
+    background: color-mix(in srgb, var(--cordell-surface-muted) 84%, var(--cordell-primary) 16%);
+  }
+
+  @keyframes cordell-dashboard-caret {
+    0%,
+    45% {
+      opacity: 0.8;
+    }
+
+    46%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .cordell-dashboard {
+      padding-top: 2.2rem;
+      padding-bottom: 10rem;
+    }
+
+    .cordell-dashboard-dock {
+      grid-template-columns: 1fr;
+      width: min(28rem, calc(100% - 1rem));
+      bottom: 0.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cordell-dashboard {
+      padding-inline: 0.75rem;
+    }
+
+    .cordell-dashboard-welcome {
+      font-size: 0.82rem;
+    }
+
+    .cordell-dashboard-dock-action {
+      padding-block: 0.48rem;
+    }
+  }
+
   .cordell-login-page {
     position: relative;
     min-height: 100vh;

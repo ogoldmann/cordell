@@ -35,50 +35,48 @@ Rules:
 
 ## Home / Dashboard
 
-The home page is centered around global search.
+Status: redesigned.
 
-Navbar search must not appear on the dashboard.
+The dashboard is centered around global search.
+
+Navbar search does not appear on the dashboard.
 
 ### Main search
 
-The first main element below the navbar is the global search bar.
+The first main element below the navbar is the global search experience.
 
-Design:
+It includes:
 
-- horizontally centered
-- comfortable distance from navbar
-- not inside a card
-- directly over the solid background
-- long but not vertically heavy
-- clean and powerful
-- result area appears below it
+- subtle welcome phrase
+- hero search bar
+- live search results below
+
+The search bar is not wrapped in a large card.
+
+It sits directly over the page background.
 
 Behavior:
 
-- search input is focused automatically when entering home
-- dashboard live search remains progressive
+- input is focused automatically on dashboard load
+- live search results render inline
 - without JavaScript, form submits to `/search`
+- dashboard URL does not change during live search
 
 ### Welcome phrase
 
-When the user enters the dashboard, a phrase appears above the search bar, aligned with the search bar's left edge.
+The welcome phrase is selected randomly from the approved phrase list.
 
-The phrase should feel premium, with subtle typing/deleting animation.
+It uses subtle typewriter animation.
 
-Possible phrases:
+The animation should not loop aggressively.
 
-- Segura, aqui é Pelotão de Segurança.
-- Excelente, vamos ao trabalho.
-- Excelente.
-- Mais um dia. Tudo sob controle.
-- Vamos colocar tudo em ordem.
-- Hoje também, no controle.
+It must respect reduced motion preferences.
 
 ### Operational action dock
 
-A fixed operational action component appears near the bottom of the viewport.
+The operational dock is fixed near the bottom of the viewport.
 
-It contains two groups:
+It contains:
 
 - CADASTRAR
   - Militar
@@ -88,22 +86,13 @@ It contains two groups:
   - Cautela
   - Descautela
 
-Design:
+The dock is visually quiet when the search is inactive.
 
-- horizontally centered
-- slightly narrower than the home search bar
-- not too tall
-- external card/box
-- two internal sub-boxes
-- each sub-box has a small uppercase heading
-- each action is a rectangular list-like button
+When search is active, it gains subtle elevation so it separates from the results area.
 
-Behavior:
+Future possibility:
 
-- when no search is active and content does not overflow, the dock blends with the background
-- when search results appear or page scroll becomes relevant, the dock gains visual elevation/shadow
-- the dock is fixed near the bottom with a small gap from the viewport edge
-- future possibility: use this dock globally as an operational shortcut
+- use this dock globally as an operational shortcut.
 
 ## Personnel list page
 
