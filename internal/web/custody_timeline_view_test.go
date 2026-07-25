@@ -63,6 +63,22 @@ func TestNewCustodyTimelineItemFromLedgerItem(t *testing.T) {
 		t.Fatalf("expected checkout tone, got %q", item.TypeTone)
 	}
 
+	if item.TypeLabel != "CAUTELA" {
+		t.Fatalf("expected uppercase checkout label, got %q", item.TypeLabel)
+	}
+
+	if item.ReceiptURL != "/custody/transactions/transaction-1" {
+		t.Fatalf("expected receipt URL, got %q", item.ReceiptURL)
+	}
+
+	if item.RegisteredBy != "Sgt Costa" {
+		t.Fatalf("expected registered by label, got %q", item.RegisteredBy)
+	}
+
+	if item.RegisteredAt != "24/07/2026 10:30" {
+		t.Fatalf("expected registered at label, got %q", item.RegisteredAt)
+	}
+
 	if !item.Edited {
 		t.Fatal("expected edited item")
 	}
@@ -101,6 +117,10 @@ func TestNewCustodyTimelineItemFromPersonnelHistoryItem(t *testing.T) {
 
 	if item.TypeTone != "return" {
 		t.Fatalf("expected return tone, got %q", item.TypeTone)
+	}
+
+	if item.TypeLabel != "DESCAUTELA" {
+		t.Fatalf("expected uppercase return label, got %q", item.TypeLabel)
 	}
 
 	if item.Notes != "Returned after inspection." {

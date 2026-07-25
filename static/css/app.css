@@ -19,7 +19,6 @@
     --color-amber-200: oklch(92.4% 0.12 95.746);
     --color-amber-300: oklch(87.9% 0.169 91.605);
     --color-amber-400: oklch(82.8% 0.189 84.429);
-    --color-amber-700: oklch(55.5% 0.163 48.998);
     --color-amber-800: oklch(47.3% 0.137 46.201);
     --color-amber-900: oklch(41.4% 0.112 45.904);
     --color-amber-950: oklch(27.9% 0.077 45.635);
@@ -35,10 +34,6 @@
     --color-sky-700: oklch(50% 0.134 242.749);
     --color-sky-900: oklch(39.1% 0.09 240.876);
     --color-sky-950: oklch(29.3% 0.066 243.157);
-    --color-blue-50: oklch(97% 0.014 254.604);
-    --color-blue-200: oklch(88.2% 0.059 254.128);
-    --color-blue-700: oklch(48.8% 0.243 264.376);
-    --color-blue-950: oklch(28.2% 0.091 267.935);
     --color-slate-100: oklch(96.8% 0.007 247.896);
     --color-slate-200: oklch(92.9% 0.013 255.508);
     --color-slate-300: oklch(86.9% 0.022 252.894);
@@ -348,9 +343,6 @@
   .mb-2 {
     margin-bottom: calc(var(--spacing) * 2);
   }
-  .mb-3 {
-    margin-bottom: calc(var(--spacing) * 3);
-  }
   .mb-4 {
     margin-bottom: calc(var(--spacing) * 4);
   }
@@ -454,9 +446,6 @@
   }
   .max-w-md {
     max-width: var(--container-md);
-  }
-  .min-w-0 {
-    min-width: 0;
   }
   .min-w-full {
     min-width: 100%;
@@ -641,9 +630,6 @@
   .bg-amber-100 {
     background-color: var(--color-amber-100);
   }
-  .bg-blue-50 {
-    background-color: var(--color-blue-50);
-  }
   .bg-cordell-background {
     background-color: var(--color-cordell-background);
   }
@@ -664,12 +650,6 @@
   }
   .bg-cordell-primary {
     background-color: var(--color-cordell-primary);
-  }
-  .bg-cordell-primary\/5 {
-    background-color: var(--color-cordell-primary);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-cordell-primary) 5%, transparent);
-    }
   }
   .bg-cordell-primary\/10 {
     background-color: var(--color-cordell-primary);
@@ -776,9 +756,6 @@
   .text-left {
     text-align: left;
   }
-  .text-right {
-    text-align: right;
-  }
   .font-mono {
     font-family: var(--font-mono);
   }
@@ -852,14 +829,8 @@
   .whitespace-pre-wrap {
     white-space: pre-wrap;
   }
-  .text-amber-700 {
-    color: var(--color-amber-700);
-  }
   .text-amber-800 {
     color: var(--color-amber-800);
-  }
-  .text-blue-700 {
-    color: var(--color-blue-700);
   }
   .text-cordell-danger-text {
     color: var(--color-cordell-danger-text);
@@ -879,9 +850,6 @@
   .text-cordell-text {
     color: var(--color-cordell-text);
   }
-  .text-current {
-    color: currentcolor;
-  }
   .text-emerald-700 {
     color: var(--color-emerald-700);
   }
@@ -899,9 +867,6 @@
   }
   .text-slate-600 {
     color: var(--color-slate-600);
-  }
-  .text-slate-700 {
-    color: var(--color-slate-700);
   }
   .text-white {
     color: var(--color-white);
@@ -1110,11 +1075,6 @@
       width: auto;
     }
   }
-  .sm\:grid-cols-2 {
-    @media (width >= 40rem) {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
   .sm\:flex-row {
     @media (width >= 40rem) {
       flex-direction: row;
@@ -1236,11 +1196,6 @@
       justify-content: space-between;
     }
   }
-  .lg\:justify-end {
-    @media (width >= 64rem) {
-      justify-content: flex-end;
-    }
-  }
   .xl\:grid-cols-3 {
     @media (width >= 80rem) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1353,14 +1308,6 @@
       }
     }
   }
-  .dark\:bg-blue-950\/40 {
-    &:where([data-theme="dark"], [data-theme="dark"] *) {
-      background-color: color-mix(in srgb, oklch(28.2% 0.091 267.935) 40%, transparent);
-      @supports (color: color-mix(in lab, red, red)) {
-        background-color: color-mix(in oklab, var(--color-blue-950) 40%, transparent);
-      }
-    }
-  }
   .dark\:bg-cordell-dark-background {
     &:where([data-theme="dark"], [data-theme="dark"] *) {
       background-color: var(--color-cordell-dark-background);
@@ -1385,14 +1332,6 @@
   .dark\:bg-cordell-dark-primary {
     &:where([data-theme="dark"], [data-theme="dark"] *) {
       background-color: var(--color-cordell-dark-primary);
-    }
-  }
-  .dark\:bg-cordell-dark-primary\/10 {
-    &:where([data-theme="dark"], [data-theme="dark"] *) {
-      background-color: var(--color-cordell-dark-primary);
-      @supports (color: color-mix(in lab, red, red)) {
-        background-color: color-mix(in oklab, var(--color-cordell-dark-primary) 10%, transparent);
-      }
     }
   }
   .dark\:bg-cordell-dark-primary\/15 {
@@ -1466,11 +1405,6 @@
       color: var(--color-amber-200);
     }
   }
-  .dark\:text-blue-200 {
-    &:where([data-theme="dark"], [data-theme="dark"] *) {
-      color: var(--color-blue-200);
-    }
-  }
   .dark\:text-cordell-dark-background {
     &:where([data-theme="dark"], [data-theme="dark"] *) {
       color: var(--color-cordell-dark-background);
@@ -1512,11 +1446,6 @@
   .dark\:text-sky-200 {
     &:where([data-theme="dark"], [data-theme="dark"] *) {
       color: var(--color-sky-200);
-    }
-  }
-  .dark\:text-slate-200 {
-    &:where([data-theme="dark"], [data-theme="dark"] *) {
-      color: var(--color-slate-200);
     }
   }
   .dark\:text-slate-300 {
@@ -2051,6 +1980,280 @@
   .cordell-ledger-results {
     margin-top: 1.2rem;
   }
+  .cordell-custody-timeline {
+    display: grid;
+    gap: 0;
+  }
+  .cordell-custody-timeline-item {
+    display: grid;
+    grid-template-columns: 1.35rem minmax(0, 1fr);
+    gap: 0.75rem;
+    position: relative;
+  }
+  .cordell-custody-timeline-item + .cordell-custody-timeline-item {
+    margin-top: 0.85rem;
+  }
+  .cordell-custody-timeline-rail {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding-top: 1.05rem;
+  }
+  .cordell-custody-timeline-rail::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: -0.85rem;
+    width: 1px;
+    background: var(--cordell-border);
+  }
+  .cordell-custody-timeline-item:last-child .cordell-custody-timeline-rail::before {
+    bottom: auto;
+    height: 1.15rem;
+  }
+  .cordell-custody-timeline-dot {
+    position: relative;
+    z-index: 1;
+    width: 0.55rem;
+    height: 0.55rem;
+    border: 2px solid var(--cordell-surface);
+    border-radius: 999px;
+    background: var(--cordell-muted);
+    box-shadow: 0 0 0 1px var(--cordell-border);
+  }
+  .cordell-custody-timeline-dot-checkout {
+    background: var(--cordell-positive);
+    box-shadow: 0 0 0 1px var(--cordell-positive);
+    @supports (color: color-mix(in lab, red, red)) {
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--cordell-positive) 42%, var(--cordell-border));
+    }
+  }
+  .cordell-custody-timeline-dot-return {
+    background: var(--cordell-negative);
+    box-shadow: 0 0 0 1px var(--cordell-negative);
+    @supports (color: color-mix(in lab, red, red)) {
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--cordell-negative) 38%, var(--cordell-border));
+    }
+  }
+  .cordell-transaction-card {
+    border: 1px solid var(--cordell-border);
+    border-left-width: 3px;
+    border-radius: var(--radius-cordell-lg);
+    background: var(--cordell-surface);
+    overflow: hidden;
+  }
+  .cordell-transaction-card-checkout {
+    border-left-color: var(--cordell-positive);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-left-color: color-mix(in srgb, var(--cordell-positive) 72%, var(--cordell-border));
+    }
+  }
+  .cordell-transaction-card-return {
+    border-left-color: var(--cordell-negative);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-left-color: color-mix(in srgb, var(--cordell-negative) 68%, var(--cordell-border));
+    }
+  }
+  .cordell-transaction-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--cordell-border);
+    background: var(--cordell-surface-muted);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-surface-muted) 48%, transparent);
+    }
+    padding: 0.68rem 0.75rem;
+  }
+  .cordell-transaction-card-meta-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+  .cordell-transaction-sequence {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-xs);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-muted);
+    padding: 0.18rem 0.38rem;
+    font-size: 0.64rem;
+    font-weight: 850;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .cordell-transaction-type-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius-cordell-xs);
+    padding: 0.2rem 0.42rem;
+    font-size: 0.64rem;
+    font-weight: 900;
+    letter-spacing: 0.065em;
+    line-height: 1;
+  }
+  .cordell-transaction-type-badge-checkout {
+    border: 1px solid var(--cordell-positive);
+    @supports (color: color-mix(in lab, red, red)) {
+      border: 1px solid color-mix(in srgb, var(--cordell-positive) 42%, var(--cordell-border));
+    }
+    background: var(--cordell-positive-soft);
+    color: var(--cordell-positive-text);
+  }
+  .cordell-transaction-type-badge-return {
+    border: 1px solid var(--cordell-negative);
+    @supports (color: color-mix(in lab, red, red)) {
+      border: 1px solid color-mix(in srgb, var(--cordell-negative) 36%, var(--cordell-border));
+    }
+    background: var(--cordell-negative-soft);
+    color: var(--cordell-negative-text);
+  }
+  .cordell-transaction-type-badge-neutral {
+    border: 1px solid var(--cordell-border);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-muted);
+  }
+  .cordell-transaction-edited-badge {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-xs);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-muted);
+    padding: 0.18rem 0.36rem;
+    font-size: 0.61rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .cordell-transaction-receipt-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-sm);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-text);
+    padding: 0.42rem 0.55rem;
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: border-color 140ms ease, background-color 140ms ease;
+  }
+  .cordell-transaction-receipt-link:hover {
+    border-color: var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in srgb, var(--cordell-primary) 52%, var(--cordell-border));
+    }
+    background: var(--cordell-surface-muted);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-surface-muted) 86%, var(--cordell-primary) 14%);
+    }
+  }
+  .cordell-transaction-registered {
+    margin: 0;
+    border-bottom: 1px solid var(--cordell-border);
+    color: var(--cordell-muted);
+    padding: 0.48rem 0.75rem;
+    font-size: 0.76rem;
+    font-weight: 620;
+    line-height: 1.35;
+  }
+  .cordell-transaction-registered strong {
+    color: var(--cordell-text);
+    font-weight: 760;
+  }
+  .cordell-transaction-card-body {
+    display: grid;
+    gap: 0.85rem;
+    padding: 0.8rem 0.75rem 0.85rem;
+  }
+  .cordell-transaction-section-title {
+    margin: 0 0 0.38rem;
+    color: var(--cordell-muted);
+    font-size: 0.62rem;
+    font-weight: 850;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+  }
+  .cordell-transaction-personnel-name {
+    margin: 0;
+    color: var(--cordell-text);
+    font-size: 0.95rem;
+    font-weight: 820;
+    line-height: 1.2;
+  }
+  .cordell-transaction-personnel-name a, .cordell-transaction-line-name a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .cordell-transaction-personnel-name a:hover, .cordell-transaction-line-name a:hover {
+    color: var(--cordell-primary);
+  }
+  .cordell-transaction-personnel-full-name {
+    margin: 0.18rem 0 0;
+    color: var(--cordell-muted);
+    font-size: 0.8rem;
+    font-weight: 620;
+    line-height: 1.25;
+  }
+  .cordell-transaction-lines-table {
+    overflow: hidden;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-surface-raised);
+  }
+  .cordell-transaction-line {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0.6rem;
+  }
+  .cordell-transaction-line + .cordell-transaction-line {
+    border-top: 1px solid var(--cordell-border);
+  }
+  .cordell-transaction-line-highlight {
+    background: var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-primary) 8%, transparent);
+    }
+  }
+  .cordell-transaction-line-name {
+    min-width: 0;
+    color: var(--cordell-text);
+    font-size: 0.84rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  .cordell-transaction-line-quantity {
+    min-width: 2.5rem;
+    color: var(--cordell-text);
+    text-align: right;
+    font-size: 0.84rem;
+    font-weight: 820;
+    font-variant-numeric: tabular-nums;
+  }
+  .cordell-transaction-notes {
+    border-top: 1px solid var(--cordell-border);
+    background: var(--cordell-surface-muted);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-surface-muted) 36%, transparent);
+    }
+    padding: 0.7rem 0.75rem;
+  }
+  .cordell-transaction-notes-text {
+    margin: 0;
+    color: var(--cordell-muted);
+    font-size: 0.8rem;
+    font-weight: 620;
+    line-height: 1.35;
+    white-space: pre-wrap;
+  }
   .cordell-data-table-card {
     overflow: hidden;
     border: 1px solid var(--cordell-border);
@@ -2275,6 +2478,19 @@
     }
     .cordell-index-filter {
       min-width: 0;
+    }
+  }
+  @media (max-width: 640px) {
+    .cordell-custody-timeline-item {
+      grid-template-columns: 1rem minmax(0, 1fr);
+      gap: 0.55rem;
+    }
+    .cordell-transaction-card-header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .cordell-transaction-receipt-link {
+      width: 100%;
     }
   }
   [data-theme-option][data-selected="true"] {

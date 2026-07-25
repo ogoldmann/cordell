@@ -91,22 +91,23 @@ type currentCustodyView struct {
 }
 
 type custodyHistoryView struct {
-	ID              string
-	Type            string
-	TypeLabel       string
-	OperatorID      string
-	OperatorDisplay string
-	PersonnelLabel  string
-	PersonnelURL    string
-	Notes           string
-	CreatedAt       string
-	DateLabel       string
-	TimeLabel       string
-	Lines           []custodyHistoryLineView
-	HasCorrection   bool
-	EditCount       int
-	EditLabel       string
-	EditCountLabel  string
+	ID                string
+	Type              string
+	TypeLabel         string
+	OperatorID        string
+	OperatorDisplay   string
+	PersonnelLabel    string
+	PersonnelFullName string
+	PersonnelURL      string
+	Notes             string
+	CreatedAt         string
+	DateLabel         string
+	TimeLabel         string
+	Lines             []custodyHistoryLineView
+	HasCorrection     bool
+	EditCount         int
+	EditLabel         string
+	EditCountLabel    string
 }
 
 type custodyHistoryLineView struct {
@@ -359,22 +360,23 @@ func (s *Server) handleShowPersonnel(w http.ResponseWriter, r *http.Request) {
 
 	for _, entry := range history {
 		historyView := custodyHistoryView{
-			ID:              string(entry.ID),
-			Type:            string(entry.Type),
-			TypeLabel:       custodyTransactionTypeLabel(entry.Type),
-			OperatorID:      string(entry.OperatorID),
-			OperatorDisplay: militaryDisplayName(entry.OperatorRank, entry.OperatorAlias),
-			PersonnelLabel:  view.DisplayName,
-			PersonnelURL:    "/personnel/" + view.ID,
-			Notes:           entry.Notes,
-			CreatedAt:       entry.CreatedAt.Local().Format("02/01/2006 15:04"),
-			DateLabel:       formatTimelineDate(entry.CreatedAt),
-			TimeLabel:       formatTimelineTime(entry.CreatedAt),
-			Lines:           make([]custodyHistoryLineView, 0, len(entry.Lines)),
-			HasCorrection:   entry.HasCorrection,
-			EditCount:       entry.EditCount,
-			EditLabel:       editCountLabel(entry.EditCount),
-			EditCountLabel:  custodyEditCountLabel(entry.EditCount),
+			ID:                string(entry.ID),
+			Type:              string(entry.Type),
+			TypeLabel:         custodyTransactionTypeLabel(entry.Type),
+			OperatorID:        string(entry.OperatorID),
+			OperatorDisplay:   militaryDisplayName(entry.OperatorRank, entry.OperatorAlias),
+			PersonnelLabel:    view.DisplayName,
+			PersonnelFullName: view.FullName,
+			PersonnelURL:      "/personnel/" + view.ID,
+			Notes:             entry.Notes,
+			CreatedAt:         entry.CreatedAt.Local().Format("02/01/2006 15:04"),
+			DateLabel:         formatTimelineDate(entry.CreatedAt),
+			TimeLabel:         formatTimelineTime(entry.CreatedAt),
+			Lines:             make([]custodyHistoryLineView, 0, len(entry.Lines)),
+			HasCorrection:     entry.HasCorrection,
+			EditCount:         entry.EditCount,
+			EditLabel:         editCountLabel(entry.EditCount),
+			EditCountLabel:    custodyEditCountLabel(entry.EditCount),
 		}
 
 		for _, line := range entry.Lines {
@@ -430,18 +432,27 @@ func newCustodyTimelineItemFromPersonnelHistoryItem(item custodyHistoryView) cus
 	return custodyTimelineItemView{
 		ID:                   item.ID,
 		URL:                  receiptURL,
-		TypeLabel:            item.TypeLabel,
+		Type:                 item.Type,
+		TypeLabel:            custodyTimelineTypeLabel(item.TypeLabel),
+		TypeClass:            custodyTimelineTypeTone(item.TypeLabel),
 		TypeTone:             custodyTimelineTypeTone(item.TypeLabel),
+		ReceiptURL:           receiptURL,
+		RegisteredBy:         item.OperatorDisplay,
+		RegisteredAt:         custodyTimelineRegisteredAt(item.DateLabel, item.TimeLabel),
+		PersonnelDisplayName: item.PersonnelLabel,
+		PersonnelFullName:    item.PersonnelFullName,
 		DateLabel:            item.DateLabel,
 		TimeLabel:            item.TimeLabel,
 		PersonnelLabel:       item.PersonnelLabel,
 		PersonnelURL:         item.PersonnelURL,
 		OperatorLabel:        item.OperatorDisplay,
 		Edited:               item.HasCorrection,
+		HasCorrections:       item.HasCorrection,
+		CorrectionCount:      item.EditCount,
 		EditCountLabel:       item.EditCountLabel,
 		Notes:                item.Notes,
 		Lines:                lines,
-		PrimaryActionLabel:   "Abrir recibo",
+		PrimaryActionLabel:   "Abrir Recibo",
 		PrimaryActionURL:     receiptURL,
 		SecondaryActionLabel: "Editar",
 		SecondaryActionURL:   receiptURL + "/edit",

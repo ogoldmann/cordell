@@ -234,6 +234,52 @@ The transaction card must not look like isolated boxes stacked randomly.
 
 It should feel like a timeline/history.
 
+## Custody transaction cards
+
+Custody transaction cards are used in ledger and custody history timelines.
+
+### Structure
+
+Each card contains:
+
+- sequence badge
+- transaction type badge
+- optional edited badge
+- receipt link
+- registration metadata
+- personnel block
+- material lines block
+
+### Transaction type
+
+Checkout and return are differentiated by:
+
+- timeline dot color
+- card left border color
+- transaction type badge
+
+Checkout uses the positive token.
+
+Return uses the negative token.
+
+Color must remain subtle.
+
+### Timeline
+
+The timeline uses:
+
+- small dot
+- subtle vertical line
+- compact spacing between cards
+
+### Rules
+
+- no oversized cards
+- no unnecessary icons
+- receipt action remains text-based
+- metadata and operational data are visually separated
+- material lines use compact tabular layout
+
 ## Data tables
 
 Cordell uses shared data table styling for operational lists.

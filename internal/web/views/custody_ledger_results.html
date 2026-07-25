@@ -1,9 +1,11 @@
 {{define "custody_ledger_results"}}
-  {{template "custody_timeline" .Timeline}}
+  {{if .Timeline.Items}}
+    {{template "custody_timeline" .Timeline}}
 
-  {{if .Pagination}}
     <div class="cordell-index-pagination">
       {{template "pagination" .Pagination}}
     </div>
+  {{else}}
+    {{template "empty_state" .EmptyState}}
   {{end}}
 {{end}}

@@ -166,6 +166,23 @@
 - [ ] Live search still works.
 - [ ] Result cards are not redesigned yet.
 
+## Custody Transaction Card Redesign
+
+- [ ] Timeline dot differentiates checkout and return.
+- [ ] Card border differentiates checkout and return.
+- [ ] Card header shows sequence.
+- [ ] Card header shows transaction type.
+- [ ] Card header shows receipt link.
+- [ ] Metadata line shows operator and datetime.
+- [ ] Personnel block shows display name.
+- [ ] Personnel block shows full name.
+- [ ] Material lines render in compact table.
+- [ ] Edited transactions show subtle edited badge.
+- [ ] Ledger filters still work.
+- [ ] Live search still works.
+- [ ] Personnel history still works.
+- [ ] Asset history still works.
+
 ## Personnel List Polish
 
 - [ ] Header is aligned with primary action.

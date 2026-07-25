@@ -2,7 +2,10 @@ package web
 
 import (
 	"strconv"
+	"strings"
 	"time"
+
+	"cordell/internal/domain"
 )
 
 type custodyTimelineView struct {
@@ -14,8 +17,15 @@ type custodyTimelineItemView struct {
 	ID                   string
 	URL                  string
 	SequenceLabel        string
+	Type                 string
 	TypeLabel            string
+	TypeClass            string
 	TypeTone             string
+	ReceiptURL           string
+	RegisteredBy         string
+	RegisteredAt         string
+	PersonnelDisplayName string
+	PersonnelFullName    string
 	DateLabel            string
 	TimeLabel            string
 	PersonnelLabel       string
@@ -23,6 +33,8 @@ type custodyTimelineItemView struct {
 	OperatorLabel        string
 	OperatorURL          string
 	Edited               bool
+	HasCorrections       bool
+	CorrectionCount      int
 	EditCountLabel       string
 	Notes                string
 	Lines                []custodyTimelineLineView
@@ -38,16 +50,47 @@ type custodyTimelineLineView struct {
 	AssetURL    string
 	Quantity    string
 	Highlighted bool
+	Highlight   bool
+}
+
+func custodyTransactionTypeClass(transactionType string) string {
+	switch transactionType {
+	case string(domain.CustodyTransactionTypeCheckout):
+		return "checkout"
+	case string(domain.CustodyTransactionTypeReturn):
+		return "return"
+	default:
+		return "neutral"
+	}
+}
+
+func custodyTimelineTypeLabel(typeLabel string) string {
+	if strings.TrimSpace(typeLabel) == "" {
+		return "TRANSAÇÃO"
+	}
+
+	return strings.ToUpper(typeLabel)
 }
 
 func custodyTimelineTypeTone(typeLabel string) string {
 	switch typeLabel {
-	case checkoutLabel():
+	case checkoutLabel(), "CAUTELA":
 		return "checkout"
-	case returnLabel():
+	case returnLabel(), "DESCAUTELA":
 		return "return"
 	default:
 		return "neutral"
+	}
+}
+
+func custodyTimelineRegisteredAt(dateLabel string, timeLabel string) string {
+	switch {
+	case dateLabel != "" && timeLabel != "":
+		return dateLabel + " " + timeLabel
+	case dateLabel != "":
+		return dateLabel
+	default:
+		return timeLabel
 	}
 }
 
