@@ -84,6 +84,24 @@
 - [ ] Critical actions keep visible text labels.
 - [ ] No CDN is used for icons.
 
+## Search Bar Component
+
+- [ ] Shared search bar view model exists.
+- [ ] Shared search bar template exists.
+- [ ] Search button uses Lucide search icon.
+- [ ] Right-side button is square and rounded.
+- [ ] Default variant exists.
+- [ ] Hero variant exists.
+- [ ] Compact variant exists.
+- [ ] Dashboard uses hero search bar.
+- [ ] `/search` uses shared search bar.
+- [ ] Personnel list uses shared search bar.
+- [ ] Asset list uses shared search bar.
+- [ ] Custody ledger uses shared search bar.
+- [ ] Admin operators uses shared search bar.
+- [ ] Search behavior remains outside the component.
+- [ ] Live search still works.
+
 ## Pages
 
 - [ ] Login page redesigned.

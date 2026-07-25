@@ -41,25 +41,7 @@
     data-live-search-delay="250"
     data-live-search-update-url="false"
   >
-    <div class="grid gap-3 lg:grid-cols-[1fr_auto]">
-      <label class="block">
-        <span class="sr-only">Pesquisar no Cordell</span>
-        <input
-          class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/10 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/10"
-          type="search"
-          name="q"
-          placeholder="Ex.: sd silva, s1 john, rádio, identidade..."
-          autocomplete="off"
-        >
-      </label>
-
-      <button
-        class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
-        type="submit"
-      >
-        Pesquisar
-      </button>
-    </div>
+    {{template "search_bar" (newHeroSearchBar "dashboard-global-search-input" "" "Ex.: sd silva, s1 john, rádio, identidade...")}}
   </form>
 
   <p

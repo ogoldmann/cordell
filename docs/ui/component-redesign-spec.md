@@ -2,28 +2,78 @@
 
 ## Search bars
 
-Search bars are a core interaction pattern in Cordell.
+Search bars are a shared Cordell component.
 
-Design:
+They are used in:
 
-- clean horizontal input
-- rounded borders
-- comfortable but not oversized height
-- search icon inside a square rounded box on the right side
+- dashboard global search
+- full global search page
+- personnel list
+- asset list
+- custody transaction ledger
+- admin operators list
+- navbar search, after navbar redesign
+
+### Visual rules
+
+The search bar has:
+
+- rounded outer frame
+- clean input area
+- square rounded search button on the right
+- Lucide search icon
 - strong focus state
-- responsive behavior
+- token-based theme colors
+- no raw hardcoded colors
 
-Responsive behavior:
+### Variants
 
-- on large screens, search bars are inline
-- on smaller screens, search interaction may become a side panel or stacked block
-- no search bar should break layout width
+The component supports three visual variants:
 
-Search bars must remain progressive:
+- default
+- hero
+- compact
 
-- without JavaScript, normal GET forms work
-- with JavaScript, live search can request partial HTML
-- backend remains the authority for search rules
+#### Default
+
+Used in normal pages and filters.
+
+#### Hero
+
+Used in the dashboard/home global search.
+
+Characteristics:
+
+- wider visual presence
+- slightly taller
+- more elevated
+- autofocus allowed
+
+#### Compact
+
+Used in dense spaces such as navbar or future compact filters.
+
+### Behavioral rules
+
+The component does not own search behavior.
+
+The form around the component owns:
+
+- action
+- method
+- live search attributes
+- hidden fields
+- target containers
+
+JavaScript remains generic.
+
+The backend remains the authority for search behavior.
+
+### Responsiveness
+
+The search bar must be full-width inside its container.
+
+On small screens, parent layouts may stack it or move it into a future mobile search panel.
 
 ## Navbar
 

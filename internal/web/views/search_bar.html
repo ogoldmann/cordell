@@ -1,0 +1,31 @@
+{{define "search_bar"}}
+  <div class="{{.ShellClass}}">
+    <label class="sr-only" for="{{.ID}}">
+      {{.Label}}
+    </label>
+
+    <div class="cordell-search-frame">
+      <input
+        id="{{.ID}}"
+        class="{{.InputClass}}"
+        type="search"
+        name="{{.Name}}"
+        value="{{.Value}}"
+        placeholder="{{.Placeholder}}"
+        autocomplete="off"
+        {{if .Autofocus}}autofocus{{end}}
+      >
+
+      <button
+        class="{{.ButtonClass}}"
+        type="submit"
+        aria-label="{{.ButtonAriaLabel}}"
+      >
+        {{template "icon" (newIcon "search" .IconClass)}}
+        {{if .ShowButtonText}}
+          <span>{{.ButtonLabel}}</span>
+        {{end}}
+      </button>
+    </div>
+  </div>
+{{end}}

@@ -26,28 +26,9 @@
 >
   <input type="hidden" name="status" value="{{.StatusFilter}}">
 
-  <div class="grid gap-2">
-    <label class="text-sm font-bold" for="global_search">Pesquisar</label>
-    <input
-      class="w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition placeholder:text-cordell-muted/70 focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:placeholder:text-cordell-dark-muted/70 dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-      id="global_search"
-      name="q"
-      type="search"
-      value="{{.SearchQuery}}"
-      placeholder="Pesquise por nome, nome de guerra, identidade, material..."
-      autofocus
-    >
-  </div>
+  {{template "search_bar" (newSearchBar "global-search-input" .Results.Query "Pesquise por militar, material, identidade, seção...")}}
 
   <div class="flex flex-col gap-3 sm:flex-row">
-    <button
-      class="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border-0 bg-cordell-primary px-4 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
-      type="submit"
-    >
-      {{template "icon" (newIcon "search" "size-5")}}
-      <span>Pesquisar</span>
-    </button>
-
     {{if .SearchQuery}}
       <a
         class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-4 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
