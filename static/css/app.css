@@ -70,6 +70,7 @@
     --text-5xl: 3rem;
     --text-5xl--line-height: 1;
     --font-weight-medium: 500;
+    --font-weight-semibold: 600;
     --font-weight-bold: 700;
     --font-weight-extrabold: 800;
     --tracking-tight: -0.025em;
@@ -827,6 +828,10 @@
   .font-medium {
     --tw-font-weight: var(--font-weight-medium);
     font-weight: var(--font-weight-medium);
+  }
+  .font-semibold {
+    --tw-font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-semibold);
   }
   .tracking-\[-0\.03em\] {
     --tw-tracking: -0.03em;
@@ -1727,6 +1732,172 @@
   }
 }
 @layer components {
+  .cordell-data-table-card {
+    overflow: hidden;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-lg);
+    background: var(--cordell-surface);
+  }
+  .cordell-data-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+  }
+  .cordell-data-table {
+    width: 100%;
+    min-width: 44rem;
+    border-collapse: collapse;
+  }
+  .cordell-data-table thead {
+    background: var(--cordell-surface-muted);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-surface-muted) 72%, transparent);
+    }
+  }
+  .cordell-data-table th {
+    padding: 0.65rem 0.8rem;
+    color: var(--cordell-muted);
+    text-align: left;
+    font-size: 0.66rem;
+    font-weight: 850;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .cordell-data-table td {
+    border-top: 1px solid var(--cordell-border);
+    padding: 0.72rem 0.8rem;
+    color: var(--cordell-text);
+    font-size: 0.86rem;
+    vertical-align: middle;
+  }
+  .cordell-data-table-row {
+    cursor: pointer;
+    transition: background-color 140ms ease, box-shadow 140ms ease;
+  }
+  .cordell-data-table-row:hover {
+    background: var(--cordell-surface-muted);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-surface-muted) 72%, transparent);
+    }
+  }
+  .cordell-data-table-row:focus-within {
+    background: var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-primary) 8%, var(--cordell-surface-muted));
+    }
+    box-shadow: inset 3px 0 0 var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      box-shadow: inset 3px 0 0 color-mix(in srgb, var(--cordell-primary) 72%, transparent);
+    }
+  }
+  .cordell-data-table-main-cell {
+    min-width: 14rem;
+  }
+  .cordell-data-table-title {
+    display: block;
+    color: var(--cordell-text);
+    font-size: 0.9rem;
+    font-weight: 820;
+    line-height: 1.2;
+  }
+  .cordell-data-table-subtitle {
+    display: block;
+    margin-top: 0.18rem;
+    color: var(--cordell-muted);
+    font-size: 0.76rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  .cordell-data-table-muted {
+    color: var(--cordell-muted);
+    font-size: 0.82rem;
+    font-weight: 650;
+  }
+  .cordell-data-table-number {
+    color: var(--cordell-text);
+    font-variant-numeric: tabular-nums;
+    font-weight: 760;
+  }
+  .cordell-data-table-link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .cordell-data-table-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+  .cordell-data-table-action-cell {
+    position: relative;
+    width: 1%;
+    white-space: nowrap;
+  }
+  .cordell-data-table-row-anchor {
+    position: relative;
+    color: inherit;
+    text-decoration: none;
+  }
+  .cordell-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-xs);
+    padding: 0.18rem 0.38rem;
+    font-size: 0.63rem;
+    font-weight: 850;
+    letter-spacing: 0.055em;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .cordell-status-badge-active {
+    border-color: var(--cordell-positive);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in srgb, var(--cordell-positive) 38%, var(--cordell-border));
+    }
+    background: var(--cordell-positive-soft);
+    color: var(--cordell-positive-text);
+  }
+  .cordell-status-badge-inactive {
+    border-color: var(--cordell-border);
+    background: var(--cordell-surface-muted);
+    color: var(--cordell-muted);
+  }
+  .cordell-list-toolbar {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 1.25rem 0 0.85rem;
+  }
+  .cordell-list-toolbar-left {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .cordell-list-toolbar-search {
+    width: min(100%, 22rem);
+    flex: 0 1 22rem;
+  }
+  @media (max-width: 760px) {
+    .cordell-list-toolbar {
+      align-items: stretch;
+      flex-direction: column;
+    }
+    .cordell-list-toolbar-search {
+      width: 100%;
+      flex-basis: auto;
+    }
+    .cordell-data-table {
+      min-width: 38rem;
+    }
+    .cordell-data-table th, .cordell-data-table td {
+      padding-inline: 0.65rem;
+    }
+  }
   [data-theme-option][data-selected="true"] {
     border-color: var(--cordell-primary);
     background: var(--cordell-primary-soft);

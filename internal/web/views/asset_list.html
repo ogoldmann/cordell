@@ -1,11 +1,3 @@
 {{define "asset_list"}}
-  {{if .Assets}}
-    <div class="grid gap-4">
-      {{range .Assets}}
-        {{template "asset_card" .}}
-      {{end}}
-    </div>
-  {{else}}
-    {{template "empty_state" .EmptyState}}
-  {{end}}
+  {{template "asset_table" .}}
 {{end}}

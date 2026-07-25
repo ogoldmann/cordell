@@ -124,6 +124,23 @@
 - [ ] Navbar remains usable on tablet.
 - [ ] Navbar remains usable on mobile.
 
+## Data Tables
+
+- [ ] Shared data table styles exist.
+- [ ] Status badge component exists.
+- [ ] Personnel list uses table layout.
+- [ ] Personnel rows are clickable.
+- [ ] Personnel live search still works.
+- [ ] Personnel filters still work.
+- [ ] Personnel pagination still works.
+- [ ] Asset list uses table layout.
+- [ ] Asset rows are clickable.
+- [ ] Asset live search still works.
+- [ ] Asset filters still work.
+- [ ] Asset pagination still works.
+- [ ] Tables scroll horizontally on small screens.
+- [ ] Tables remain visually serious and minimal.
+
 ## Pages
 
 - [ ] Login page redesigned.

@@ -102,8 +102,8 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 		Header: newPageHeader(
 			"Materiais",
 			assetPluralLabel(),
-			"Materiais que podem ser cautelados aos militares.",
-			newPageAction("Cadastrar material", "/assets/new"),
+			"Materiais que podem ser cautelados e descautelados.",
+			newPageAction("Cadastrar Material", "/assets/new"),
 		),
 		EmptyState: newEmptyState(
 			"Nenhum material cadastrado",
@@ -126,7 +126,7 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if wantsPartialResponse(r) {
-		if err := s.renderer.Render(w, http.StatusOK, "asset_list", data); err != nil {
+		if err := s.renderer.Render(w, http.StatusOK, "asset_table", data); err != nil {
 			s.logger.Error("failed to render asset list partial", "error", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}

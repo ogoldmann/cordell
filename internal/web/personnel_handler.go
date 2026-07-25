@@ -757,8 +757,8 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 		Header: newPageHeader(
 			"Militares",
 			personnelPluralLabel(),
-			"Militares que podem receber materiais sob custódia.",
-			newPageAction("Cadastrar militar", "/personnel/new"),
+			"Militares que podem cautelar e descautelar materiais.",
+			newPageAction("Cadastrar Militar", "/personnel/new"),
 		),
 		EmptyState: newEmptyState(
 			"Nenhum militar cadastrado",
@@ -781,7 +781,7 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if wantsPartialResponse(r) {
-		if err := s.renderer.Render(w, http.StatusOK, "personnel_list", data); err != nil {
+		if err := s.renderer.Render(w, http.StatusOK, "personnel_table", data); err != nil {
 			s.logger.Error("failed to render personnel list partial", "error", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}

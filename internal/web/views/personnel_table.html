@@ -1,0 +1,48 @@
+{{define "personnel_table"}}
+  {{if .Personnel}}
+    <div class="cordell-data-table-card">
+      <div class="cordell-data-table-scroll">
+        <table class="cordell-data-table">
+          <thead>
+            <tr>
+              <th>Nome de Guerra</th>
+              <th>Seção</th>
+              <th>Materiais sob custódia</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {{range .Personnel}}
+              <tr
+                class="cordell-data-table-row"
+                onclick="if (!event.target.closest('a, button, input, select, textarea')) window.location.href='/personnel/{{.ID}}'"
+              >
+                <td class="cordell-data-table-main-cell">
+                  <a class="cordell-data-table-row-anchor" href="/personnel/{{.ID}}">
+                    <span class="cordell-data-table-title">{{.DisplayName}}</span>
+                    <span class="cordell-data-table-subtitle">{{.FullName}}</span>
+                  </a>
+                </td>
+
+                <td>
+                  <span class="cordell-data-table-muted">{{.SectionLabel}}</span>
+                </td>
+
+                <td>
+                  <span class="cordell-data-table-number">&mdash;</span>
+                </td>
+
+                <td>
+                  {{template "status_badge" .Active}}
+                </td>
+              </tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {{else}}
+    {{template "empty_state" .EmptyState}}
+  {{end}}
+{{end}}

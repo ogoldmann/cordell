@@ -233,3 +233,58 @@ Timeline detail:
 The transaction card must not look like isolated boxes stacked randomly.
 
 It should feel like a timeline/history.
+
+## Data tables
+
+Cordell uses shared data table styling for operational lists.
+
+Tables are used when the user needs to scan many records quickly.
+
+Initial use cases:
+
+- personnel list
+- asset list
+
+### Visual rules
+
+Data tables should be:
+
+- compact
+- readable
+- serious
+- minimally rounded
+- horizontally scrollable on small screens
+- consistent across pages
+
+Avoid:
+
+- oversized rows
+- excessive shadows
+- navigation icons inside every row
+- colorful decoration
+- card-per-record layouts for dense lists
+
+### Row behavior
+
+Rows may be clickable for convenience.
+
+The primary entity name remains a real link for accessibility.
+
+### Personnel columns
+
+- Nome de Guerra + Nome
+- Seção
+- Materiais sob custódia
+- Status
+
+### Asset columns
+
+- Material
+- Militares com custódia atual
+- Status
+
+### Responsiveness
+
+Tables may scroll horizontally on small screens.
+
+The page itself must not break or overflow horizontally.

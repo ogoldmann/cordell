@@ -1,0 +1,42 @@
+{{define "asset_table"}}
+  {{if .Assets}}
+    <div class="cordell-data-table-card">
+      <div class="cordell-data-table-scroll">
+        <table class="cordell-data-table">
+          <thead>
+            <tr>
+              <th>Material</th>
+              <th>Militares com custódia atual</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {{range .Assets}}
+              <tr
+                class="cordell-data-table-row"
+                onclick="if (!event.target.closest('a, button, input, select, textarea')) window.location.href='/assets/{{.ID}}'"
+              >
+                <td class="cordell-data-table-main-cell">
+                  <a class="cordell-data-table-row-anchor" href="/assets/{{.ID}}">
+                    <span class="cordell-data-table-title">{{.Name}}</span>
+                  </a>
+                </td>
+
+                <td>
+                  <span class="cordell-data-table-number">&mdash;</span>
+                </td>
+
+                <td>
+                  {{template "status_badge" .Active}}
+                </td>
+              </tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {{else}}
+    {{template "empty_state" .EmptyState}}
+  {{end}}
+{{end}}

@@ -30,13 +30,13 @@
 {{end}}
 
 {{define "empty_state"}}
-  <section class="rounded-3xl border border-dashed border-cordell-border bg-cordell-surface p-8 text-center shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
-    <h2 class="m-0 text-2xl font-extrabold text-cordell-text dark:text-cordell-dark-text">
+  <section class="rounded-lg border border-dashed border-cordell-border bg-cordell-surface p-5 text-center dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
+    <h2 class="m-0 text-sm font-semibold text-cordell-muted dark:text-cordell-dark-muted">
       {{.Title}}
     </h2>
 
     {{if .Description}}
-      <p class="mx-auto mt-3 max-w-2xl text-cordell-muted dark:text-cordell-dark-muted">
+      <p class="mx-auto mt-2 max-w-2xl text-sm text-cordell-muted dark:text-cordell-dark-muted">
         {{.Description}}
       </p>
     {{end}}
