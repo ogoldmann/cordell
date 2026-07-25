@@ -449,6 +449,8 @@ type fakeCustodyRepository struct {
 	currentQuantity               map[string]int
 	currentByPerson               map[domain.PersonnelID][]ports.CurrentCustodyItem
 	currentByAsset                map[domain.AssetID][]ports.CurrentAssetHolder
+	personnelCurrentSummaries     []ports.PersonnelCurrentCustodySummary
+	assetCurrentSummaries         []ports.AssetCurrentCustodySummary
 	personnelWithCurrentCustody   []ports.PersonnelWithCurrentCustody
 	historyByPerson               map[domain.PersonnelID][]ports.CustodyHistoryEntry
 	assetHistory                  map[domain.AssetID][]ports.AssetCustodyHistoryItem
@@ -515,6 +517,24 @@ func (r *fakeCustodyRepository) ListPersonnelWithCurrentCustody(
 ) ([]ports.PersonnelWithCurrentCustody, error) {
 	items := make([]ports.PersonnelWithCurrentCustody, len(r.personnelWithCurrentCustody))
 	copy(items, r.personnelWithCurrentCustody)
+
+	return items, nil
+}
+
+func (r *fakeCustodyRepository) ListCurrentCustodySummaryByPersonnel(
+	_ context.Context,
+) ([]ports.PersonnelCurrentCustodySummary, error) {
+	items := make([]ports.PersonnelCurrentCustodySummary, len(r.personnelCurrentSummaries))
+	copy(items, r.personnelCurrentSummaries)
+
+	return items, nil
+}
+
+func (r *fakeCustodyRepository) ListCurrentCustodySummaryByAsset(
+	_ context.Context,
+) ([]ports.AssetCurrentCustodySummary, error) {
+	items := make([]ports.AssetCurrentCustodySummary, len(r.assetCurrentSummaries))
+	copy(items, r.assetCurrentSummaries)
 
 	return items, nil
 }

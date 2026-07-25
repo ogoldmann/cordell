@@ -141,6 +141,16 @@
 - [ ] Tables scroll horizontally on small screens.
 - [ ] Tables remain visually serious and minimal.
 
+## Current Custody Summary Counts
+
+- [ ] Personnel list shows real current custody quantity.
+- [ ] Asset list shows real current custodian count.
+- [ ] Summary counts account for checkouts.
+- [ ] Summary counts account for returns.
+- [ ] Summary counts account for latest corrections.
+- [ ] Zero balances render as 0.
+- [ ] Query does not use original transaction state only.
+
 ## Personnel List Polish
 
 - [ ] Header is aligned with primary action.

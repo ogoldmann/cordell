@@ -322,6 +322,18 @@ type PersonnelWithCurrentCustody struct {
 	TotalQuantity  int
 }
 
+// PersonnelCurrentCustodySummary contains the current custody quantity for a person.
+type PersonnelCurrentCustodySummary struct {
+	PersonnelID            domain.PersonnelID
+	CurrentCustodyQuantity int64
+}
+
+// AssetCurrentCustodySummary contains the current holder count for an asset.
+type AssetCurrentCustodySummary struct {
+	AssetID               domain.AssetID
+	CurrentCustodianCount int64
+}
+
 // ListPersonnelWithCurrentCustodyService handles return-eligible personnel listing.
 type ListPersonnelWithCurrentCustodyService struct {
 	custodyRepository ports.CustodyRepository
@@ -356,6 +368,76 @@ func (s *ListPersonnelWithCurrentCustodyService) Execute(
 			RegistrationID: item.RegistrationID,
 			Active:         item.Active,
 			TotalQuantity:  item.TotalQuantity,
+		})
+	}
+
+	return result, nil
+}
+
+// ListCurrentCustodySummaryService handles current custody totals for personnel lists.
+type ListCurrentCustodySummaryService struct {
+	custodyRepository ports.CustodyRepository
+}
+
+// NewListCurrentCustodySummaryService creates a ListCurrentCustodySummaryService.
+func NewListCurrentCustodySummaryService(
+	custodyRepository ports.CustodyRepository,
+) *ListCurrentCustodySummaryService {
+	return &ListCurrentCustodySummaryService{
+		custodyRepository: custodyRepository,
+	}
+}
+
+// Execute retrieves current custody totals by personnel.
+func (s *ListCurrentCustodySummaryService) Execute(
+	ctx context.Context,
+) ([]PersonnelCurrentCustodySummary, error) {
+	summaries, err := s.custodyRepository.ListCurrentCustodySummaryByPersonnel(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]PersonnelCurrentCustodySummary, 0, len(summaries))
+
+	for _, summary := range summaries {
+		result = append(result, PersonnelCurrentCustodySummary{
+			PersonnelID:            summary.PersonnelID,
+			CurrentCustodyQuantity: summary.CurrentCustodyQuantity,
+		})
+	}
+
+	return result, nil
+}
+
+// ListCurrentCustodianSummaryService handles current holder counts for asset lists.
+type ListCurrentCustodianSummaryService struct {
+	custodyRepository ports.CustodyRepository
+}
+
+// NewListCurrentCustodianSummaryService creates a ListCurrentCustodianSummaryService.
+func NewListCurrentCustodianSummaryService(
+	custodyRepository ports.CustodyRepository,
+) *ListCurrentCustodianSummaryService {
+	return &ListCurrentCustodianSummaryService{
+		custodyRepository: custodyRepository,
+	}
+}
+
+// Execute retrieves current holder counts by asset.
+func (s *ListCurrentCustodianSummaryService) Execute(
+	ctx context.Context,
+) ([]AssetCurrentCustodySummary, error) {
+	summaries, err := s.custodyRepository.ListCurrentCustodySummaryByAsset(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]AssetCurrentCustodySummary, 0, len(summaries))
+
+	for _, summary := range summaries {
+		result = append(result, AssetCurrentCustodySummary{
+			AssetID:               summary.AssetID,
+			CurrentCustodianCount: summary.CurrentCustodianCount,
 		})
 	}
 

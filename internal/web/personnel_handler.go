@@ -62,23 +62,24 @@ type personnelIndexPageData struct {
 }
 
 type personnelView struct {
-	ID                    string
-	FullName              string
-	Alias                 string
-	Rank                  string
-	RankLabel             string
-	RegistrationID        string
-	Section               string
-	SectionLabel          string
-	SectionShortLabel     string
-	OrganizationUnit      string
-	OrganizationUnitLabel string
-	DisplayName           string
-	Label                 string
-	Active                bool
-	StatusLabel           string
-	CanDeactivate         bool
-	CanReactivate         bool
+	ID                     string
+	FullName               string
+	Alias                  string
+	Rank                   string
+	RankLabel              string
+	RegistrationID         string
+	Section                string
+	SectionLabel           string
+	SectionShortLabel      string
+	OrganizationUnit       string
+	OrganizationUnitLabel  string
+	DisplayName            string
+	Label                  string
+	Active                 bool
+	StatusLabel            string
+	CanDeactivate          bool
+	CanReactivate          bool
+	CurrentCustodyQuantity int64
 }
 
 type currentCustodyView struct {
@@ -752,6 +753,18 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	currentCustodySummaries, err := s.services.ListCurrentCustodySummary.Execute(r.Context())
+	if err != nil {
+		s.logger.Error("failed to list current custody summaries by personnel", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	currentCustodyByPersonnelID := make(map[string]int64, len(currentCustodySummaries))
+	for _, summary := range currentCustodySummaries {
+		currentCustodyByPersonnelID[string(summary.PersonnelID)] = summary.CurrentCustodyQuantity
+	}
+
 	data := personnelIndexPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Header: newPageHeader(
@@ -777,7 +790,9 @@ func (s *Server) handleListPersonnel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, item := range personnel {
-		data.Personnel = append(data.Personnel, newPersonnelView(item))
+		view := newPersonnelView(item)
+		view.CurrentCustodyQuantity = currentCustodyByPersonnelID[view.ID]
+		data.Personnel = append(data.Personnel, view)
 	}
 
 	data.UseDefaultShell = false

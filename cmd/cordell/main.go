@@ -224,6 +224,12 @@ func newAppServices(
 			personnelRepository,
 			custodyRepository,
 		),
+		ListCurrentCustodySummary: app.NewListCurrentCustodySummaryService(
+			custodyRepository,
+		),
+		ListCurrentCustodianSummary: app.NewListCurrentCustodianSummaryService(
+			custodyRepository,
+		),
 		ListCurrentAssetHolders: app.NewListCurrentAssetHoldersService(
 			assetRepository,
 			custodyRepository,

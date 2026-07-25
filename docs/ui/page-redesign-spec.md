@@ -148,6 +148,18 @@ Rules:
 - live search updates only the table region
 - table scrolls horizontally on small screens
 
+### Current custody summaries
+
+Personnel list shows the current total quantity of materials under each person's custody.
+
+Asset list shows the current number of personnel with positive custody balance for each asset.
+
+These summaries must use effective custody state.
+
+They must account for transaction corrections.
+
+The list must not compute custody state from original transactions only.
+
 ## Assets list page
 
 Route:

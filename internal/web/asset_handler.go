@@ -51,12 +51,13 @@ type assetShowPageData struct {
 }
 
 type assetView struct {
-	ID            string
-	Name          string
-	Active        bool
-	StatusLabel   string
-	CanDeactivate bool
-	CanReactivate bool
+	ID                    string
+	Name                  string
+	Active                bool
+	StatusLabel           string
+	CanDeactivate         bool
+	CanReactivate         bool
+	CurrentCustodianCount int64
 }
 
 type assetHolderView struct {
@@ -97,6 +98,18 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	currentCustodianSummaries, err := s.services.ListCurrentCustodianSummary.Execute(r.Context())
+	if err != nil {
+		s.logger.Error("failed to list current custodian summaries by asset", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	currentCustodianCountByAssetID := make(map[string]int64, len(currentCustodianSummaries))
+	for _, summary := range currentCustodianSummaries {
+		currentCustodianCountByAssetID[string(summary.AssetID)] = summary.CurrentCustodianCount
+	}
+
 	data := assetIndexPageData{
 		privateLayoutData: newPrivateLayoutData(r),
 		Header: newPageHeader(
@@ -122,7 +135,9 @@ func (s *Server) handleListAssets(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, item := range assets {
-		data.Assets = append(data.Assets, newAssetView(item))
+		view := newAssetView(item)
+		view.CurrentCustodianCount = currentCustodianCountByAssetID[view.ID]
+		data.Assets = append(data.Assets, view)
 	}
 
 	if searchQuery != "" {

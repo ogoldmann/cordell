@@ -339,6 +339,48 @@ func (r *CustodyRepository) ListPersonnelWithCurrentCustody(
 	return personnel, nil
 }
 
+// ListCurrentCustodySummaryByPersonnel returns current custody totals by personnel.
+func (r *CustodyRepository) ListCurrentCustodySummaryByPersonnel(
+	ctx context.Context,
+) ([]ports.PersonnelCurrentCustodySummary, error) {
+	rows, err := r.queries.ListCurrentCustodySummaryByPersonnel(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	summaries := make([]ports.PersonnelCurrentCustodySummary, 0, len(rows))
+
+	for _, row := range rows {
+		summaries = append(summaries, ports.PersonnelCurrentCustodySummary{
+			PersonnelID:            domain.PersonnelID(row.PersonnelID),
+			CurrentCustodyQuantity: row.CurrentCustodyQuantity,
+		})
+	}
+
+	return summaries, nil
+}
+
+// ListCurrentCustodySummaryByAsset returns current custodian counts by asset.
+func (r *CustodyRepository) ListCurrentCustodySummaryByAsset(
+	ctx context.Context,
+) ([]ports.AssetCurrentCustodySummary, error) {
+	rows, err := r.queries.ListCurrentCustodySummaryByAsset(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	summaries := make([]ports.AssetCurrentCustodySummary, 0, len(rows))
+
+	for _, row := range rows {
+		summaries = append(summaries, ports.AssetCurrentCustodySummary{
+			AssetID:               domain.AssetID(row.AssetID),
+			CurrentCustodianCount: row.CurrentCustodianCount,
+		})
+	}
+
+	return summaries, nil
+}
+
 // ListCurrentByPersonnel retrieves current custody balances for a personnel record.
 func (r *CustodyRepository) ListCurrentByPersonnel(
 	ctx context.Context,

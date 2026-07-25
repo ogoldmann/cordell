@@ -38,6 +38,18 @@ type PersonnelWithCurrentCustody struct {
 	TotalQuantity  int
 }
 
+// PersonnelCurrentCustodySummary represents the total current custody quantity for a person.
+type PersonnelCurrentCustodySummary struct {
+	PersonnelID            domain.PersonnelID
+	CurrentCustodyQuantity int64
+}
+
+// AssetCurrentCustodySummary represents the current holder count for an asset.
+type AssetCurrentCustodySummary struct {
+	AssetID               domain.AssetID
+	CurrentCustodianCount int64
+}
+
 // CustodyHistoryLine represents one asset line inside a custody history entry.
 type CustodyHistoryLine struct {
 	AssetID   domain.AssetID
@@ -279,6 +291,8 @@ type CustodyRepository interface {
 	SaveCorrection(ctx context.Context, correction domain.CustodyCorrection, transactionType domain.CustodyTransactionType, previousPersonnelID domain.PersonnelID, previousLines []domain.CustodyLine) (bool, error)
 	CurrentQuantity(ctx context.Context, personnelID domain.PersonnelID, assetID domain.AssetID) (int, error)
 	ListPersonnelWithCurrentCustody(ctx context.Context) ([]PersonnelWithCurrentCustody, error)
+	ListCurrentCustodySummaryByPersonnel(ctx context.Context) ([]PersonnelCurrentCustodySummary, error)
+	ListCurrentCustodySummaryByAsset(ctx context.Context) ([]AssetCurrentCustodySummary, error)
 	ListCurrentByPersonnel(ctx context.Context, personnelID domain.PersonnelID) ([]CurrentCustodyItem, error)
 	ListCurrentByAsset(ctx context.Context, assetID domain.AssetID) ([]CurrentAssetHolder, error)
 	ListHistoryByPersonnel(ctx context.Context, personnelID domain.PersonnelID, limit int) ([]CustodyHistoryEntry, error)

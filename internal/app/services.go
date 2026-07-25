@@ -37,6 +37,8 @@ type Services struct {
 	GetCustodyReceipt                   *GetCustodyReceiptService
 	ListPersonnelWithCurrentCustody     *ListPersonnelWithCurrentCustodyService
 	ListCurrentCustody                  *ListCurrentCustodyService
+	ListCurrentCustodySummary           *ListCurrentCustodySummaryService
+	ListCurrentCustodianSummary         *ListCurrentCustodianSummaryService
 	ListCurrentAssetHolders             *ListCurrentAssetHoldersService
 	ListCustodyHistory                  *ListCustodyHistoryService
 	ListAssetCustodyHistory             *ListAssetCustodyHistoryService
