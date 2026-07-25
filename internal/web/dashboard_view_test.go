@@ -26,6 +26,18 @@ func TestNewDashboardOperationalDockView(t *testing.T) {
 	}
 }
 
+func TestNewDashboardOperationalDockViewActionsHaveIcons(t *testing.T) {
+	dock := newDashboardOperationalDockView()
+
+	for _, group := range dock.Groups {
+		for _, action := range group.Actions {
+			if action.Icon.Name == "" {
+				t.Fatalf("expected icon for action %q", action.Label)
+			}
+		}
+	}
+}
+
 func TestRandomDashboardWelcomePhraseReturnsValue(t *testing.T) {
 	phrase := randomDashboardWelcomePhrase()
 

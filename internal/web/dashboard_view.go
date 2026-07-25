@@ -17,6 +17,7 @@ type dashboardOperationalGroupView struct {
 type dashboardOperationalActionView struct {
 	Label string
 	URL   string
+	Icon  iconView
 }
 
 func newDashboardOperationalDockView() dashboardOperationalDockView {
@@ -25,15 +26,31 @@ func newDashboardOperationalDockView() dashboardOperationalDockView {
 			{
 				Title: "CADASTRAR",
 				Actions: []dashboardOperationalActionView{
-					{Label: "Militar", URL: "/personnel/new"},
-					{Label: "Material", URL: "/assets/new"},
+					{
+						Label: "Militar",
+						URL:   "/personnel/new",
+						Icon:  newIcon("users", "size-4"),
+					},
+					{
+						Label: "Material",
+						URL:   "/assets/new",
+						Icon:  newIcon("package", "size-4"),
+					},
 				},
 			},
 			{
 				Title: "REGISTRAR",
 				Actions: []dashboardOperationalActionView{
-					{Label: "Cautela", URL: "/custody/checkouts/new"},
-					{Label: "Descautela", URL: "/custody/returns/new"},
+					{
+						Label: "Cautela",
+						URL:   "/custody/checkouts/new",
+						Icon:  newIcon("plus", "size-4"),
+					},
+					{
+						Label: "Descautela",
+						URL:   "/custody/returns/new",
+						Icon:  newIcon("receipt-text", "size-4"),
+					},
 				},
 			},
 		},

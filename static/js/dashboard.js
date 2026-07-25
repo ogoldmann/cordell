@@ -1,4 +1,6 @@
 (() => {
+  const welcomeSeenKey = 'cordell-dashboard-welcome-seen'
+
   const typeText = (element, text) => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -27,30 +29,54 @@
     window.setTimeout(tick, 180)
   }
 
-  const setupDashboard = (root) => {
-    const input = root.querySelector('#dashboard-global-search-input')
+  const setupWelcome = (root) => {
     const welcome = root.querySelector('[data-dashboard-welcome]')
 
-    if (welcome) {
-      const text = welcome.dataset.dashboardWelcomeText || welcome.textContent.trim()
-      typeText(welcome, text)
+    if (!welcome) {
+      return
     }
+
+    const alreadySeen = window.sessionStorage.getItem(welcomeSeenKey) === 'true'
+
+    if (alreadySeen) {
+      welcome.hidden = true
+      root.dataset.welcomeVisible = 'false'
+      return
+    }
+
+    root.dataset.welcomeVisible = 'true'
+
+    const text = welcome.dataset.dashboardWelcomeText || welcome.textContent.trim()
+    typeText(welcome, text)
+
+    window.sessionStorage.setItem(welcomeSeenKey, 'true')
+  }
+
+  const setupSearch = (root) => {
+    const input = root.querySelector('#dashboard-global-search-input')
 
     const updateSearchState = () => {
       const active = input && input.value.trim() !== ''
       root.dataset.searchActive = String(active)
     }
 
-    if (input) {
-      window.requestAnimationFrame(() => {
-        input.focus({ preventScroll: true })
-      })
-
-      input.addEventListener('input', updateSearchState)
-      input.addEventListener('search', updateSearchState)
-
-      updateSearchState()
+    if (!input) {
+      return
     }
+
+    window.requestAnimationFrame(() => {
+      input.focus({ preventScroll: true })
+    })
+
+    input.addEventListener('input', updateSearchState)
+    input.addEventListener('search', updateSearchState)
+
+    updateSearchState()
+  }
+
+  const setupDashboard = (root) => {
+    setupWelcome(root)
+    setupSearch(root)
   }
 
   document.addEventListener('DOMContentLoaded', () => {

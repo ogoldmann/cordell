@@ -48,7 +48,13 @@
         <div class="cordell-dashboard-dock-actions">
           {{range .Actions}}
             <a class="cordell-dashboard-dock-action" href="{{.URL}}">
-              {{.Label}}
+              <span class="cordell-dashboard-dock-action-icon">
+                {{template "icon" .Icon}}
+              </span>
+
+              <span class="cordell-dashboard-dock-action-label">
+                {{.Label}}
+              </span>
             </a>
           {{end}}
         </div>

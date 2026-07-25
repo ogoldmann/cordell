@@ -50,6 +50,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    window.sessionStorage.removeItem('cordell-dashboard-welcome-seen')
+
     document.querySelectorAll('[data-login-theme-menu]').forEach(setupLoginThemeMenu)
   })
 })()

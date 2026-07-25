@@ -902,8 +902,9 @@
   .cordell-dashboard {
     position: relative;
     min-height: calc(100dvh - 4.75rem);
-    padding: clamp(2.5rem, 8vh, 5.5rem) 1rem 8rem;
+    padding: clamp(2rem, 7vh, 4.75rem) 1rem 6.5rem;
     color: var(--cordell-text);
+    overflow-x: hidden;
   }
 
   .cordell-dashboard-center {
@@ -917,28 +918,33 @@
   }
 
   .cordell-dashboard-welcome {
-    min-height: 1.35rem;
-    margin: 0 0 0.7rem;
-    color: var(--cordell-muted);
-    font-size: 0.9rem;
-    font-weight: 720;
-    letter-spacing: -0.01em;
+    min-height: 2.1rem;
+    margin: 0 0 0.85rem;
+    color: var(--cordell-text);
+    font-size: 1.35rem;
+    font-weight: 780;
+    letter-spacing: 0;
+    text-shadow: 0 0 26px color-mix(in srgb, var(--cordell-primary) 16%, transparent);
   }
 
   .cordell-dashboard-welcome::after {
     content: "";
     display: inline-block;
-    width: 0.45rem;
+    width: 0.5rem;
     height: 1em;
-    margin-left: 0.15rem;
-    border-right: 1px solid var(--cordell-muted);
+    margin-left: 0.18rem;
+    border-right: 1px solid color-mix(in srgb, var(--cordell-primary) 55%, var(--cordell-muted));
     vertical-align: -0.12em;
-    opacity: 0.8;
+    opacity: 0.75;
     animation: cordell-dashboard-caret 900ms steps(2, jump-none) infinite;
   }
 
   .cordell-dashboard-welcome[data-typing-done="true"]::after {
     opacity: 0.35;
+  }
+
+  .cordell-dashboard-welcome[hidden] {
+    display: none;
   }
 
   .cordell-dashboard-search-form {
@@ -947,7 +953,7 @@
 
   .cordell-dashboard-results {
     width: min(100%, 60rem);
-    margin: 1.4rem auto 0;
+    margin: 1.35rem auto 0;
   }
 
   .cordell-dashboard-results-empty {
@@ -955,9 +961,9 @@
     margin: 0 auto;
     border: 1px dashed var(--cordell-border);
     border-radius: var(--radius-cordell-lg);
-    background: color-mix(in srgb, var(--cordell-surface) 70%, transparent);
+    background: color-mix(in srgb, var(--cordell-surface) 62%, transparent);
     color: var(--cordell-muted);
-    padding: 1.1rem;
+    padding: 0.85rem 1rem;
     text-align: center;
   }
 
@@ -1016,14 +1022,15 @@
   }
 
   .cordell-dashboard-dock-action {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto 1fr;
     align-items: center;
-    justify-content: space-between;
+    gap: 0.45rem;
     border: 1px solid var(--cordell-border);
     border-radius: var(--radius-cordell-sm);
     background: var(--cordell-surface-raised);
     color: var(--cordell-text);
-    padding: 0.52rem 0.6rem;
+    padding: 0.5rem 0.55rem;
     font-size: 0.84rem;
     font-weight: 760;
     text-decoration: none;
@@ -1033,9 +1040,32 @@
       color 140ms ease;
   }
 
+  .cordell-dashboard-dock-action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.45rem;
+    height: 1.45rem;
+    border-radius: var(--radius-cordell-xs);
+    background: var(--cordell-surface-muted);
+    color: var(--cordell-muted);
+    transition:
+      background-color 140ms ease,
+      color 140ms ease;
+  }
+
+  .cordell-dashboard-dock-action-label {
+    min-width: 0;
+  }
+
   .cordell-dashboard-dock-action:hover {
     border-color: color-mix(in srgb, var(--cordell-primary) 58%, var(--cordell-border));
     background: color-mix(in srgb, var(--cordell-surface-muted) 84%, var(--cordell-primary) 16%);
+  }
+
+  .cordell-dashboard-dock-action:hover .cordell-dashboard-dock-action-icon {
+    background: color-mix(in srgb, var(--cordell-primary) 16%, var(--cordell-surface-muted));
+    color: var(--cordell-text);
   }
 
   @keyframes cordell-dashboard-caret {
@@ -1069,7 +1099,7 @@
     }
 
     .cordell-dashboard-welcome {
-      font-size: 0.82rem;
+      font-size: 1.15rem;
     }
 
     .cordell-dashboard-dock-action {

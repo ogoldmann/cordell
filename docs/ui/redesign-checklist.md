@@ -171,3 +171,15 @@
 - [ ] Dock links point to correct routes.
 - [ ] Dock becomes subtly elevated when search is active.
 - [ ] Dashboard remains usable on mobile.
+
+## Dashboard Polish
+
+- [ ] No vertical scrollbar appears on dashboard without search results.
+- [ ] Scroll appears only when results require it.
+- [ ] Welcome phrase is larger and more prominent.
+- [ ] Welcome phrase has subtle glow.
+- [ ] Welcome phrase appears only once after login.
+- [ ] Welcome phrase resets after returning to login.
+- [ ] Operational dock actions have restrained icons.
+- [ ] Dock size remains unchanged.
+- [ ] Dock remains serious and minimal.

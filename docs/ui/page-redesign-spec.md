@@ -72,6 +72,20 @@ The animation should not loop aggressively.
 
 It must respect reduced motion preferences.
 
+### Welcome phrase behavior
+
+The welcome phrase appears only once after login.
+
+After the user leaves the dashboard and returns during the same authenticated browser session, the phrase should not appear again.
+
+The phrase is reset when the user returns to the login page.
+
+### Scroll behavior
+
+The dashboard should not show a vertical scrollbar when there are no search results and no content overflow.
+
+Scrolling should appear only when live search results or viewport constraints require it.
+
 ### Operational action dock
 
 The operational dock is fixed near the bottom of the viewport.
@@ -89,6 +103,14 @@ It contains:
 The dock is visually quiet when the search is inactive.
 
 When search is active, it gains subtle elevation so it separates from the results area.
+
+### Operational dock personality
+
+The operational dock may use restrained icons for its four actions.
+
+Icons must be subtle and functional.
+
+They should add recognition, not visual noise.
 
 Future possibility:
 
