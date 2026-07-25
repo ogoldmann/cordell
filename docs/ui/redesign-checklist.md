@@ -151,6 +151,21 @@
 - [ ] Zero balances render as 0.
 - [ ] Query does not use original transaction state only.
 
+## Custody Ledger Filter Redesign
+
+- [ ] Header has title and transaction action buttons.
+- [ ] Filter area has outer FILTROS panel.
+- [ ] Period controls are grouped in a subpanel.
+- [ ] Transaction filters are grouped in a subpanel.
+- [ ] There is only one Aplicar Filtros button.
+- [ ] Limpar clears all filters.
+- [ ] Search appears on the right of the bottom row.
+- [ ] Search preserves selected filters.
+- [ ] Filters preserve search query.
+- [ ] Pagination preserves filters and query.
+- [ ] Live search still works.
+- [ ] Result cards are not redesigned yet.
+
 ## Personnel List Polish
 
 - [ ] Header is aligned with primary action.

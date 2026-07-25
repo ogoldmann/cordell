@@ -213,6 +213,7 @@ func (s *Server) handleCustodyTransactionLedger(w http.ResponseWriter, r *http.R
 		homeBreadcrumb(),
 		currentBreadcrumb(custodyLedgerLabel()),
 	}
+	data.UseDefaultShell = false
 
 	if wantsPartialResponse(r) {
 		if err := s.renderer.Render(w, http.StatusOK, "custody_ledger_results", data); err != nil {

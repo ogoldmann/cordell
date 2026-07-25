@@ -1105,11 +1105,6 @@
       opacity: 50%;
     }
   }
-  .disabled\:opacity-60 {
-    &:disabled {
-      opacity: 60%;
-    }
-  }
   .sm\:w-auto {
     @media (width >= 40rem) {
       width: auto;
@@ -1226,19 +1221,9 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
-  .lg\:grid-cols-\[1fr_12rem_12rem_auto\] {
-    @media (width >= 64rem) {
-      grid-template-columns: 1fr 12rem 12rem auto;
-    }
-  }
   .lg\:flex-row {
     @media (width >= 64rem) {
       flex-direction: row;
-    }
-  }
-  .lg\:items-end {
-    @media (width >= 64rem) {
-      align-items: flex-end;
     }
   }
   .lg\:items-start {
@@ -1853,6 +1838,219 @@
   .cordell-index-pagination {
     margin-top: 1.1rem;
   }
+  .cordell-ledger-page {
+    width: min(100% - 2rem, var(--cordell-content-width));
+    margin: 0 auto;
+    padding: 1.75rem 0 3rem;
+  }
+  .cordell-ledger-header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.35rem;
+  }
+  .cordell-ledger-title-block {
+    min-width: 0;
+  }
+  .cordell-ledger-title {
+    margin: 0;
+    color: var(--cordell-text);
+    font-size: clamp(1.65rem, 2.4vw, 2rem);
+    font-weight: 860;
+    letter-spacing: -0.045em;
+    line-height: 1.05;
+  }
+  .cordell-ledger-description {
+    margin: 0.5rem 0 0;
+    color: var(--cordell-muted);
+    font-size: 0.9rem;
+    font-weight: 620;
+    line-height: 1.35;
+  }
+  .cordell-ledger-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .cordell-ledger-primary-action, .cordell-ledger-secondary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-cordell-md);
+    padding: 0.55rem 0.72rem;
+    font-size: 0.82rem;
+    font-weight: 820;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+  }
+  .cordell-ledger-primary-action {
+    border: 1px solid var(--cordell-positive);
+    @supports (color: color-mix(in lab, red, red)) {
+      border: 1px solid color-mix(in srgb, var(--cordell-positive) 42%, var(--cordell-border));
+    }
+    background: var(--cordell-positive);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-positive) 18%, var(--cordell-surface-raised));
+    }
+    color: var(--cordell-positive-text);
+  }
+  .cordell-ledger-secondary-action {
+    border: 1px solid var(--cordell-negative);
+    @supports (color: color-mix(in lab, red, red)) {
+      border: 1px solid color-mix(in srgb, var(--cordell-negative) 34%, var(--cordell-border));
+    }
+    background: var(--cordell-negative);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--cordell-negative) 13%, var(--cordell-surface-raised));
+    }
+    color: var(--cordell-negative-text);
+  }
+  .cordell-ledger-primary-action:hover, .cordell-ledger-secondary-action:hover {
+    border-color: var(--cordell-primary);
+    box-shadow: var(--shadow-cordell-glow);
+  }
+  .cordell-ledger-filter-form {
+    margin-top: 1.65rem;
+  }
+  .cordell-ledger-filter-panel {
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-lg);
+    background: var(--cordell-surface);
+    padding: 0.75rem;
+  }
+  .cordell-ledger-filter-heading {
+    margin: 0 0 0.65rem;
+    color: var(--cordell-muted);
+    font-size: 0.66rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .cordell-ledger-filter-stack {
+    display: grid;
+    gap: 0.65rem;
+  }
+  .cordell-ledger-filter-box {
+    border: 1px solid var(--cordell-border);
+    @supports (color: color-mix(in lab, red, red)) {
+      border: 1px solid color-mix(in srgb, var(--cordell-border) 78%, transparent);
+    }
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-surface-raised);
+    padding: 0.7rem;
+  }
+  .cordell-ledger-filter-box-title {
+    margin: 0 0 0.55rem;
+    color: var(--cordell-muted);
+    font-size: 0.62rem;
+    font-weight: 850;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+  }
+  .cordell-ledger-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+  .cordell-ledger-filter-grid-two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cordell-ledger-filter-field {
+    display: grid;
+    gap: 0.3rem;
+    min-width: 0;
+  }
+  .cordell-ledger-filter-label {
+    color: var(--cordell-muted);
+    font-size: 0.62rem;
+    font-weight: 850;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+  .cordell-ledger-filter-control {
+    min-height: 2.35rem;
+    width: 100%;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-surface);
+    color: var(--cordell-text);
+    padding: 0.45rem 0.6rem;
+    font-size: 0.84rem;
+    font-weight: 650;
+    outline: none;
+  }
+  .cordell-ledger-filter-control:focus {
+    border-color: var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in srgb, var(--cordell-primary) 65%, var(--cordell-border));
+    }
+    box-shadow: 0 0 0 3px var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--cordell-primary) 12%, transparent);
+    }
+  }
+  .cordell-ledger-filter-bottom {
+    display: grid;
+    grid-template-columns: auto minmax(16rem, 22rem);
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.85rem;
+  }
+  .cordell-ledger-filter-buttons {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+  .cordell-ledger-apply-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+    border: 1px solid var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      border: 1px solid color-mix(in srgb, var(--cordell-primary) 58%, var(--cordell-border));
+    }
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-primary);
+    color: var(--cordell-primary-text);
+    padding: 0.45rem 0.72rem;
+    font-size: 0.82rem;
+    font-weight: 820;
+    cursor: pointer;
+  }
+  .cordell-ledger-clear-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+    border: 1px solid var(--cordell-border);
+    border-radius: var(--radius-cordell-md);
+    background: var(--cordell-surface-raised);
+    color: var(--cordell-muted);
+    padding: 0.45rem 0.72rem;
+    font-size: 0.82rem;
+    font-weight: 780;
+    text-decoration: none;
+  }
+  .cordell-ledger-clear-link:hover {
+    border-color: var(--cordell-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in srgb, var(--cordell-primary) 45%, var(--cordell-border));
+    }
+    color: var(--cordell-text);
+  }
+  .cordell-ledger-search {
+    min-width: 0;
+  }
+  .cordell-ledger-results {
+    margin-top: 1.2rem;
+  }
   .cordell-data-table-card {
     overflow: hidden;
     border: 1px solid var(--cordell-border);
@@ -2020,6 +2218,23 @@
     .cordell-index-search {
       width: 100%;
     }
+    .cordell-ledger-header {
+      align-items: stretch;
+      flex-direction: column;
+    }
+    .cordell-ledger-actions {
+      justify-content: flex-start;
+    }
+    .cordell-ledger-filter-grid, .cordell-ledger-filter-grid-two {
+      grid-template-columns: 1fr;
+    }
+    .cordell-ledger-filter-bottom {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+    }
+    .cordell-ledger-search {
+      width: 100%;
+    }
   }
   @media (max-width: 760px) {
     .cordell-list-toolbar {
@@ -2044,6 +2259,14 @@
       padding-bottom: 2.5rem;
     }
     .cordell-index-title {
+      font-size: 1.45rem;
+    }
+    .cordell-ledger-page {
+      width: min(100% - 1rem, var(--cordell-content-width));
+      padding-top: 1.25rem;
+      padding-bottom: 2.5rem;
+    }
+    .cordell-ledger-title {
       font-size: 1.45rem;
     }
     .cordell-index-filters {

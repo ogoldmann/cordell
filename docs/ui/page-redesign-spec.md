@@ -180,6 +180,34 @@ Below:
 
 - pagination
 
+## Custody transaction ledger filters
+
+Status: redesigned.
+
+The custody ledger filter area uses a structured filter panel.
+
+Structure:
+
+- outer panel titled FILTROS
+- period filter subpanel
+- transaction filter subpanel
+- bottom action row
+
+The bottom action row contains:
+
+- Aplicar Filtros
+- Limpar
+- search bar
+
+Rules:
+
+- there is only one apply button
+- period and filters are applied together
+- search preserves filter state
+- filters preserve search state
+- pagination preserves query state
+- result cards are not redesigned in this milestone
+
 ## Custody transactions page
 
 Route:

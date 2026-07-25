@@ -1,0 +1,60 @@
+{{define "custody_ledger_period_filters"}}
+  <section class="cordell-ledger-filter-box" aria-labelledby="custody-ledger-period-title" data-ledger-period-scope>
+    <h3 id="custody-ledger-period-title" class="cordell-ledger-filter-box-title">
+      Período
+    </h3>
+
+    <div class="cordell-ledger-filter-grid cordell-ledger-filter-grid-two">
+      <label class="cordell-ledger-filter-field">
+        <span class="cordell-ledger-filter-label">Ano</span>
+        <select class="cordell-ledger-filter-control" name="year" data-ledger-year-select>
+          {{range .YearOptions}}
+            <option value="{{.Value}}" {{if .Selected}}selected{{end}}>
+              {{.Label}}
+            </option>
+          {{end}}
+        </select>
+      </label>
+
+      <label class="cordell-ledger-filter-field">
+        <span class="cordell-ledger-filter-label">Mês</span>
+        <select class="cordell-ledger-filter-control" name="month" data-ledger-month-select>
+          <option value="">Todos os meses</option>
+          {{range .MonthOptions}}
+            <option
+              value="{{.Value}}"
+              data-year="{{.Year}}"
+              {{if .Selected}}selected{{end}}
+            >
+              {{.Label}}
+            </option>
+          {{end}}
+        </select>
+      </label>
+    </div>
+  </section>
+{{end}}
+
+{{define "custody_ledger_transaction_filters"}}
+  <section class="cordell-ledger-filter-box" aria-label="Filtros de transação">
+    <div class="cordell-ledger-filter-grid cordell-ledger-filter-grid-two">
+      <label class="cordell-ledger-filter-field">
+        <span class="cordell-ledger-filter-label">Tipo</span>
+        <select class="cordell-ledger-filter-control" name="type">
+          <option value="" {{if eq .TypeFilter "all"}}selected{{end}}>Todos</option>
+          <option value="checkout" {{if eq .TypeFilter "checkout"}}selected{{end}}>Cautelas</option>
+          <option value="return" {{if eq .TypeFilter "return"}}selected{{end}}>Descautelas</option>
+        </select>
+      </label>
+
+      <label class="cordell-ledger-filter-field">
+        <span class="cordell-ledger-filter-label">Correções</span>
+        <select class="cordell-ledger-filter-control" name="edited">
+          <option value="" {{if eq .EditStatusFilter "all"}}selected{{end}}>Todas</option>
+          <option value="edited" {{if eq .EditStatusFilter "edited"}}selected{{end}}>Com correção</option>
+          <option value="unedited" {{if eq .EditStatusFilter "unedited"}}selected{{end}}>Sem correção</option>
+        </select>
+      </label>
+    </div>
+  </section>
+{{end}}

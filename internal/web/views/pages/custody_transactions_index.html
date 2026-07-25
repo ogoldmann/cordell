@@ -1,196 +1,72 @@
 {{define "custody_transactions_index.html"}}
 {{template "layout_start" .}}
 
-<section class="mb-8">
-  <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-    Livro de custódia
-  </p>
+<main class="cordell-ledger-page">
+  {{template "breadcrumbs" .}}
 
-  <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-    <div>
-      <h1 class="m-0 text-4xl font-extrabold leading-tight tracking-[-0.04em]">
-        Transações de custódia
-      </h1>
-
-      <p class="mt-3 max-w-3xl text-cordell-muted dark:text-cordell-dark-muted">
-        Revise cautelas e descautelas em {{.SelectedPeriodLabel}} usando o estado efetivo atual. Transações editadas mantêm vínculo com o recibo imutável e o histórico.
+  <header class="cordell-ledger-header">
+    <div class="cordell-ledger-title-block">
+      <h1 class="cordell-ledger-title">Transações de Custódia</h1>
+      <p class="cordell-ledger-description">
+        Consulte cautelas, descautelas, correções e recibos registrados.
       </p>
     </div>
 
-    <div class="flex flex-wrap gap-3">
-      <a
-        class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white no-underline transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
-        href="/custody/checkouts/new"
-      >
-        Nova cautela
+    <div class="cordell-ledger-actions">
+      <a class="cordell-ledger-primary-action" href="/custody/checkouts/new">
+        Registrar Cautela
       </a>
 
-      <a
-        class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-5 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
-        href="/custody/returns/new"
-      >
-        Nova descautela
+      <a class="cordell-ledger-secondary-action" href="/custody/returns/new">
+        Registrar Descautela
       </a>
     </div>
-  </div>
-</section>
+  </header>
 
-<section class="mb-6 rounded-3xl border border-cordell-border bg-cordell-surface p-5 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface">
   <form
-    class="grid gap-4 lg:grid-cols-[1fr_12rem_12rem_auto] lg:items-end"
+    class="cordell-ledger-filter-form"
     method="get"
     action="/custody/transactions"
-    data-ledger-period-scope
+    data-live-search-form
+    data-live-search-target="#custody-ledger-results"
+    data-live-search-status="#custody-ledger-search-status"
+    data-live-search-delay="250"
   >
-    {{if .Query}}
-      <input type="hidden" name="q" value="{{.Query}}">
-    {{end}}
-
-    {{if ne .TypeFilter "all"}}
-      <input type="hidden" name="type" value="{{.TypeFilter}}">
-    {{end}}
-
-    {{if ne .EditStatusFilter "all"}}
-      <input type="hidden" name="edited" value="{{.EditStatusFilter}}">
-    {{end}}
-
-    <div>
-      <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.08em] text-cordell-primary dark:text-cordell-dark-primary">
-        Período do livro
-      </p>
-
-      <h2 class="m-0 text-2xl font-extrabold">
-        {{.SelectedPeriodLabel}}
+    <section class="cordell-ledger-filter-panel" aria-labelledby="custody-ledger-filter-title">
+      <h2 id="custody-ledger-filter-title" class="cordell-ledger-filter-heading">
+        Filtros
       </h2>
 
-      <p class="mt-2 text-sm text-cordell-muted dark:text-cordell-dark-muted">
-        O período define o escopo. Pesquisa e filtros abaixo operam dentro desse escopo selecionado.
-      </p>
-    </div>
+      <div class="cordell-ledger-filter-stack">
+        {{template "custody_ledger_period_filters" .}}
 
-    <label>
-      <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">
-        Ano
-      </span>
+        {{template "custody_ledger_transaction_filters" .}}
+      </div>
+    </section>
 
-      <select
-        class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-        name="year"
-        data-ledger-year-select
-      >
-        {{range .YearOptions}}
-          <option value="{{.Value}}" {{if .Selected}}selected{{end}}>
-            {{.Label}}
-          </option>
-        {{end}}
-      </select>
-    </label>
+    <div class="cordell-ledger-filter-bottom">
+      <div class="cordell-ledger-filter-buttons">
+        <button class="cordell-ledger-apply-button" type="submit">
+          Aplicar Filtros
+        </button>
 
-    <label>
-      <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">
-        Mês
-      </span>
-
-      <select
-        class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 disabled:cursor-not-allowed disabled:opacity-60 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-        name="month"
-        data-ledger-month-select
-      >
-        <option value="">Todos os meses</option>
-        {{range .MonthOptions}}
-          <option
-            value="{{.Value}}"
-            data-year="{{.Year}}"
-            {{if .Selected}}selected{{end}}
-          >
-            {{.Label}}
-          </option>
-        {{end}}
-      </select>
-    </label>
-
-    <button
-      class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
-      type="submit"
-    >
-      Aplicar período
-    </button>
-  </form>
-</section>
-
-<form
-  class="mb-6 rounded-3xl border border-cordell-border bg-cordell-surface p-5 shadow-xl shadow-slate-900/5 dark:border-cordell-dark-border dark:bg-cordell-dark-surface"
-  method="get"
-  action="/custody/transactions"
-  data-live-search-form
-  data-live-search-target="#custody-ledger-results"
-  data-live-search-status="#custody-ledger-search-status"
-  data-live-search-delay="250"
->
-  <input type="hidden" name="year" value="{{.SelectedYearValue}}">
-
-  {{if .SelectedMonthValue}}
-    <input type="hidden" name="month" value="{{.SelectedMonthValue}}">
-  {{end}}
-
-  <div class="grid gap-4 lg:grid-cols-[1fr_12rem_12rem_auto] lg:items-end">
-    {{template "search_bar" (newSearchBar "custody-ledger-search-input" .Query "Pesquisar transações...")}}
-
-    <label>
-      <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">
-        Tipo
-      </span>
-
-      <select
-        class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-        name="type"
-      >
-        <option value="all" {{if eq .TypeFilter "all"}}selected{{end}}>Todos</option>
-        <option value="checkout" {{if eq .TypeFilter "checkout"}}selected{{end}}>Cautela</option>
-        <option value="return" {{if eq .TypeFilter "return"}}selected{{end}}>Descautela</option>
-      </select>
-    </label>
-
-    <label>
-      <span class="text-sm font-bold text-cordell-muted dark:text-cordell-dark-muted">
-        Situação de edição
-      </span>
-
-      <select
-        class="mt-2 w-full rounded-xl border border-cordell-border bg-white px-4 py-3 font-sans text-cordell-text outline-none transition focus:border-cordell-primary focus:ring-4 focus:ring-cordell-primary/15 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:focus:border-cordell-dark-primary dark:focus:ring-cordell-dark-primary/15"
-        name="edited"
-      >
-        <option value="all" {{if eq .EditStatusFilter "all"}}selected{{end}}>Todos</option>
-        <option value="edited" {{if eq .EditStatusFilter "edited"}}selected{{end}}>Editado</option>
-        <option value="unedited" {{if eq .EditStatusFilter "unedited"}}selected{{end}}>Sem edição</option>
-      </select>
-    </label>
-
-    <div class="flex flex-wrap gap-3">
-      <button
-        class="inline-flex items-center justify-center rounded-xl bg-cordell-primary px-5 py-3 font-bold text-white transition hover:bg-cordell-primary-hover dark:bg-cordell-dark-primary dark:text-cordell-dark-background"
-        type="submit"
-      >
-        Aplicar filtros
-      </button>
-
-      {{if .HasFilters}}
-        <a
-          class="inline-flex items-center justify-center rounded-xl border border-cordell-border bg-white px-5 py-3 font-bold text-cordell-text no-underline transition hover:border-cordell-primary/50 dark:border-cordell-dark-border dark:bg-cordell-dark-background dark:text-cordell-dark-text dark:hover:border-cordell-dark-primary/60"
-          href="/custody/transactions"
-        >
+        <a class="cordell-ledger-clear-link" href="/custody/transactions">
           Limpar
         </a>
-      {{end}}
+      </div>
+
+      <div class="cordell-ledger-search">
+        {{template "search_bar" (newSearchBar "custody-ledger-search-input" .Query "Pesquisar transações...")}}
+      </div>
     </div>
-  </div>
-</form>
+  </form>
 
-<p id="custody-ledger-search-status" class="sr-only" aria-live="polite"></p>
+  <p id="custody-ledger-search-status" class="sr-only" aria-live="polite"></p>
 
-<div id="custody-ledger-results">
-  {{template "custody_ledger_results" .}}
-</div>
+  <section id="custody-ledger-results" class="cordell-ledger-results">
+    {{template "custody_ledger_results" .}}
+  </section>
+</main>
 
 {{template "layout_end" .}}
 {{end}}
