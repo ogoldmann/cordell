@@ -75,6 +75,18 @@ The search bar must be full-width inside its container.
 
 On small screens, parent layouts may stack it or move it into a future mobile search panel.
 
+### Recalibration notes
+
+The search bar should be minimalist and precise.
+
+The search icon box should read as a rounded square, not a pill.
+
+Rounding should be moderate.
+
+The primary color should be used subtly.
+
+The component should not feel oversized.
+
 ## Navbar
 
 The global authenticated navbar contains:
@@ -145,6 +157,22 @@ The dropdown contains:
 - logout action
 
 Logout uses the Lucide log-out icon.
+
+### Recalibration notes
+
+Navbar navigation links do not use icons.
+
+The navbar must not shift when the Home link is hidden on the dashboard.
+
+The navbar must not shift when the navbar search is hidden on the dashboard.
+
+The navbar search should stay centered.
+
+The operator profile card should be compact.
+
+The operator role appears as a small rectangular badge.
+
+The operator dropdown should match the profile card width.
 
 ## Transaction card
 

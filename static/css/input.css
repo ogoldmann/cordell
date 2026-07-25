@@ -12,16 +12,16 @@
 
   --breakpoint-xs: 30rem;
 
-  --radius-cordell-xs: 0.5rem;
-  --radius-cordell-sm: 0.75rem;
-  --radius-cordell-md: 1rem;
-  --radius-cordell-lg: 1.25rem;
-  --radius-cordell-xl: 1.5rem;
-  --radius-cordell-2xl: 2rem;
+  --radius-cordell-xs: 0.25rem;
+  --radius-cordell-sm: 0.375rem;
+  --radius-cordell-md: 0.5rem;
+  --radius-cordell-lg: 0.75rem;
+  --radius-cordell-xl: 1rem;
+  --radius-cordell-2xl: 1.25rem;
 
-  --shadow-cordell-soft: 0 18px 60px rgb(15 23 42 / 0.08);
-  --shadow-cordell-lifted: 0 24px 80px rgb(15 23 42 / 0.14);
-  --shadow-cordell-glow: 0 0 0 1px rgb(255 133 51 / 0.16), 0 20px 70px rgb(255 133 51 / 0.12);
+  --shadow-cordell-soft: 0 10px 28px rgb(15 23 42 / 0.06);
+  --shadow-cordell-lifted: 0 14px 38px rgb(15 23 42 / 0.10);
+  --shadow-cordell-glow: 0 0 0 1px color-mix(in srgb, var(--cordell-primary) 18%, transparent), 0 10px 26px color-mix(in srgb, var(--cordell-primary) 10%, transparent);
 
   --color-cordell-background: var(--cordell-background);
   --color-cordell-surface: var(--cordell-surface);
@@ -74,9 +74,9 @@
   --cordell-muted: #77685a;
   --cordell-subtle: #9a8978;
 
-  --cordell-primary: #e87522;
-  --cordell-primary-hover: #c95f17;
-  --cordell-primary-soft: #ffe3cc;
+  --cordell-primary: #b8642c;
+  --cordell-primary-hover: #965022;
+  --cordell-primary-soft: #ead2bd;
   --cordell-primary-text: #fff7ed;
 
   --cordell-secondary: #7a4f32;
@@ -114,9 +114,9 @@
   --cordell-muted: #c5ad98;
   --cordell-subtle: #927a66;
 
-  --cordell-primary: #ff8a35;
-  --cordell-primary-hover: #ff9f57;
-  --cordell-primary-soft: #3f2516;
+  --cordell-primary: #c77a42;
+  --cordell-primary-hover: #d28a55;
+  --cordell-primary-soft: #332216;
   --cordell-primary-text: #1b1009;
 
   --cordell-secondary: #b8875f;
@@ -154,9 +154,9 @@
   --cordell-muted: #6f5a43;
   --cordell-subtle: #927a5e;
 
-  --cordell-primary: #d86f24;
-  --cordell-primary-hover: #b85b19;
-  --cordell-primary-soft: #f7c99f;
+  --cordell-primary: #ad6530;
+  --cordell-primary-hover: #8f5227;
+  --cordell-primary-soft: #ddbd9d;
   --cordell-primary-text: #fff7ed;
 
   --cordell-secondary: #6e4426;
@@ -234,26 +234,18 @@
     align-items: center;
     width: 100%;
     border: 1px solid var(--cordell-border);
-    background:
-      linear-gradient(
-        135deg,
-        color-mix(in srgb, var(--cordell-surface-raised) 92%, var(--cordell-primary) 8%),
-        var(--cordell-surface-raised)
-      );
+    background: var(--cordell-surface-raised);
     color: var(--cordell-text);
-    box-shadow: 0 16px 46px rgb(15 23 42 / 0.06);
+    box-shadow: none;
     transition:
-      border-color 160ms ease,
-      box-shadow 160ms ease,
-      transform 160ms ease,
-      background-color 160ms ease;
+      border-color 140ms ease,
+      box-shadow 140ms ease,
+      background-color 140ms ease;
   }
 
   .cordell-search-frame:focus-within {
-    border-color: var(--cordell-primary);
-    box-shadow:
-      0 0 0 4px color-mix(in srgb, var(--cordell-focus) 16%, transparent),
-      0 18px 60px rgb(15 23 42 / 0.10);
+    border-color: color-mix(in srgb, var(--cordell-primary) 70%, var(--cordell-border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cordell-primary) 12%, transparent);
   }
 
   .cordell-search-input {
@@ -263,12 +255,12 @@
     background: transparent;
     color: var(--cordell-text);
     outline: none;
-    font-weight: 700;
+    font-weight: 650;
   }
 
   .cordell-search-input::placeholder {
     color: var(--cordell-subtle);
-    font-weight: 650;
+    font-weight: 600;
   }
 
   .cordell-search-input::-webkit-search-decoration,
@@ -283,120 +275,93 @@
     flex: none;
     align-items: center;
     justify-content: center;
-    border: 0;
-    background: var(--cordell-primary);
-    color: var(--cordell-primary-text);
+    border: 1px solid color-mix(in srgb, var(--cordell-border) 75%, var(--cordell-primary));
+    background: color-mix(in srgb, var(--cordell-surface-muted) 82%, var(--cordell-primary) 18%);
+    color: var(--cordell-text);
     cursor: pointer;
     transition:
-      background-color 160ms ease,
-      box-shadow 160ms ease,
-      transform 160ms ease;
+      border-color 140ms ease,
+      background-color 140ms ease,
+      color 140ms ease;
   }
 
   .cordell-search-button:hover {
-    background: var(--cordell-primary-hover);
-    box-shadow: var(--shadow-cordell-glow);
-    transform: translateY(-1px);
-  }
-
-  .cordell-search-button:active {
-    transform: translateY(0);
+    border-color: var(--cordell-primary);
+    background: color-mix(in srgb, var(--cordell-primary) 18%, var(--cordell-surface-muted));
+    color: var(--cordell-text);
   }
 
   .cordell-search-default .cordell-search-frame {
-    min-height: 3rem;
+    min-height: 2.75rem;
     border-radius: var(--radius-cordell-lg);
     padding: 0.25rem;
   }
 
   .cordell-search-default .cordell-search-input {
-    padding: 0.65rem 0.85rem;
-    font-size: 0.95rem;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.92rem;
   }
 
   .cordell-search-default .cordell-search-button {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.25rem;
+    height: 2.25rem;
     border-radius: var(--radius-cordell-md);
   }
 
   .cordell-search-hero .cordell-search-frame {
-    min-height: 3.35rem;
-    border-radius: var(--radius-cordell-xl);
-    padding: 0.3rem;
-    box-shadow:
-      0 24px 90px rgb(15 23 42 / 0.12),
-      0 0 0 1px color-mix(in srgb, var(--cordell-primary) 10%, transparent);
+    min-height: 3rem;
+    border-radius: var(--radius-cordell-lg);
+    padding: 0.25rem;
+    box-shadow: 0 12px 32px rgb(15 23 42 / 0.06);
   }
 
   .cordell-search-hero .cordell-search-input {
-    padding: 0.8rem 1rem;
-    font-size: 1rem;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.96rem;
   }
 
   .cordell-search-hero .cordell-search-button {
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: var(--radius-cordell-lg);
+    width: 2.45rem;
+    height: 2.45rem;
+    border-radius: var(--radius-cordell-md);
   }
 
   .cordell-search-compact .cordell-search-frame {
-    min-height: 2.5rem;
+    min-height: 2.35rem;
     border-radius: var(--radius-cordell-md);
     padding: 0.2rem;
-    box-shadow: none;
   }
 
   .cordell-search-compact .cordell-search-input {
-    padding: 0.45rem 0.7rem;
-    font-size: 0.875rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
   }
 
   .cordell-search-compact .cordell-search-button {
-    width: 2.05rem;
-    height: 2.05rem;
+    width: 1.95rem;
+    height: 1.95rem;
     border-radius: var(--radius-cordell-sm);
-  }
-
-  @media (max-width: 640px) {
-    .cordell-search-hero .cordell-search-frame {
-      min-height: 3.1rem;
-      border-radius: var(--radius-cordell-lg);
-    }
-
-    .cordell-search-hero .cordell-search-input {
-      font-size: 0.95rem;
-    }
-
-    .cordell-search-default .cordell-search-frame {
-      min-height: 2.85rem;
-    }
   }
 
   .cordell-navbar {
     position: sticky;
     top: 0;
     z-index: 40;
-    border-bottom: 1px solid color-mix(in srgb, var(--cordell-border) 88%, transparent);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--cordell-surface) 92%, transparent),
-        color-mix(in srgb, var(--cordell-surface) 80%, transparent)
-      );
-    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--cordell-border);
+    background: color-mix(in srgb, var(--cordell-surface) 94%, transparent);
+    backdrop-filter: blur(14px);
   }
 
   .cordell-navbar-devline {
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     gap: 0.35rem;
-    min-height: 1.15rem;
-    font-size: 0.65rem;
-    font-weight: 800;
+    height: 0.95rem;
+    font-size: 0.58rem;
+    font-weight: 750;
     color: var(--cordell-subtle);
-    letter-spacing: 0;
+    letter-spacing: 0.01em;
   }
 
   .cordell-navbar-devline a {
@@ -412,134 +377,141 @@
   }
 
   .cordell-navbar-inner {
-    display: grid;
-    grid-template-columns: auto minmax(16rem, 28rem) auto auto;
+    position: relative;
+    display: flex;
     align-items: center;
-    gap: 1rem;
-    width: min(100% - 2rem, 92rem);
+    justify-content: space-between;
+    width: min(100% - 2rem, 88rem);
+    min-height: 3.8rem;
     margin: 0 auto;
-    padding: 0.75rem 0 0.9rem;
+    padding: 0.45rem 0 0.6rem;
+    gap: 1rem;
   }
 
   .cordell-navbar-brand {
     display: inline-flex;
+    flex: 0 0 auto;
     flex-direction: column;
-    min-width: max-content;
+    width: 12rem;
     text-decoration: none;
   }
 
   .cordell-navbar-brand-name {
-    font-size: 1.3rem;
-    font-weight: 950;
-    line-height: 1;
-    letter-spacing: 0;
     color: var(--cordell-text);
+    font-size: 1.08rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.045em;
   }
 
   .cordell-navbar-section {
-    margin-top: 0.2rem;
-    font-size: 0.66rem;
-    font-weight: 900;
-    line-height: 1;
-    letter-spacing: 0;
+    margin-top: 0.18rem;
     color: var(--cordell-muted);
+    font-size: 0.58rem;
+    font-weight: 850;
+    line-height: 1;
+    letter-spacing: 0.075em;
   }
 
   .cordell-navbar-search {
-    position: relative;
-    animation: cordell-navbar-search-enter 180ms ease both;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(28rem, 34vw);
+    transform: translate(-50%, -50%);
+  }
+
+  .cordell-navbar-search[hidden] {
+    display: none;
+  }
+
+  .cordell-navbar-search-invisible {
+    visibility: hidden;
+    pointer-events: none;
   }
 
   .cordell-navbar-search-results {
     position: absolute;
     left: 0;
     right: 0;
-    top: calc(100% + 0.55rem);
+    top: calc(100% + 0.45rem);
     z-index: 50;
+  }
+
+  .cordell-navbar-right {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.65rem;
+    min-width: 0;
   }
 
   .cordell-navbar-links {
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 0.35rem;
-    min-width: max-content;
+    gap: 0.15rem;
   }
 
   .cordell-navbar-link {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    border-radius: var(--radius-cordell-md);
-    padding: 0.6rem 0.75rem;
+    justify-content: center;
+    border-radius: var(--radius-cordell-sm);
+    padding: 0.42rem 0.6rem;
     color: var(--cordell-muted);
-    font-size: 0.875rem;
-    font-weight: 850;
+    font-size: 0.82rem;
+    font-weight: 750;
     text-decoration: none;
     transition:
-      color 160ms ease,
-      background-color 160ms ease,
-      transform 160ms ease;
+      color 140ms ease,
+      background-color 140ms ease;
   }
 
   .cordell-navbar-link:hover {
     background: var(--cordell-surface-muted);
     color: var(--cordell-text);
-    transform: translateY(-1px);
   }
 
   .cordell-navbar-link-active {
-    background: var(--cordell-primary-soft);
-    color: var(--cordell-primary);
+    background: color-mix(in srgb, var(--cordell-primary) 10%, var(--cordell-surface-muted));
+    color: var(--cordell-text);
+  }
+
+  .cordell-navbar-link-invisible {
+    visibility: hidden;
+    pointer-events: none;
   }
 
   .cordell-operator-menu {
     position: relative;
-    min-width: 14rem;
+    width: 10.75rem;
+    flex: 0 0 10.75rem;
   }
 
   .cordell-operator-button {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr auto;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.45rem;
     width: 100%;
     border: 1px solid var(--cordell-border);
-    border-radius: var(--radius-cordell-lg);
+    border-radius: var(--radius-cordell-md);
     background: var(--cordell-surface-raised);
     color: var(--cordell-text);
-    padding: 0.35rem 0.4rem;
+    padding: 0.38rem 0.42rem 0.38rem 0.55rem;
     cursor: pointer;
-    box-shadow: 0 14px 38px rgb(15 23 42 / 0.06);
+    box-shadow: none;
     transition:
-      border-color 160ms ease,
-      box-shadow 160ms ease,
-      transform 160ms ease;
+      border-color 140ms ease,
+      background-color 140ms ease;
   }
 
   .cordell-operator-button:hover,
   .cordell-operator-menu[data-open="true"] .cordell-operator-button {
-    border-color: var(--cordell-primary);
-    box-shadow: var(--shadow-cordell-soft);
-    transform: translateY(-1px);
-  }
-
-  .cordell-operator-avatar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.45rem;
-    height: 2.45rem;
-    border-radius: var(--radius-cordell-md);
-    background:
-      linear-gradient(
-        135deg,
-        var(--cordell-primary),
-        color-mix(in srgb, var(--cordell-secondary) 70%, var(--cordell-primary) 30%)
-      );
-    color: var(--cordell-primary-text);
-    font-size: 0.78rem;
-    font-weight: 950;
+    border-color: color-mix(in srgb, var(--cordell-primary) 55%, var(--cordell-border));
+    background: color-mix(in srgb, var(--cordell-surface-raised) 88%, var(--cordell-primary) 12%);
   }
 
   .cordell-operator-text {
@@ -551,35 +523,38 @@
     display: block;
     overflow: hidden;
     color: var(--cordell-text);
-    font-size: 0.86rem;
-    font-weight: 950;
-    line-height: 1.1;
+    font-size: 0.78rem;
+    font-weight: 820;
+    line-height: 1.15;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .cordell-operator-role {
-    display: block;
-    margin-top: 0.15rem;
-    overflow: hidden;
+  .cordell-operator-role-badge {
+    display: inline-flex;
+    width: fit-content;
+    max-width: 100%;
+    margin-top: 0.18rem;
+    border-radius: var(--radius-cordell-xs);
+    background: var(--cordell-surface-muted);
     color: var(--cordell-muted);
-    font-size: 0.72rem;
+    padding: 0.1rem 0.3rem;
+    font-size: 0.58rem;
     font-weight: 800;
-    line-height: 1.1;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1;
+    text-transform: uppercase;
   }
 
   .cordell-operator-chevron {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.9rem;
-    height: 1.9rem;
-    border-radius: var(--radius-cordell-sm);
+    width: 1.45rem;
+    height: 1.45rem;
+    border-radius: var(--radius-cordell-xs);
     background: var(--cordell-surface-muted);
     color: var(--cordell-muted);
-    transition: transform 160ms ease;
+    transition: transform 140ms ease;
   }
 
   .cordell-operator-menu[data-open="true"] .cordell-operator-chevron {
@@ -589,18 +564,18 @@
   .cordell-operator-dropdown {
     position: absolute;
     right: 0;
-    top: calc(100% + 0.6rem);
+    top: calc(100% + 0.35rem);
     z-index: 60;
-    width: min(22rem, calc(100vw - 2rem));
+    width: 100%;
     overflow: hidden;
     border: 1px solid var(--cordell-border);
-    border-radius: var(--radius-cordell-xl);
+    border-radius: var(--radius-cordell-md);
     background: var(--cordell-surface-raised);
-    box-shadow: var(--shadow-cordell-lifted);
+    box-shadow: var(--shadow-cordell-soft);
   }
 
   .cordell-operator-dropdown-section {
-    padding: 0.85rem;
+    padding: 0.55rem;
   }
 
   .cordell-operator-dropdown-section + .cordell-operator-dropdown-section {
@@ -608,139 +583,109 @@
   }
 
   .cordell-operator-dropdown-heading {
-    margin: 0 0 0.65rem;
+    margin: 0 0 0.45rem;
     color: var(--cordell-muted);
-    font-size: 0.7rem;
-    font-weight: 950;
-    letter-spacing: 0;
+    font-size: 0.58rem;
+    font-weight: 850;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
   }
 
   .cordell-logout-button {
     display: flex;
     align-items: center;
-    gap: 0.55rem;
+    gap: 0.4rem;
     width: 100%;
     border: 0;
-    border-radius: var(--radius-cordell-md);
+    border-radius: var(--radius-cordell-sm);
     background: transparent;
     color: var(--cordell-negative-text);
-    padding: 0.75rem;
-    font-weight: 900;
+    padding: 0.5rem 0.45rem;
+    font-size: 0.78rem;
+    font-weight: 800;
     cursor: pointer;
-    transition:
-      background-color 160ms ease,
-      color 160ms ease;
+    transition: background-color 140ms ease;
   }
 
   .cordell-logout-button:hover {
     background: var(--cordell-negative-soft);
   }
 
-  @keyframes cordell-navbar-search-enter {
-    from {
-      opacity: 0;
-      transform: translateY(-0.25rem) scale(0.98);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
   @media (max-width: 1180px) {
-    .cordell-navbar-inner {
-      grid-template-columns: auto 1fr auto;
-      grid-template-areas:
-        "brand search operator"
-        "links links links";
-      gap: 0.75rem;
+    .cordell-navbar-search {
+      width: min(24rem, 30vw);
     }
 
     .cordell-navbar-brand {
-      grid-area: brand;
+      width: 10.5rem;
+    }
+
+    .cordell-navbar-link {
+      padding-inline: 0.48rem;
+      font-size: 0.78rem;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .cordell-navbar-inner {
+      min-height: auto;
+      flex-wrap: wrap;
+      padding-bottom: 0.5rem;
     }
 
     .cordell-navbar-search {
-      grid-area: search;
+      position: static;
+      order: 3;
+      width: 100%;
+      transform: none;
+    }
+
+    .cordell-navbar-right {
+      flex: 1;
     }
 
     .cordell-navbar-links {
-      grid-area: links;
-      justify-content: flex-start;
       overflow-x: auto;
-      padding-bottom: 0.15rem;
       scrollbar-width: none;
     }
 
     .cordell-navbar-links::-webkit-scrollbar {
       display: none;
     }
-
-    .cordell-operator-menu {
-      grid-area: operator;
-    }
   }
 
-  @media (max-width: 760px) {
+  @media (max-width: 640px) {
     .cordell-navbar-devline {
       display: none;
     }
 
     .cordell-navbar-inner {
-      width: min(100% - 1rem, 92rem);
-      grid-template-columns: 1fr auto;
-      grid-template-areas:
-        "brand operator"
-        "search search"
-        "links links";
-      padding: 0.65rem 0;
+      width: min(100% - 1rem, 88rem);
+      gap: 0.5rem;
     }
 
-    .cordell-navbar-search {
-      width: 100%;
-    }
-
-    .cordell-navbar-link {
-      padding: 0.55rem 0.65rem;
-      font-size: 0.82rem;
-    }
-
-    .cordell-operator-menu {
-      min-width: 0;
-    }
-
-    .cordell-operator-button {
+    .cordell-navbar-brand {
       width: auto;
-      grid-template-columns: auto auto;
+      min-width: 8rem;
     }
 
-    .cordell-operator-text {
-      display: none;
+    .cordell-navbar-right {
+      width: 100%;
+      order: 2;
+      justify-content: space-between;
     }
 
-    .cordell-operator-dropdown {
-      right: 0;
-    }
-  }
-
-  @media (max-width: 520px) {
     .cordell-navbar-search {
       display: none;
     }
 
     .cordell-navbar-links {
-      gap: 0.25rem;
+      max-width: calc(100vw - 12rem);
     }
 
-    .cordell-navbar-link span {
-      display: none;
-    }
-
-    .cordell-navbar-link {
-      justify-content: center;
-      min-width: 2.6rem;
+    .cordell-operator-menu {
+      width: 9.5rem;
+      flex-basis: 9.5rem;
     }
   }
 

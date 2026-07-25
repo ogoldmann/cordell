@@ -15,8 +15,12 @@
         <span class="cordell-navbar-section">{{.SectionName}}</span>
       </a>
 
-      {{if .ShowSearch}}
-        <div class="cordell-navbar-search" data-navbar-search>
+      <div
+        class="cordell-navbar-search {{if not .ShowSearch}}cordell-navbar-search-invisible{{end}}"
+        data-navbar-search
+        {{if not .ShowSearch}}aria-hidden="true"{{end}}
+      >
+        {{if .ShowSearch}}
           <form method="get" action="/search" data-navbar-search-form>
             {{template "search_bar" .Search}}
           </form>
@@ -28,59 +32,59 @@
             aria-label="Sugestões de pesquisa"
             hidden
           ></div>
-        </div>
-      {{end}}
-
-      <nav class="cordell-navbar-links" aria-label="Navegação principal">
-        {{range .Links}}
-          {{if .Show}}
-            <a
-              class="cordell-navbar-link {{if .Active}}cordell-navbar-link-active{{end}}"
-              href="{{.URL}}"
-              {{if .Active}}aria-current="page"{{end}}
-            >
-              {{template "icon" .Icon}}
-              <span>{{.Label}}</span>
-            </a>
-          {{end}}
         {{end}}
-      </nav>
+      </div>
 
-      <div class="cordell-operator-menu" data-operator-menu>
-        <button
-          class="cordell-operator-button"
-          type="button"
-          data-operator-menu-button
-          aria-expanded="false"
-          aria-haspopup="true"
-        >
-          <span class="cordell-operator-avatar">{{.Operator.Initials}}</span>
+      <div class="cordell-navbar-right">
+        <nav class="cordell-navbar-links" aria-label="Navegação principal">
+          {{range .Links}}
+            {{if .Show}}
+              <a
+                class="cordell-navbar-link {{if .Active}}cordell-navbar-link-active{{end}} {{if .Invisible}}cordell-navbar-link-invisible{{end}}"
+                href="{{.URL}}"
+                {{if .Active}}aria-current="page"{{end}}
+                {{if .Invisible}}aria-hidden="true" tabindex="-1"{{end}}
+              >
+                <span>{{.Label}}</span>
+              </a>
+            {{end}}
+          {{end}}
+        </nav>
 
-          <span class="cordell-operator-text">
-            <span class="cordell-operator-name">{{.Operator.DisplayName}}</span>
-            <span class="cordell-operator-role">{{.Operator.RoleLabel}}</span>
-          </span>
+        <div class="cordell-operator-menu" data-operator-menu>
+          <button
+            class="cordell-operator-button"
+            type="button"
+            data-operator-menu-button
+            aria-expanded="false"
+            aria-haspopup="true"
+          >
+            <span class="cordell-operator-text">
+              <span class="cordell-operator-name">{{.Operator.DisplayName}}</span>
+              <span class="cordell-operator-role-badge">{{.Operator.RoleLabel}}</span>
+            </span>
 
-          <span class="cordell-operator-chevron">
-            {{template "icon" (newIcon "chevron-down" "size-4")}}
-          </span>
-        </button>
+            <span class="cordell-operator-chevron">
+              {{template "icon" (newIcon "chevron-down" "size-3")}}
+            </span>
+          </button>
 
-        <div class="cordell-operator-dropdown" data-operator-menu-dropdown hidden>
-          <div class="cordell-operator-dropdown-section">
-            <p class="cordell-operator-dropdown-heading">Tema</p>
-            {{template "theme_selector" .ThemeSelector}}
-          </div>
+          <div class="cordell-operator-dropdown" data-operator-menu-dropdown hidden>
+            <div class="cordell-operator-dropdown-section">
+              <p class="cordell-operator-dropdown-heading">Tema</p>
+              {{template "theme_selector" .ThemeSelector}}
+            </div>
 
-          <div class="cordell-operator-dropdown-section">
-            <form method="post" action="/logout">
-              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <div class="cordell-operator-dropdown-section">
+              <form method="post" action="/logout">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
-              <button class="cordell-logout-button" type="submit">
-                {{template "icon" (newIcon "log-out" "size-4")}}
-                <span>Sair</span>
-              </button>
-            </form>
+                <button class="cordell-logout-button" type="submit">
+                  {{template "icon" (newIcon "log-out" "size-4")}}
+                  <span>Sair</span>
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>

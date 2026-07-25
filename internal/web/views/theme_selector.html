@@ -1,20 +1,19 @@
 {{define "theme_selector"}}
-  <div class="grid gap-2">
+  <div class="grid gap-1">
     {{range .Options}}
       <button
-        class="flex w-full items-center gap-3 rounded-xl border border-cordell-border bg-cordell-surface-raised px-3 py-2 text-left text-sm font-bold text-cordell-text transition hover:border-cordell-primary hover:bg-cordell-primary-soft data-[selected=true]:border-cordell-primary data-[selected=true]:bg-cordell-primary-soft dark:border-cordell-border"
+        class="flex w-full items-center gap-2 rounded-md border border-cordell-border bg-cordell-surface-raised px-2 py-1.5 text-left text-xs font-bold text-cordell-text transition hover:border-cordell-primary hover:bg-cordell-surface-muted data-[selected=true]:border-cordell-primary data-[selected=true]:bg-cordell-primary-soft"
         type="button"
         data-theme-option="{{.Value}}"
         data-selected="false"
         aria-pressed="false"
       >
-        <span class="inline-flex size-8 items-center justify-center rounded-lg bg-cordell-surface-muted text-cordell-muted">
+        <span class="inline-flex size-6 items-center justify-center rounded-sm bg-cordell-surface-muted text-cordell-muted">
           {{template "icon" .Icon}}
         </span>
 
         <span class="min-w-0">
-          <span class="block text-cordell-text">{{.Label}}</span>
-          <span class="block text-xs font-semibold text-cordell-muted">{{.Description}}</span>
+          <span class="block">{{.Label}}</span>
         </span>
       </button>
     {{end}}

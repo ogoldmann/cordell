@@ -21,11 +21,12 @@ type navbarView struct {
 }
 
 type navbarLinkView struct {
-	Label  string
-	URL    string
-	Icon   iconView
-	Active bool
-	Show   bool
+	Label     string
+	URL       string
+	Icon      iconView
+	Active    bool
+	Show      bool
+	Invisible bool
 }
 
 type navbarOperatorView struct {
@@ -44,24 +45,23 @@ func newNavbarView(r *http.Request, layout privateLayoutData) navbarView {
 		Initials:    operatorInitials(layout.CurrentOperator.DisplayName),
 	}
 
-	showHomeLink := !isHome
-
 	return navbarView{
 		BrandName:      brandName,
 		SectionName:    brandSectionName,
 		DeveloperLabel: brandDeveloper,
 		GithubLabel:    brandGithubLabel,
 		GithubURL:      brandGithubURL,
-		ShowHomeLink:   showHomeLink,
+		ShowHomeLink:   !isHome,
 		ShowSearch:     layout.ShowNavbarSearch,
 		Search:         newNavbarSearchBar(),
 		Links: []navbarLinkView{
 			{
-				Label:  "Home",
-				URL:    "/",
-				Icon:   newIcon("home", "size-4"),
-				Active: isHome,
-				Show:   showHomeLink,
+				Label:     "Home",
+				URL:       "/",
+				Icon:      newIcon("home", "size-4"),
+				Active:    isHome,
+				Show:      true,
+				Invisible: isHome,
 			},
 			{
 				Label:  "Militares",

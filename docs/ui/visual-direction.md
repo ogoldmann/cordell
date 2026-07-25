@@ -106,6 +106,32 @@ Cards should have sufficiently rounded borders.
 
 The UI should avoid the feeling of old corporate systems.
 
+## Visual recalibration
+
+Cordell should feel minimalist, polished, serious, and operational.
+
+Avoid:
+
+- excessive rounding
+- oversized components
+- saturated colors
+- playful visual language
+- excessive shadows
+- unnecessary icons in navigation
+- layout movement when optional elements appear or disappear
+
+Use primary color punctually.
+
+Nested surfaces must not use the same radius.
+
+Recommended radius hierarchy:
+
+- outer container: larger radius
+- inner container: smaller radius
+- small controls: smaller still
+
+The interface should feel premium through precision, spacing, typography, and consistency, not through exaggerated visual effects.
+
 ## Themes
 
 Cordell supports three themes:

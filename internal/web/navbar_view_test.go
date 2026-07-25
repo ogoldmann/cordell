@@ -27,7 +27,7 @@ func TestOperatorInitials(t *testing.T) {
 	}
 }
 
-func TestNavbarHidesHomeLinkOnHome(t *testing.T) {
+func TestNavbarKeepsHomeLinkInvisibleOnHome(t *testing.T) {
 	request := httptest.NewRequest("GET", "/", nil)
 
 	layout := privateLayoutData{
@@ -42,14 +42,20 @@ func TestNavbarHidesHomeLinkOnHome(t *testing.T) {
 
 	navbar := newNavbarView(request, layout)
 
-	if navbar.ShowHomeLink {
-		t.Fatal("expected home link to be hidden on dashboard")
+	var homeLink navbarLinkView
+	for _, link := range navbar.Links {
+		if link.Label == "Home" {
+			homeLink = link
+			break
+		}
 	}
 
-	for _, link := range navbar.Links {
-		if link.Label == "Home" && link.Show {
-			t.Fatal("expected Home link not to show on dashboard")
-		}
+	if !homeLink.Show {
+		t.Fatal("expected Home link to remain rendered for layout stability")
+	}
+
+	if !homeLink.Invisible {
+		t.Fatal("expected Home link to be invisible on dashboard")
 	}
 }
 
@@ -70,5 +76,21 @@ func TestNavbarShowsHomeLinkOutsideHome(t *testing.T) {
 
 	if !navbar.ShowHomeLink {
 		t.Fatal("expected home link to be shown outside dashboard")
+	}
+
+	var homeLink navbarLinkView
+	for _, link := range navbar.Links {
+		if link.Label == "Home" {
+			homeLink = link
+			break
+		}
+	}
+
+	if !homeLink.Show {
+		t.Fatal("expected Home link to be rendered outside dashboard")
+	}
+
+	if homeLink.Invisible {
+		t.Fatal("expected Home link to be visible outside dashboard")
 	}
 }
